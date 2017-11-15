@@ -39,12 +39,11 @@ class Iterators {
         val mutableList = mutableListOf(1, 2, 3)
         val mutableIterator = mutableList.iterator()
 
-        if (mutableIterator.hasNext()) {
-            mutableIterator.next()
-            mutableIterator.remove()
-        }
-
+        // iterator() extension is called here
         for (e in mutableIterator) {
+            if (e % 2 == 0) {
+                mutableIterator.remove()
+            }
             println("The element is $e")
         }
     }
@@ -61,10 +60,12 @@ class Iterators {
     @Sample
     fun forEachIterator() {
         val iterator = (1..3).iterator()
+        // skip an element
         if (iterator.hasNext()) {
             iterator.next()
         }
 
+        // do something with the rest of elements
         iterator.forEach {
             println("The element is $it")
         }
