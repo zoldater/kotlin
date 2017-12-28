@@ -134,9 +134,7 @@ interface ControlFlowBuilder {
             operation: PredefinedOperation,
             inputValues: List<PseudoValue>): OperationInstruction
 
-    fun read(element: KtElement, target: AccessTarget,
-             receiverValues: Map<PseudoValue, ReceiverValue>,
-             fake: Boolean = false): ReadValueInstruction
+    fun read(element: KtElement, target: AccessTarget, receiverValues: Map<PseudoValue, ReceiverValue>): ReadValueInstruction
 
     fun write(
             assignment: KtElement,

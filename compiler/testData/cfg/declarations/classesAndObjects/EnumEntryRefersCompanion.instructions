@@ -26,8 +26,7 @@ L0:
     v(ANOTHER(foo());)
     magic[FAKE_INITIALIZER](ANOTHER(foo());) -> <v5>
     w(ANOTHER|<v5>)
-    r(foo, Companion)
-    magic[IMPLICIT_RECEIVER](foo()) -> <v6>
+    r(foo, Companion) -> <v6>
     mark(foo())
     call(foo(), foo|<v6>) -> <v7>
     mark((foo()))

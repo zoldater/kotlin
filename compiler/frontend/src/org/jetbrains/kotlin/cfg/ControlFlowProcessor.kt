@@ -1598,18 +1598,25 @@ class ControlFlowProcessor(private val trace: BindingTrace) {
 
             when (receiver) {
                 is ImplicitReceiver -> {
+                    var implicitReceiverValue: PseudoValue? = null
+                    // We read object descriptor or use synthetic implicit receiver instead
                     if (callElement is KtCallExpression) {
                         val declaration = receiver.declarationDescriptor
                         if (declaration is ClassDescriptor) {
                             val fakeDescriptor = getFakeDescriptorForObject(declaration)
                             val calleeExpression = callElement.calleeExpression
-                            if (fakeDescriptor != null && calleeExpression != null) {
-                                // NB: do this instead! of receiverValues = ... below
-                                builder.read(calleeExpression, AccessTarget.Declaration(fakeDescriptor), emptyMap(), fake = true)
+                            if (fakeDescriptor != null && calleeExpression != null &&
+                                fakeDescriptor.classDescriptor == receiver.declarationDescriptor) {
+                                implicitReceiverValue = builder.read(
+                                        calleeExpression, AccessTarget.Declaration(fakeDescriptor), emptyMap()
+                                ).outputValue
                             }
                         }
                     }
-                    receiverValues = receiverValues.plus(createSyntheticValue(callElement, MagicKind.IMPLICIT_RECEIVER), receiver)
+                    if (implicitReceiverValue == null) {
+                        implicitReceiverValue = createSyntheticValue(callElement, MagicKind.IMPLICIT_RECEIVER)
+                    }
+                    receiverValues = receiverValues.plus(implicitReceiverValue, receiver)
                 }
                 is ExpressionReceiver -> {
                     val expression = receiver.expression

@@ -405,9 +405,8 @@ class ControlFlowInstructionsGenerator : ControlFlowBuilderAdapter() {
         override fun read(
                 element: KtElement,
                 target: AccessTarget,
-                receiverValues: Map<PseudoValue, ReceiverValue>,
-                fake: Boolean
-        ) = ReadValueInstruction(element, currentScope, target, receiverValues, valueFactory, noOutputUsage = fake).apply {
+                receiverValues: Map<PseudoValue, ReceiverValue>
+        ) = ReadValueInstruction(element, currentScope, target, receiverValues, valueFactory).apply {
             add(this)
         }
 
