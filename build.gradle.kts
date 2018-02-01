@@ -146,6 +146,7 @@ fun Project.getBooleanProperty(name: String): Boolean? = this.findProperty(name)
 
 val isTeamcityBuild = project.hasProperty("teamcity") || System.getenv("TEAMCITY_VERSION") != null
 val intellijUltimateEnabled = project.getBooleanProperty("intellijUltimateEnabled") ?: isTeamcityBuild
+val effectSystemEnabled by extra(project.getBooleanProperty("effectSystemEnabled") ?: false)
 
 val intellijSeparateSdks = project.getBooleanProperty("intellijSeparateSdks") ?: false
 
@@ -290,7 +291,7 @@ allprojects {
     }
     configureJvmProject(javaHome!!, jvmTarget!!)
 
-    val commonCompilerArgs = listOf("-Xallow-kotlin-package")
+    val commonCompilerArgs = listOf("-Xallow-kotlin-package", "-Xread-deserialized-contracts")
 
     tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>> {
         kotlinOptions {
