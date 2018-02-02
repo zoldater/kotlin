@@ -56,7 +56,7 @@ private interface WhenExhaustivenessChecker {
     fun getMissingCases(
         expression: KtWhenExpression,
         context: BindingContext,
-        subjectDescriptor: ClassDescriptor?,
+        subjectType: KotlinType,
         nullable: Boolean
     ): List<WhenMissingCase>
 
@@ -101,7 +101,7 @@ private object WhenOnBooleanExhaustivenessChecker : WhenExhaustivenessChecker {
     override fun getMissingCases(
         expression: KtWhenExpression,
         context: BindingContext,
-        subjectDescriptor: ClassDescriptor?,
+        subjectType: KotlinType,
         nullable: Boolean
     ): List<WhenMissingCase> {
         // It's assumed (and not checked) that expression is of the boolean type
@@ -214,15 +214,17 @@ private object WhenOnEnumExhaustivenessChecker : WhenOnClassExhaustivenessChecke
     override fun getMissingCases(
         expression: KtWhenExpression,
         context: BindingContext,
-        subjectDescriptor: ClassDescriptor?,
+        subjectType: KotlinType,
         nullable: Boolean
     ): List<WhenMissingCase> {
-        assert(isEnumClass(subjectDescriptor)) { "isWhenOnEnumExhaustive should be called with an enum class descriptor" }
+        val subjectDescriptor = TypeUtils.getClassDescriptor(subjectType) ?: return listOf(UnknownMissingCase)
+
         val entryDescriptors =
-            DescriptorUtils.getAllDescriptors(subjectDescriptor!!.unsubstitutedInnerClassesScope)
+            DescriptorUtils.getAllDescriptors(subjectDescriptor.unsubstitutedInnerClassesScope)
                 .filter(::isEnumEntry)
                 .filterIsInstance<ClassDescriptor>()
                 .toSet()
+        
         return getMissingClassCases(expression, entryDescriptors, context) +
                 WhenOnNullableExhaustivenessChecker.getMissingCases(expression, context, nullable)
     }
@@ -237,14 +239,12 @@ internal object WhenOnSealedExhaustivenessChecker : WhenOnClassExhaustivenessChe
     override fun getMissingCases(
         expression: KtWhenExpression,
         context: BindingContext,
-        subjectDescriptor: ClassDescriptor?,
+        subjectType: KotlinType,
         nullable: Boolean
     ): List<WhenMissingCase> {
-        assert(DescriptorUtils.isSealedClass(subjectDescriptor)) {
-            "isWhenOnSealedClassExhaustive should be called with a sealed class descriptor: $subjectDescriptor"
-        }
+        val subjectDescriptor = DescriptorUtils.getClassDescriptorForType(subjectType)
 
-        val allSubclasses = subjectDescriptor!!.deepSealedSubclasses
+        val allSubclasses = subjectDescriptor.deepSealedSubclasses
         return getMissingClassCases(expression, allSubclasses.toSet(), context) +
                 WhenOnNullableExhaustivenessChecker.getMissingCases(expression, context, nullable)
     }
@@ -290,21 +290,23 @@ object WhenChecker {
         expression: KtWhenExpression,
         context: BindingContext,
         enumClassDescriptor: ClassDescriptor
-    ) = WhenOnEnumExhaustivenessChecker.getMissingCases(expression, context, enumClassDescriptor, false)
+    ) = WhenOnEnumExhaustivenessChecker.getMissingCases(expression, context, enumClassDescriptor.defaultType, false)
 
     @JvmStatic
     fun getSealedMissingCases(
         expression: KtWhenExpression,
         context: BindingContext,
         sealedClassDescriptor: ClassDescriptor
-    ) = WhenOnSealedExhaustivenessChecker.getMissingCases(expression, context, sealedClassDescriptor, false)
+    ) = WhenOnSealedExhaustivenessChecker.getMissingCases(expression, context, sealedClassDescriptor.defaultType, false)
 
     fun getMissingCases(expression: KtWhenExpression, context: BindingContext): List<WhenMissingCase> {
         val type = whenSubjectType(expression, context) ?: return listOf(UnknownMissingCase)
         val nullable = type.isMarkedNullable
+
         val checkers = exhaustivenessCheckers.filter { it.isApplicable(type) }
         if (checkers.isEmpty()) return listOf(UnknownMissingCase)
-        return checkers.map { it.getMissingCases(expression, context, TypeUtils.getClassDescriptor(type), nullable) }.flatten()
+
+        return checkers.map { it.getMissingCases(expression, context, type, nullable) }.flatten()
     }
 
     @JvmStatic
