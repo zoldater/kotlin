@@ -18,9 +18,11 @@ package org.jetbrains.kotlin.cfg
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.cfg.WhenOnSealedExhaustivenessChecker.deepSealedSubclasses
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
@@ -242,15 +244,23 @@ internal object WhenOnSealedExhaustivenessChecker : WhenOnClassExhaustivenessChe
         subjectType: KotlinType,
         nullable: Boolean
     ): List<WhenMissingCase> {
-        val subjectDescriptor = DescriptorUtils.getClassDescriptorForType(subjectType)
+        val sealedClassDescriptor = WhenChecker.getClassDescriptorOfTypeIfSealed(subjectType) ?: return listOf(UnknownMissingCase)
+        return getMissingCasesForDefinitelySealedDescriptor(expression, context, sealedClassDescriptor, nullable)
+    }
 
-        val allSubclasses = subjectDescriptor.deepSealedSubclasses
+    fun getMissingCasesForDefinitelySealedDescriptor(
+        expression: KtWhenExpression,
+        context: BindingContext,
+        sealedClassDescriptor: ClassDescriptor,
+        nullable: Boolean
+    ): List<WhenMissingCase> {
+        val allSubclasses = sealedClassDescriptor.deepSealedSubclasses
         return getMissingClassCases(expression, allSubclasses.toSet(), context) +
                 WhenOnNullableExhaustivenessChecker.getMissingCases(expression, context, nullable)
     }
 
     override fun isApplicable(subjectType: KotlinType): Boolean {
-        return DescriptorUtils.isSealedClass(TypeUtils.getClassDescriptor(subjectType))
+        return WhenChecker.getClassDescriptorOfTypeIfSealed(subjectType) != null
     }
 }
 
@@ -277,8 +287,20 @@ object WhenChecker {
     }
 
     @JvmStatic
-    fun getClassDescriptorOfTypeIfSealed(type: KotlinType?): ClassDescriptor? =
-        type?.let { TypeUtils.getClassDescriptor(it) }?.takeIf { DescriptorUtils.isSealedClass(it) }
+    fun getClassDescriptorOfTypeIfSealed(type: KotlinType?): ClassDescriptor? {
+        // TypeUtils.getClassDescriptor won't work for type parameter, so we have to go through constructor
+        val classDescriptor = type?.constructor?.declarationDescriptor ?: return null
+
+        return when (classDescriptor) {
+            is ClassDescriptor -> classDescriptor.takeIf { DescriptorUtils.isSealedClass(it) }
+
+            is TypeParameterDescriptor -> classDescriptor.upperBounds
+                .find { DescriptorUtils.isSealedClass(TypeUtils.getClassDescriptor(it)) }
+                ?.let { TypeUtils.getClassDescriptor(it) }
+
+            else -> null
+        }
+    }
 
 
     @JvmStatic
@@ -297,7 +319,7 @@ object WhenChecker {
         expression: KtWhenExpression,
         context: BindingContext,
         sealedClassDescriptor: ClassDescriptor
-    ) = WhenOnSealedExhaustivenessChecker.getMissingCases(expression, context, sealedClassDescriptor.defaultType, false)
+    ) = WhenOnSealedExhaustivenessChecker.getMissingCasesForDefinitelySealedDescriptor(expression, context, sealedClassDescriptor, false)
 
     fun getMissingCases(expression: KtWhenExpression, context: BindingContext): List<WhenMissingCase> {
         val type = whenSubjectType(expression, context) ?: return listOf(UnknownMissingCase)
