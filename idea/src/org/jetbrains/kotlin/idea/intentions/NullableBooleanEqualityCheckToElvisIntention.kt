@@ -17,11 +17,10 @@
 package org.jetbrains.kotlin.idea.intentions
 
 import com.intellij.openapi.editor.Editor
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.core.replaced
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.typeUtil.isBooleanOrNullableBoolean
 
@@ -38,7 +37,7 @@ class NullableBooleanEqualityCheckToElvisIntention : SelfTargetingIntention<KtBi
     private fun isApplicable(lhs: KtExpression, rhs: KtExpression): Boolean {
         if (!KtPsiUtil.isBooleanConstant(rhs)) return false
 
-        val lhsType = lhs.analyze(BodyResolveMode.PARTIAL).getType(lhs) ?: return false
+        val lhsType = lhs.resolveToCall()?.resultingDescriptor?.returnType ?: return false
         return TypeUtils.isNullableType(lhsType) && lhsType.isBooleanOrNullableBoolean()
     }
 

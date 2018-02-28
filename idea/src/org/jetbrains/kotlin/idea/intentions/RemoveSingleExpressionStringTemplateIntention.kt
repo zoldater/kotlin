@@ -18,13 +18,12 @@ package org.jetbrains.kotlin.idea.intentions
 
 import com.intellij.openapi.editor.Editor
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.inspections.IntentionBasedInspection
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.createExpressionByPattern
-import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 
 private fun KtStringTemplateExpression.singleExpressionOrNull() =
         children.singleOrNull()?.children?.firstOrNull() as? KtExpression
@@ -34,7 +33,7 @@ class RemoveSingleExpressionStringTemplateInspection : IntentionBasedInspection<
         additionalChecker = {
             templateExpression ->
             templateExpression.singleExpressionOrNull()?.let {
-                KotlinBuiltIns.isString(it.getType(it.analyze()))
+                KotlinBuiltIns.isString(it.resolveToCall()?.resultingDescriptor?.returnType)
             } ?: false
         }
 ) {
@@ -50,7 +49,7 @@ class RemoveSingleExpressionStringTemplateIntention : SelfTargetingOffsetIndepen
 
     override fun applyTo(element: KtStringTemplateExpression, editor: Editor?) {
         val expression = element.singleExpressionOrNull() ?: return
-        val type = expression.getType(expression.analyze())
+        val type = expression.resolveToCall()?.resultingDescriptor?.returnType
         val newElement =
                 if (KotlinBuiltIns.isString(type)) expression
                 else KtPsiFactory(element).createExpressionByPattern("$0.$1()", expression, "toString")

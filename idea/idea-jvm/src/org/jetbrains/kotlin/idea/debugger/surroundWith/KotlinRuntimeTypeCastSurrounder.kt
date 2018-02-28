@@ -16,17 +16,15 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ScrollType
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.util.ProgressWindow
-import com.intellij.openapi.progress.util.ProgressWindowWithNotification
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.idea.KotlinBundle
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.expression.KotlinExpressionSurrounder
-import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinRuntimeTypeEvaluator
 import org.jetbrains.kotlin.idea.core.ShortenReferences
+import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinRuntimeTypeEvaluator
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.DescriptorUtils
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
@@ -40,7 +38,7 @@ class KotlinRuntimeTypeCastSurrounder: KotlinExpressionSurrounder() {
         val file = expression.containingFile
         if (file !is KtCodeFragment) return false
 
-        val type = expression.analyze(BodyResolveMode.PARTIAL).getType(expression) ?: return false
+        val type = expression.resolveToCall()?.resultingDescriptor?.returnType ?: return false
 
         return TypeUtils.canHaveSubtypes(KotlinTypeChecker.DEFAULT, type)
     }

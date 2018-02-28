@@ -16,12 +16,11 @@
 
 package org.jetbrains.kotlin.idea.intentions.loopToCallChain.sequence
 
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.intentions.loopToCallChain.*
 import org.jetbrains.kotlin.idea.project.builtIns
 import org.jetbrains.kotlin.idea.util.FuzzyType
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 class FlatMapTransformation(
         override val loop: KtForExpression,
@@ -58,7 +57,7 @@ class FlatMapTransformation(
 
             val transform = nestedLoop.loopRange ?: return null
             // check that we iterate over Iterable
-            val nestedSequenceType = transform.analyze(BodyResolveMode.PARTIAL).getType(transform) ?: return null
+            val nestedSequenceType = transform.resolveToCall()?.resultingDescriptor?.returnType ?: return null
             val builtIns = transform.builtIns
             val iterableType = FuzzyType(builtIns.iterableType, builtIns.iterable.declaredTypeParameters)
             if (iterableType.checkIsSuperTypeOf(nestedSequenceType) == null) return null

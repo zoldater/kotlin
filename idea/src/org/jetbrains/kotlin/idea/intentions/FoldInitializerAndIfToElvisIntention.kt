@@ -23,7 +23,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.core.replaced
 import org.jetbrains.kotlin.idea.core.setType
 import org.jetbrains.kotlin.idea.inspections.IntentionBasedInspection
@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.psi.psiUtil.PsiChildRange
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.siblings
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.types.typeUtil.isNothing
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
@@ -47,7 +46,7 @@ class FoldInitializerAndIfToElvisIntention : SelfTargetingRangeIntention<KtIfExp
     override fun applicabilityRange(element: KtIfExpression): TextRange? {
         val data = calcData(element) ?: return null
 
-        val type = data.ifNullExpression.analyze().getType(data.ifNullExpression) ?: return null
+        val type = data.ifNullExpression.resolveToCall()?.resultingDescriptor?.returnType ?: return null
         if (!type.isNothing()) return null
 
         val rParen = element.rightParenthesis ?: return null
@@ -60,10 +59,10 @@ class FoldInitializerAndIfToElvisIntention : SelfTargetingRangeIntention<KtIfExp
 
         val explicitTypeToSet = when {
             // for var with no explicit type, add it so that the actual change won't change
-            declaration.isVar && declaration.typeReference == null -> initializer.analyze(BodyResolveMode.PARTIAL).getType(initializer)
+            declaration.isVar && declaration.typeReference == null -> initializer.resolveToCall()?.resultingDescriptor?.returnType
 
             // for val with explicit type, change it to non-nullable
-            !declaration.isVar && declaration.typeReference != null -> initializer.analyze(BodyResolveMode.PARTIAL).getType(initializer)?.makeNotNullable()
+            !declaration.isVar && declaration.typeReference != null -> initializer.resolveToCall()?.resultingDescriptor?.returnType?.makeNotNullable()
 
             else -> null
         }

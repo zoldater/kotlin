@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.idea.quickfix
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.core.replaced
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.psi.KtExpression
@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.createExpressionByPattern
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isPrimitiveNumberType
 
@@ -37,7 +36,7 @@ class NumberConversionFix(
         private val disableIfAvailable: IntentionAction? = null
 ) : KotlinQuickFixAction<KtExpression>(element) {
     private val isConversionAvailable: Boolean = run {
-        val expressionType = element.analyze(BodyResolveMode.PARTIAL).getType(element)
+        val expressionType = element.resolveToCall()?.resultingDescriptor?.returnType
         expressionType != null && expressionType != type && expressionType.isPrimitiveNumberType() && type.isPrimitiveNumberType()
     }
     private val typePresentation = IdeDescriptorRenderers.SOURCE_CODE_SHORT_NAMES_IN_TYPES.renderType(type)
