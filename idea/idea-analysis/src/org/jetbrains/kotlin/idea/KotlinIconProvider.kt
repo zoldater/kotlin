@@ -52,9 +52,9 @@ class KotlinIconProvider : IconProvider(), DumbAware {
     }
 
     companion object {
-        var INSTANCE = KotlinIconProvider()
+        var INSTANCE: KotlinIconProvider = KotlinIconProvider()
 
-        fun isSingleClassFile(file: KtFile) = getSingleClass(file) != null
+        fun isSingleClassFile(file: KtFile): Boolean = getSingleClass(file) != null
 
         fun getSingleClass(file: KtFile): KtClassOrObject? {
             val mainClass = getMainClass(file)

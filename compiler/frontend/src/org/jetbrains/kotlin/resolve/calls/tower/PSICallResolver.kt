@@ -150,7 +150,7 @@ class PSICallResolver(
     private fun createResolutionCallbacks(context: BasicCallResolutionContext) =
         createResolutionCallbacks(context.trace, context.inferenceSession)
 
-    fun createResolutionCallbacks(trace: BindingTrace, inferenceSession: InferenceSession) =
+    fun createResolutionCallbacks(trace: BindingTrace, inferenceSession: InferenceSession): KotlinResolutionCallbacksImpl =
         KotlinResolutionCallbacksImpl(
             trace, expressionTypingServices, typeApproximator,
             argumentTypeResolver, languageVersionSettings, kotlinToResolvedCallTransformer,

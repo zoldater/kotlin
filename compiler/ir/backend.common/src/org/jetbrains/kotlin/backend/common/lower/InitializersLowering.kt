@@ -114,9 +114,9 @@ class InitializersLowering(val context: CommonBackendContext, val declarationOri
     }
 
     companion object {
-        val clinitName = Name.special("<clinit>")
+        val clinitName: Name = Name.special("<clinit>")
 
-        fun IrStatement.copy() = deepCopyWithSymbols()
-        fun IrExpression.copy() = deepCopyWithSymbols()
+        fun IrStatement.copy(): IrStatement = deepCopyWithSymbols()
+        fun IrExpression.copy(): IrExpression = deepCopyWithSymbols()
     }
 }

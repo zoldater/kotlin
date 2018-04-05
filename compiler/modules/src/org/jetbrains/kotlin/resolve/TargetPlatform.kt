@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import java.util.*
 
 abstract class TargetPlatform(val platformName: String) {
-    override fun toString() = platformName
+    override fun toString(): String = platformName
 
     abstract val platformConfigurator: PlatformConfigurator
 

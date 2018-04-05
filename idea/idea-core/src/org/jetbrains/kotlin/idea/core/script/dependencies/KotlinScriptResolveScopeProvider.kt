@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.script.getScriptDefinition
 class KotlinScriptResolveScopeProvider : ResolveScopeProvider() {
     companion object {
         // Used in LivePlugin
-        val USE_NULL_RESOLVE_SCOPE = "USE_NULL_RESOLVE_SCOPE"
+        val USE_NULL_RESOLVE_SCOPE: String = "USE_NULL_RESOLVE_SCOPE"
     }
 
     override fun getResolveScope(file: VirtualFile, project: Project): GlobalSearchScope? {

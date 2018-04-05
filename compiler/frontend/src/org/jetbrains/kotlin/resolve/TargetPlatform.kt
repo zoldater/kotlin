@@ -87,7 +87,7 @@ abstract class PlatformConfiguratorBase(
         DEFAULT_CLASSIFIER_USAGE_CHECKERS + additionalClassifierUsageCheckers
     private val annotationCheckers: List<AdditionalAnnotationChecker> = DEFAULT_ANNOTATION_CHECKERS + additionalAnnotationCheckers
 
-    override val platformSpecificContainer = composeContainer(this::class.java.simpleName) {
+    override val platformSpecificContainer: StorageComponentContainer = composeContainer(this::class.java.simpleName) {
         useInstance(dynamicTypesSettings)
         declarationCheckers.forEach { useInstance(it) }
         callCheckers.forEach { useInstance(it) }
@@ -103,7 +103,7 @@ abstract class PlatformConfiguratorBase(
     }
 }
 
-fun createContainer(id: String, platform: TargetPlatform, init: StorageComponentContainer.() -> Unit) =
+fun createContainer(id: String, platform: TargetPlatform, init: StorageComponentContainer.() -> Unit): StorageComponentContainer =
     composeContainer(id, platform.platformConfigurator.platformSpecificContainer, init)
 
 

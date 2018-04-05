@@ -35,7 +35,7 @@ interface ModuleInfo {
     enum class DependencyOnBuiltIns { NONE, AFTER_SDK, LAST }
 
     companion object {
-        val Capability = ModuleDescriptor.Capability<ModuleInfo>("ModuleInfo")
+        val Capability: ModuleDescriptor.Capability<ModuleInfo> = ModuleDescriptor.Capability("ModuleInfo")
     }
 }
 

@@ -99,7 +99,7 @@ class ScriptTemplatesFromDependenciesProvider(private val project: Project) : Sc
         return TemplatesWithCp(templates.toList(), classpath.toList())
     }
 
-    override val id = "ScriptTemplatesFromDependenciesProvider"
+    override val id: String = "ScriptTemplatesFromDependenciesProvider"
 
     override fun getDefinitions(): List<KotlinScriptDefinition> {
         lock.read {

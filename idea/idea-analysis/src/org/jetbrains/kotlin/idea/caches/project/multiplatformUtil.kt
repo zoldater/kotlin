@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 
-fun Module.findImplementingModules(modelsProvider: IdeModifiableModelsProvider) =
+fun Module.findImplementingModules(modelsProvider: IdeModifiableModelsProvider): List<Module> =
     modelsProvider.modules.filter { name in it.findImplementedModuleNames(modelsProvider) }
 
 val Module.implementingModules: List<Module>

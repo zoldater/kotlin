@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 
 class DefaultClassObjectIntrinsic( val fqName: FqName): ObjectIntrinsic {
-    override fun apply(context: TranslationContext) = context.getReferenceToIntrinsic(fqName.asString())
+    override fun apply(context: TranslationContext): JsExpression = context.getReferenceToIntrinsic(fqName.asString())
 }
 
 class ObjectIntrinsics {

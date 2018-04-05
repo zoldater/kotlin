@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.resolve.calls.model.PartialCallResolutionResult
 
 interface InferenceSession {
     companion object {
-        val default = object : InferenceSession {
+        val default: InferenceSession = object : InferenceSession {
             override fun shouldRunCompletion(candidate: KotlinResolutionCandidate): Boolean = true
             override fun addPartialCallInfo(callInfo: PartialCallInfo) {}
             override fun addErrorCallInfo(callInfo: ErrorCallInfo) {}

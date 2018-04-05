@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 internal fun MemberDescriptor.expectedDescriptors() = module.implementedDescriptors.mapNotNull { it.declarationOf(this) }
 
 // TODO: Sort out the cases with multiple expected descriptors
-fun MemberDescriptor.expectedDescriptor() = expectedDescriptors().firstOrNull()
+fun MemberDescriptor.expectedDescriptor(): DeclarationDescriptor? = expectedDescriptors().firstOrNull()
 
 fun KtDeclaration.expectedDeclarationIfAny(): KtDeclaration? {
     val expectedDescriptor = (toDescriptor() as? MemberDescriptor)?.expectedDescriptor() ?: return null
@@ -59,7 +59,7 @@ fun KtDeclaration.liftToExpected(): KtDeclaration? {
     return DescriptorToSourceUtils.descriptorToDeclaration(expectedDescriptor) as? KtDeclaration
 }
 
-fun ModuleDescriptor.hasDeclarationOf(descriptor: MemberDescriptor) = declarationOf(descriptor) != null
+fun ModuleDescriptor.hasDeclarationOf(descriptor: MemberDescriptor): Boolean = declarationOf(descriptor) != null
 
 private fun ModuleDescriptor.declarationOf(descriptor: MemberDescriptor): DeclarationDescriptor? =
     with(ExpectedActualResolver) {
@@ -68,7 +68,7 @@ private fun ModuleDescriptor.declarationOf(descriptor: MemberDescriptor): Declar
                 ?: expectedCompatibilityMap?.values?.flatten()?.firstOrNull()
     }
 
-fun ModuleDescriptor.hasActualsFor(descriptor: MemberDescriptor) =
+fun ModuleDescriptor.hasActualsFor(descriptor: MemberDescriptor): Boolean =
     actualsFor(descriptor).isNotEmpty()
 
 fun ModuleDescriptor.actualsFor(descriptor: MemberDescriptor, checkCompatible: Boolean = false): List<DeclarationDescriptor> =
@@ -115,7 +115,7 @@ private fun KtClassOrObject.isExpected(): Boolean {
     return this.hasExpectModifier() || this.descriptor.safeAs<ClassDescriptor>()?.isExpect == true
 }
 
-fun KtDeclaration.hasMatchingExpected() = (toDescriptor() as? MemberDescriptor)?.expectedDescriptor() != null
+fun KtDeclaration.hasMatchingExpected(): Boolean = (toDescriptor() as? MemberDescriptor)?.expectedDescriptor() != null
 
 fun KtDeclaration.isEffectivelyActual(): Boolean {
     if (hasActualModifier()) return true

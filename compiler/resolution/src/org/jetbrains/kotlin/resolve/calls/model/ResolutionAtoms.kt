@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.resolve.calls.model
 import org.jetbrains.kotlin.builtins.getReceiverTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.getValueParameterTypesFromFunctionType
+import org.jetbrains.kotlin.contracts.model.structure.UNKNOWN_COMPUTATION.type
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.resolve.calls.components.CallableReferenceCandidate
@@ -163,7 +164,7 @@ sealed class CallResolutionResult(
 
     override val atom: ResolutionAtom? get() = null
 
-    override fun toString() = "diagnostics: (${diagnostics.joinToString()})"
+    override fun toString(): String = "diagnostics: (${diagnostics.joinToString()})"
 }
 
 open class SingleCallResolutionResult(

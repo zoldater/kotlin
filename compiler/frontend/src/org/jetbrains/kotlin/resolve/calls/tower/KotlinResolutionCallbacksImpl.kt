@@ -64,10 +64,10 @@ class KotlinResolutionCallbacksImpl(
 ) : KotlinResolutionCallbacks {
     class LambdaInfo(val expectedType: UnwrappedType, val contextDependency: ContextDependency) {
         val returnStatements = ArrayList<Pair<KtReturnExpression, LambdaContextInfo?>>()
-        val lastExpressionInfo = LambdaContextInfo()
+        val lastExpressionInfo: LambdaContextInfo = LambdaContextInfo()
 
         companion object {
-            val STUB_EMPTY = LambdaInfo(TypeUtils.NO_EXPECTED_TYPE, ContextDependency.INDEPENDENT)
+            val STUB_EMPTY: LambdaInfo = LambdaInfo(TypeUtils.NO_EXPECTED_TYPE, ContextDependency.INDEPENDENT)
         }
     }
 

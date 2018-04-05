@@ -62,7 +62,7 @@ sealed class LazyLightClassDataHolder(
     private val inexactStub: PsiJavaFileStub?
         get() = if (exactResultLazyValue.isInitialized()) null else lazyInexactStub
 
-    override val javaFileStub by exactResultLazyValue
+    override val javaFileStub: PsiJavaFileStub by exactResultLazyValue
 
     override val extraDiagnostics: Diagnostics
         get() {

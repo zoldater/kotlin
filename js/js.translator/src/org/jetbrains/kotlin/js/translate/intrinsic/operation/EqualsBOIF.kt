@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.js.translate.intrinsic.operation
 
+import com.google.common.collect.ImmutableSet
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.js.backend.ast.JsBinaryOperator
@@ -25,6 +26,7 @@ import org.jetbrains.kotlin.js.translate.intrinsic.functions.factories.TopLevelF
 import org.jetbrains.kotlin.js.translate.utils.JsAstUtils
 import org.jetbrains.kotlin.js.translate.utils.PsiUtils.isNegatedOperation
 import org.jetbrains.kotlin.js.translate.utils.TranslationUtils
+import org.jetbrains.kotlin.lexer.KtSingleValueToken
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
@@ -34,7 +36,7 @@ import org.jetbrains.kotlin.types.expressions.OperatorConventions
 import org.jetbrains.kotlin.types.isDynamic
 
 object EqualsBOIF : BinaryOperationIntrinsicFactory {
-    override fun getSupportTokens() = OperatorConventions.EQUALS_OPERATIONS!!
+    override fun getSupportTokens(): ImmutableSet<KtSingleValueToken> = OperatorConventions.EQUALS_OPERATIONS!!
 
     private val equalsNullIntrinsic = BinaryOperationIntrinsic { expression, left, right, context ->
         val (subject, ktSubject) = if (right is JsNullLiteral) Pair(left, expression.left!!) else Pair(right, expression.right!!)

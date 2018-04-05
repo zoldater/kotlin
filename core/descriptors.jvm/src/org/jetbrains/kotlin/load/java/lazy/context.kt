@@ -63,7 +63,7 @@ class JavaResolverComponents(
 ) {
     fun replace(
             javaResolverCache: JavaResolverCache = this.javaResolverCache
-    ) = JavaResolverComponents(
+    ): JavaResolverComponents = JavaResolverComponents(
             storageManager, finder, kotlinClassFinder, deserializedDescriptorResolver,
             signaturePropagator, errorReporter, javaResolverCache,
             javaPropertyInitializerEvaluator, samConversionResolver, sourceElementFactory,
@@ -103,7 +103,7 @@ class LazyJavaResolverContext internal constructor(
 
     val defaultTypeQualifiers: JavaTypeQualifiersByElementType? by delegateForDefaultTypeQualifiers
 
-    val typeResolver = JavaTypeResolver(this, typeParameterResolver)
+    val typeResolver: JavaTypeResolver = JavaTypeResolver(this, typeParameterResolver)
 
     val storageManager: StorageManager
         get() = components.storageManager
@@ -113,7 +113,7 @@ class LazyJavaResolverContext internal constructor(
 
 fun LazyJavaResolverContext.child(
         typeParameterResolver: TypeParameterResolver
-) = LazyJavaResolverContext(components, typeParameterResolver, delegateForDefaultTypeQualifiers)
+): LazyJavaResolverContext = LazyJavaResolverContext(components, typeParameterResolver, delegateForDefaultTypeQualifiers)
 
 fun LazyJavaResolverContext.computeNewDefaultTypeQualifiers(
         additionalAnnotations: Annotations
@@ -174,7 +174,7 @@ data class NullabilityQualifierWithApplicability(
 
 fun LazyJavaResolverContext.replaceComponents(
         components: JavaResolverComponents
-) = LazyJavaResolverContext(components, typeParameterResolver, delegateForDefaultTypeQualifiers)
+): LazyJavaResolverContext = LazyJavaResolverContext(components, typeParameterResolver, delegateForDefaultTypeQualifiers)
 
 private fun LazyJavaResolverContext.child(
         containingDeclaration: DeclarationDescriptor,
@@ -192,20 +192,20 @@ fun LazyJavaResolverContext.childForMethod(
         containingDeclaration: DeclarationDescriptor,
         typeParameterOwner: JavaTypeParameterListOwner,
         typeParametersIndexOffset: Int = 0
-) = child(containingDeclaration, typeParameterOwner, typeParametersIndexOffset, delegateForDefaultTypeQualifiers)
+): LazyJavaResolverContext = child(containingDeclaration, typeParameterOwner, typeParametersIndexOffset, delegateForDefaultTypeQualifiers)
 
 fun LazyJavaResolverContext.childForClassOrPackage(
         containingDeclaration: ClassOrPackageFragmentDescriptor,
         typeParameterOwner: JavaTypeParameterListOwner? = null,
         typeParametersIndexOffset: Int = 0
-) = child(
+): LazyJavaResolverContext = child(
         containingDeclaration, typeParameterOwner, typeParametersIndexOffset,
         lazy(LazyThreadSafetyMode.NONE) { computeNewDefaultTypeQualifiers(containingDeclaration.annotations) }
 )
 
 fun LazyJavaResolverContext.copyWithNewDefaultTypeQualifiers(
         additionalAnnotations: Annotations
-) = if (additionalAnnotations.isEmpty())
+): LazyJavaResolverContext = if (additionalAnnotations.isEmpty())
         this
     else
         LazyJavaResolverContext(

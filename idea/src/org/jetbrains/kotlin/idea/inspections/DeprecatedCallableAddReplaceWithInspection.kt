@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.idea.core.moveCaret
 import org.jetbrains.kotlin.idea.core.unblockDocument
 import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.idea.util.ImportInsertHelper
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
@@ -38,13 +39,13 @@ import java.util.*
 class DeprecatedCallableAddReplaceWithInspection : AbstractApplicabilityBasedInspection<KtCallableDeclaration>(
     KtCallableDeclaration::class.java
 ) {
-    override fun inspectionText(element: KtCallableDeclaration) =
+    override fun inspectionText(element: KtCallableDeclaration): String =
         "@Deprecated annotation without 'replaceWith' argument"
 
     override fun inspectionTarget(element: KtCallableDeclaration): KtAnnotationEntry =
         element.annotationEntries.first { it.shortName == DEPRECATED_NAME }
 
-    override val defaultFixText =
+    override val defaultFixText: String =
         "Add 'replaceWith' argument to specify replacement pattern"
 
     private class ReplaceWith(val expression: String, vararg val imports: String)
@@ -232,6 +233,6 @@ class DeprecatedCallableAddReplaceWithInspection : AbstractApplicabilityBasedIns
     }
 
     companion object {
-        val DEPRECATED_NAME = KotlinBuiltIns.FQ_NAMES.deprecated.shortName()
+        val DEPRECATED_NAME: Name = KotlinBuiltIns.FQ_NAMES.deprecated.shortName()
     }
 }

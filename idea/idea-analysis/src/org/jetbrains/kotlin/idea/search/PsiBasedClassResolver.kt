@@ -63,9 +63,9 @@ class PsiBasedClassResolver @TestOnly constructor(private val targetClassFqName:
     private var forceAmbiguityForNonAnnotations: Boolean = false
 
     companion object {
-        @TestOnly val attempts = AtomicInteger()
-        @TestOnly val trueHits = AtomicInteger()
-        @TestOnly val falseHits = AtomicInteger()
+        @TestOnly val attempts: AtomicInteger = AtomicInteger()
+        @TestOnly val trueHits: AtomicInteger = AtomicInteger()
+        @TestOnly val falseHits: AtomicInteger = AtomicInteger()
 
         private val PSI_BASED_CLASS_RESOLVER_KEY = Key<CachedValue<PsiBasedClassResolver>>("PsiBasedClassResolver")
 

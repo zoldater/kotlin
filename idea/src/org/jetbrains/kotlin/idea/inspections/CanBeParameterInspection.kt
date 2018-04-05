@@ -113,9 +113,9 @@ class CanBeParameterInspection : AbstractKotlinInspection() {
 
         private val fix = RemoveValVarFromParameterFix(parameter)
 
-        override fun getName() = fix.text
+        override fun getName(): String = fix.text
 
-        override fun getFamilyName() = fix.familyName
+        override fun getFamilyName(): String = fix.familyName
 
         override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
             val parameter = descriptor.psiElement.getParentOfType<KtParameter>(strict = true) ?: return

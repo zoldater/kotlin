@@ -107,7 +107,7 @@ open class KtFile(viewProvider: FileViewProvider, val isCompiled: Boolean) :
             return result
         }
 
-    val virtualFilePath
+    val virtualFilePath: String
         get(): String {
             pathCached?.let { return it }
 

@@ -62,9 +62,9 @@ class IdeFirDependenciesSymbolProvider(
 
 
     // TODO: Our special scope here?
-    val depScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope((moduleInfo as ModuleSourceInfo).module)
+    val depScope: GlobalSearchScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope((moduleInfo as ModuleSourceInfo).module)
 
-    val javaSymbolProvider = JavaSymbolProvider(project, depScope)
+    val javaSymbolProvider: JavaSymbolProvider = JavaSymbolProvider(project, depScope)
 
 
     fun buildKotlinClassOnRequest(file: KtFile, classId: ClassId, session: FirSession): ConeSymbol? {

@@ -98,7 +98,7 @@ class ClassFileToSourceStubConverter(
     private val typeMapper
         get() = kaptContext.generationState.typeMapper
 
-    val treeMaker = TreeMaker.instance(kaptContext.context) as KaptTreeMaker
+    val treeMaker: KaptTreeMaker = TreeMaker.instance(kaptContext.context) as KaptTreeMaker
 
     private val signatureParser = SignatureParser(treeMaker)
 

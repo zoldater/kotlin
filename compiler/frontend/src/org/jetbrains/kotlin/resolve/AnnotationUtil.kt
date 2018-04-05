@@ -25,13 +25,13 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.ErrorValue
 
-val JVM_STATIC_ANNOTATION_FQ_NAME = FqName("kotlin.jvm.JvmStatic")
+val JVM_STATIC_ANNOTATION_FQ_NAME: FqName = FqName("kotlin.jvm.JvmStatic")
 
-val JVM_FIELD_ANNOTATION_FQ_NAME = FqName("kotlin.jvm.JvmField")
+val JVM_FIELD_ANNOTATION_FQ_NAME: FqName = FqName("kotlin.jvm.JvmField")
 
-val JVM_DEFAULT_FQ_NAME = FqName("kotlin.jvm.JvmDefault")
+val JVM_DEFAULT_FQ_NAME: FqName = FqName("kotlin.jvm.JvmDefault")
 
-fun CallableMemberDescriptor.hasJvmDefaultAnnotation() =
+fun CallableMemberDescriptor.hasJvmDefaultAnnotation(): Boolean =
     DescriptorUtils.getDirectMember(this).annotations.hasAnnotation(JVM_DEFAULT_FQ_NAME)
 
 
@@ -41,14 +41,14 @@ fun DeclarationDescriptor.hasJvmStaticAnnotation(): Boolean {
 
 private val JVM_SYNTHETIC_ANNOTATION_FQ_NAME = FqName("kotlin.jvm.JvmSynthetic")
 
-fun DeclarationDescriptor.hasJvmSyntheticAnnotation() = findJvmSyntheticAnnotation() != null
+fun DeclarationDescriptor.hasJvmSyntheticAnnotation(): Boolean = findJvmSyntheticAnnotation() != null
 
-fun DeclarationDescriptor.findJvmSyntheticAnnotation() =
+fun DeclarationDescriptor.findJvmSyntheticAnnotation(): AnnotationDescriptor? =
     DescriptorUtils.getAnnotationByFqName(annotations, JVM_SYNTHETIC_ANNOTATION_FQ_NAME)
 
 private val STRICTFP_ANNOTATION_FQ_NAME = FqName("kotlin.jvm.Strictfp")
 
-fun DeclarationDescriptor.findStrictfpAnnotation() =
+fun DeclarationDescriptor.findStrictfpAnnotation(): AnnotationDescriptor? =
     DescriptorUtils.getAnnotationByFqName(annotations, STRICTFP_ANNOTATION_FQ_NAME)
 
 fun AnnotationDescriptor.argumentValue(parameterName: String): ConstantValue<*>? {

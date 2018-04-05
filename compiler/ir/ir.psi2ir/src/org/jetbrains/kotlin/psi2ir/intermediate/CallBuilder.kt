@@ -34,9 +34,9 @@ class CallBuilder(
 
     private val parametersOffset = if (isExtensionInvokeCall) 1 else 0
 
-    val irValueArgumentsByIndex = arrayOfNulls<IrExpression>(descriptor.valueParameters.size)
+    val irValueArgumentsByIndex: Array<IrExpression?> = arrayOfNulls<IrExpression>(descriptor.valueParameters.size)
 
-    fun getValueArgument(valueParameterDescriptor: ValueParameterDescriptor) =
+    fun getValueArgument(valueParameterDescriptor: ValueParameterDescriptor): IrExpression? =
         irValueArgumentsByIndex[valueParameterDescriptor.index + parametersOffset]
 }
 
@@ -53,7 +53,7 @@ var CallBuilder.lastArgument: IrExpression?
 fun CallBuilder.getValueArgumentsInParameterOrder(): List<IrExpression?> =
     descriptor.valueParameters.map { irValueArgumentsByIndex[it.index] }
 
-fun CallBuilder.isValueArgumentReorderingRequired() =
+fun CallBuilder.isValueArgumentReorderingRequired(): Boolean =
     original.isValueArgumentReorderingRequired()
 
 val CallBuilder.hasExtensionReceiver: Boolean

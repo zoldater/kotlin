@@ -60,7 +60,7 @@ class StorageComponentContainer(private val id: String, parent: StorageComponent
         componentStorage.dump(printer)
     }
 
-    override fun close() = componentStorage.dispose()
+    override fun close(): Unit = componentStorage.dispose()
 
     fun resolve(request: Type, context: ValueResolveContext): ValueDescriptor? {
         return componentStorage.resolve(request, context) ?: resolveIterable(request, context)
@@ -105,7 +105,7 @@ class StorageComponentContainer(private val id: String, parent: StorageComponent
         return constructorBinding.constructor.newInstance(*args) as T
     }
 
-    override fun toString() = "Container $id"
+    override fun toString(): String = "Container $id"
 }
 
 fun StorageComponentContainer.registerSingleton(klass: Class<*>): StorageComponentContainer {

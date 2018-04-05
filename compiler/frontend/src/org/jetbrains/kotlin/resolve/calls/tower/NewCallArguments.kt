@@ -41,7 +41,7 @@ abstract class PSIKotlinCallArgument : KotlinCallArgument {
     abstract val dataFlowInfoBeforeThisArgument: DataFlowInfo
     abstract val dataFlowInfoAfterThisArgument: DataFlowInfo
 
-    override fun toString() = valueArgument.getArgumentExpression()?.text?.replace('\n', ' ') ?: valueArgument.toString()
+    override fun toString(): String = valueArgument.getArgumentExpression()?.text?.replace('\n', ' ') ?: valueArgument.toString()
 }
 
 abstract class SimplePSIKotlinCallArgument : PSIKotlinCallArgument(), SimpleKotlinCallArgument
@@ -68,7 +68,7 @@ class ParseErrorKotlinCallArgument(
     override val dataFlowInfoAfterThisArgument: DataFlowInfo,
     builtIns: KotlinBuiltIns
 ) : ExpressionKotlinCallArgument, SimplePSIKotlinCallArgument() {
-    override val receiver = ReceiverValueWithSmartCastInfo(
+    override val receiver: ReceiverValueWithSmartCastInfo = ReceiverValueWithSmartCastInfo(
         TransientReceiver(ErrorUtils.createErrorType("Error type for ParseError-argument $valueArgument")),
         possibleTypes = emptySet(),
         isStable = true
@@ -106,8 +106,8 @@ class LambdaKotlinCallArgumentImpl(
     val containingBlockForLambda: KtExpression,
     override val parametersTypes: Array<UnwrappedType?>?
 ) : PSIFunctionKotlinCallArgument(outerCallContext, valueArgument, dataFlowInfoBeforeThisArgument, argumentName) {
-    override val ktFunction get() = ktLambdaExpression.functionLiteral
-    override val expression get() = containingBlockForLambda
+    override val ktFunction: KtFunctionLiteral get() = ktLambdaExpression.functionLiteral
+    override val expression: KtExpression get() = containingBlockForLambda
 }
 
 class FunctionExpressionImpl(
@@ -121,7 +121,7 @@ class FunctionExpressionImpl(
     override val parametersTypes: Array<UnwrappedType?>,
     override val returnType: UnwrappedType?
 ) : FunctionExpression, PSIFunctionKotlinCallArgument(outerCallContext, valueArgument, dataFlowInfoBeforeThisArgument, argumentName) {
-    override val expression get() = containingBlockForFunction
+    override val expression: KtExpression get() = containingBlockForFunction
 }
 
 class CallableReferenceKotlinCallArgumentImpl(
@@ -170,7 +170,7 @@ class ExpressionKotlinCallArgumentImpl(
 }
 
 class FakeValueArgumentForLeftCallableReference(val ktExpression: KtCallableReferenceExpression) : ValueArgument {
-    override fun getArgumentExpression() = ktExpression.receiverExpression
+    override fun getArgumentExpression(): KtExpression? = ktExpression.receiverExpression
 
     override fun getArgumentName(): ValueArgumentName? = null
     override fun isNamed(): Boolean = false
@@ -185,7 +185,7 @@ class EmptyLabeledReturn(
 ) : ExpressionKotlinCallArgument {
     override val isSpread: Boolean get() = false
     override val argumentName: Name? get() = null
-    override val receiver = ReceiverValueWithSmartCastInfo(TransientReceiver(builtIns.unitType), emptySet(), true)
+    override val receiver: ReceiverValueWithSmartCastInfo = ReceiverValueWithSmartCastInfo(TransientReceiver(builtIns.unitType), emptySet(), true)
     override val isSafeCall: Boolean get() = false
 }
 

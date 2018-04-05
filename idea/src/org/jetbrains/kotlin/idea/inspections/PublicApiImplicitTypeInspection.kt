@@ -25,5 +25,5 @@ class PublicApiImplicitTypeInspection : AbstractImplicitTypeInspection(
         }
     }
 ) {
-    override val problemText = "For API stability, it's recommended to specify explicitly public & protected declaration types"
+    override val problemText: String = "For API stability, it's recommended to specify explicitly public & protected declaration types"
 }

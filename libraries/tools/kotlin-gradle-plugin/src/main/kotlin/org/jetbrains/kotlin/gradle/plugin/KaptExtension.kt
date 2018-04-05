@@ -114,7 +114,7 @@ open class KaptAnnotationProcessorOptions(
         options.put(name.toString(), values.joinToString(" "))
     }
 
-    fun execute(closure: Closure<*>) = executeClosure(closure)
+    fun execute(closure: Closure<*>): Unit = executeClosure(closure)
 }
 
 open class KaptJavacOptionsDelegate {
@@ -128,7 +128,7 @@ open class KaptJavacOptionsDelegate {
         options.put(name.toString(), "")
     }
 
-    fun execute(closure: Closure<*>) = executeClosure(closure)
+    fun execute(closure: Closure<*>): Unit = executeClosure(closure)
 }
 
 private fun Any?.executeClosure(closure: Closure<*>) {

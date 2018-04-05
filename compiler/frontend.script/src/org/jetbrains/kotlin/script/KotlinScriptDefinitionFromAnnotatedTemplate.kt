@@ -41,7 +41,7 @@ open class KotlinScriptDefinitionFromAnnotatedTemplate(
         val environment: Map<String, Any?>? = null,
         val templateClasspath: List<File> = emptyList()
 ) : KotlinScriptDefinition(template) {
-    val scriptFilePattern by lazy {
+    val scriptFilePattern: Regex by lazy {
         val pattern =
             takeUnlessError {
                 val ann = template.annotations.firstIsInstanceOrNull<kotlin.script.templates.ScriptTemplateDefinition>()
@@ -140,7 +140,7 @@ open class KotlinScriptDefinitionFromAnnotatedTemplate(
         }?.value?.toList() ?: super.scriptExpectedLocations
     }
 
-    override val name = template.simpleName!!
+    override val name: String = template.simpleName!!
 
     override fun isScript(fileName: String): Boolean =
         scriptFilePattern.matches(fileName)

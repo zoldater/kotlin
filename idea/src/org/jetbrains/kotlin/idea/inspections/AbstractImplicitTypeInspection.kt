@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.idea.inspections
 
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.intentions.SpecifyTypeExplicitlyIntention
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 
@@ -18,5 +19,5 @@ abstract class AbstractImplicitTypeInspection(
         }
     }
 ) {
-    override fun inspectionTarget(element: KtCallableDeclaration) = element.nameIdentifier
+    override fun inspectionTarget(element: KtCallableDeclaration): PsiElement? = element.nameIdentifier
 }

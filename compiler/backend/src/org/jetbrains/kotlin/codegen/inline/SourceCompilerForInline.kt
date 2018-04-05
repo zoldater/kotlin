@@ -96,26 +96,26 @@ interface SourceCompilerForInline {
 
 class PsiSourceCompilerForInline(private val codegen: ExpressionCodegen, override val callElement: KtElement) : SourceCompilerForInline {
 
-    override val state = codegen.state
+    override val state: GenerationState = codegen.state
 
     private var context by Delegates.notNull<CodegenContext<*>>()
 
     private var additionalInnerClasses = mutableListOf<ClassDescriptor>()
 
-    override val lookupLocation = KotlinLookupLocation(callElement)
+    override val lookupLocation: KotlinLookupLocation = KotlinLookupLocation(callElement)
 
     override val callableDescriptor: CallableDescriptor?
         get() = (this.context as? MethodContext)?.functionDescriptor
 
-    override val callElementText by lazy {
+    override val callElementText: String by lazy {
         callElement.text
     }
 
-    override val callsiteFile by lazy {
+    override val callsiteFile: PsiFile? by lazy {
         callElement.containingFile
     }
 
-    override val contextKind
+    override val contextKind: OwnerKind
         get () = context.contextKind
 
     override val inlineCallSiteInfo: InlineCallSiteInfo
@@ -137,7 +137,7 @@ class PsiSourceCompilerForInline(private val codegen: ExpressionCodegen, overrid
             )
         }
 
-    override val lazySourceMapper
+    override val lazySourceMapper: DefaultSourceMapper
         get() = codegen.parentCodegen.orCreateSourceMapper
 
     override fun generateLambdaBody(
@@ -387,10 +387,10 @@ class PsiSourceCompilerForInline(private val codegen: ExpressionCodegen, overrid
     override fun isFinallyMarkerRequired(): Boolean = isFinallyMarkerRequired(codegen.getContext())
 
 
-    override val compilationContextDescriptor
+    override val compilationContextDescriptor: CallableMemberDescriptor
         get() = codegen.getContext().contextDescriptor
 
-    override val compilationContextFunctionDescriptor
+    override val compilationContextFunctionDescriptor: FunctionDescriptor
         get() = codegen.getContext().functionDescriptor
 
     override fun getContextLabels(): Set<String> {

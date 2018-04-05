@@ -13,9 +13,9 @@ import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.name.Name
 
 // TODO don't use JsDynamicScope
-val dummyScope = JsDynamicScope
+val dummyScope: JsDynamicScope = JsDynamicScope
 
-fun Name.toJsName() =
+fun Name.toJsName(): JsName =
     // TODO sanitize
     dummyScope.declareName(asString())
 

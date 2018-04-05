@@ -188,7 +188,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
     var useJavac: Boolean by FreezableVar(false)
 
     @Argument(value = "-Xcompile-java", description = "Reuse javac analysis and compile Java source files")
-    var compileJava by FreezableVar(false)
+    var compileJava: Boolean by FreezableVar(false)
 
     @Argument(
         value = "-Xjavac-arguments",
@@ -226,7 +226,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         value = "-Xno-exception-on-explicit-equals-for-boxed-null",
         description = "Do not throw NPE on explicit 'equals' call for null receiver of platform boxed primitive type"
     )
-    var noExceptionOnExplicitEqualsForBoxedNull by FreezableVar(false)
+    var noExceptionOnExplicitEqualsForBoxedNull: Boolean by FreezableVar(false)
 
     @Argument(value = "-Xenable-jvm-default", description = "Allow to use '@JvmDefault' for JVM default method support")
     var enableJvmDefault: Boolean by FreezableVar(false)

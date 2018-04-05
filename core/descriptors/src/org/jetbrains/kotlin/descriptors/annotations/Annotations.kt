@@ -71,11 +71,11 @@ class FilteredAnnotations(
         private val fqNameFilter: (FqName) -> Boolean
 ) : Annotations {
 
-    override fun hasAnnotation(fqName: FqName) =
+    override fun hasAnnotation(fqName: FqName): Boolean =
             if (fqNameFilter(fqName)) delegate.hasAnnotation(fqName)
             else false
 
-    override fun findAnnotation(fqName: FqName) =
+    override fun findAnnotation(fqName: FqName): AnnotationDescriptor? =
             if (fqNameFilter(fqName)) delegate.findAnnotation(fqName)
             else null
 
@@ -87,9 +87,9 @@ class FilteredAnnotations(
         return delegate.getAllAnnotations().filter { shouldBeReturned(it.annotation) }
     }
 
-    override fun iterator() = delegate.filter(this::shouldBeReturned).iterator()
+    override fun iterator(): Iterator<AnnotationDescriptor> = delegate.filter(this::shouldBeReturned).iterator()
 
-    override fun isEmpty() = delegate.any(this::shouldBeReturned)
+    override fun isEmpty(): Boolean = delegate.any(this::shouldBeReturned)
 
     private fun shouldBeReturned(annotation: AnnotationDescriptor): Boolean =
             annotation.fqName.let { fqName ->
@@ -102,20 +102,20 @@ class CompositeAnnotations(
 ) : Annotations {
     constructor(vararg delegates: Annotations): this(delegates.toList())
 
-    override fun isEmpty() = delegates.all { it.isEmpty() }
+    override fun isEmpty(): Boolean = delegates.all { it.isEmpty() }
 
-    override fun hasAnnotation(fqName: FqName) = delegates.asSequence().any { it.hasAnnotation(fqName) }
+    override fun hasAnnotation(fqName: FqName): Boolean = delegates.asSequence().any { it.hasAnnotation(fqName) }
 
-    override fun findAnnotation(fqName: FqName) = delegates.asSequence().mapNotNull { it.findAnnotation(fqName) }.firstOrNull()
+    override fun findAnnotation(fqName: FqName): AnnotationDescriptor? = delegates.asSequence().mapNotNull { it.findAnnotation(fqName) }.firstOrNull()
 
-    override fun getUseSiteTargetedAnnotations() = delegates.flatMap { it.getUseSiteTargetedAnnotations() }
+    override fun getUseSiteTargetedAnnotations(): List<AnnotationWithTarget> = delegates.flatMap { it.getUseSiteTargetedAnnotations() }
 
-    override fun getAllAnnotations() = delegates.flatMap { it.getAllAnnotations() }
+    override fun getAllAnnotations(): List<AnnotationWithTarget> = delegates.flatMap { it.getAllAnnotations() }
 
-    override fun iterator() = delegates.asSequence().flatMap { it.asSequence() }.iterator()
+    override fun iterator(): Iterator<AnnotationDescriptor> = delegates.asSequence().flatMap { it.asSequence() }.iterator()
 }
 
-fun composeAnnotations(first: Annotations, second: Annotations) =
+fun composeAnnotations(first: Annotations, second: Annotations): Annotations =
         when {
             first.isEmpty() -> second
             second.isEmpty() -> first

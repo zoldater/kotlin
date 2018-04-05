@@ -40,7 +40,7 @@ class LookupElementsCollector(
         private val allowExpectDeclarations: Boolean
 ) {
 
-    var bestMatchingDegree = Int.MIN_VALUE
+    var bestMatchingDegree: Int = Int.MIN_VALUE
         private set
 
     private val elements = ArrayList<LookupElement>()

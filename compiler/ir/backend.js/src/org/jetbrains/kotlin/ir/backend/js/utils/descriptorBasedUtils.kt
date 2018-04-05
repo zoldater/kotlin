@@ -8,13 +8,13 @@ package org.jetbrains.kotlin.ir.backend.js.utils
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.ir.symbols.*
 
-val IrFunctionSymbol.parameterCount get() = descriptor.valueParameters.size
+val IrFunctionSymbol.parameterCount: Int get() = descriptor.valueParameters.size
 
 val IrFunctionSymbol.kind get() = descriptor.kind
 
 val IrFunctionSymbol.modality get() = descriptor.modality
 
-val IrConstructorSymbol.isPrimary get() = descriptor.isPrimary
+val IrConstructorSymbol.isPrimary: Boolean get() = descriptor.isPrimary
 
 val IrConstructorSymbol.constructedClassName get() = descriptor.constructedClass.name
 

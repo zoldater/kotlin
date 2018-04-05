@@ -72,7 +72,7 @@ class ReplaceGetOrSetInspection : AbstractApplicabilityBasedInspection<KtDotQual
         return target.name != OperatorNameConventions.SET || !element.isUsedAsExpression(bindingContext)
     }
 
-    override fun inspectionText(element: KtDotQualifiedExpression) = "Should be replaced with indexing"
+    override fun inspectionText(element: KtDotQualifiedExpression): String = "Should be replaced with indexing"
 
     override fun inspectionHighlightType(element: KtDotQualifiedExpression): ProblemHighlightType {
         return if ((element.toResolvedCall(BodyResolveMode.PARTIAL)!!.resultingDescriptor as FunctionDescriptor).isExplicitOperator()) {
@@ -92,7 +92,7 @@ class ReplaceGetOrSetInspection : AbstractApplicabilityBasedInspection<KtDotQual
         return "Replace '${resolvedCall.resultingDescriptor.name.asString()}' call with indexing operator"
     }
 
-    override fun inspectionTarget(element: KtDotQualifiedExpression) = element.callExpression?.calleeExpression ?: element
+    override fun inspectionTarget(element: KtDotQualifiedExpression): KtExpression = element.callExpression?.calleeExpression ?: element
 
     override fun applyTo(element: PsiElement, project: Project, editor: Editor?) {
         val expression = element as? KtDotQualifiedExpression ?: element.parent.parent as? KtDotQualifiedExpression ?: return
