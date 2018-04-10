@@ -5,9 +5,13 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.FirImport
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
+import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
+import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
+import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
@@ -23,4 +27,24 @@ class FirResolvedPackageStarImport(
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitResolvedImport(this, data)
+
+    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
+        super<FirResolvedImport>.acceptChildren(visitor, data)
+    }
+
+    override fun acceptChildren(visitor: FirVisitorVoid) {
+        super<FirResolvedImport>.acceptChildren(visitor)
+    }
+
+    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement {
+        return super<FirResolvedImport>.transformChildren(transformer, data)
+    }
+
+    override fun accept(visitor: FirVisitorVoid) {
+        super<FirResolvedImport>.accept(visitor)
+    }
+
+    override fun <E : FirElement, D> transform(visitor: FirTransformer<D>, data: D): CompositeTransformResult<E> {
+        return super<FirResolvedImport>.transform(visitor, data)
+    }
 }
