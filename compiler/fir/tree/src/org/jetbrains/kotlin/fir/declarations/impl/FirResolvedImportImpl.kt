@@ -5,46 +5,36 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
-import org.jetbrains.kotlin.fir.FirElement
+import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirImport
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
-import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
-import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.fir.visitors.FirVisitor
-import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 
 class FirResolvedImportImpl(
     val delegate: FirImport,
     override val resolvedFqName: ClassId
-) : FirResolvedImport, FirImport by delegate {
+) : FirResolvedImport, FirImport {
     override val packageFqName: FqName
         get() = resolvedFqName.packageFqName
 
     override val relativeClassName: FqName
         get() = resolvedFqName.relativeClassName
 
-    override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
-        visitor.visitResolvedImport(this, data)
+    override val aliasName: Name?
+        get() = delegate.aliasName
 
-    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
-        super<FirResolvedImport>.acceptChildren(visitor, data)
-    }
+    override val importedFqName: FqName?
+        get() = delegate.importedFqName
 
-    override fun acceptChildren(visitor: FirVisitorVoid) {
-        super<FirResolvedImport>.acceptChildren(visitor)
-    }
+    override val isAllUnder: Boolean
+        get() = delegate.isAllUnder
 
-    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement {
-        return super<FirResolvedImport>.transformChildren(transformer, data)
-    }
+    override val psi: PsiElement?
+        get() = delegate.psi
 
-    override fun accept(visitor: FirVisitorVoid) {
-        super<FirResolvedImport>.accept(visitor)
-    }
-
-    override fun <E : FirElement, D> transform(visitor: FirTransformer<D>, data: D): CompositeTransformResult<E> {
-        return super<FirResolvedImport>.transform(visitor, data)
-    }
+    override val session: FirSession
+        get() = delegate.session
 }
