@@ -5,10 +5,13 @@
 
 package org.jetbrains.kotlin.fir.backend
 
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.ir.SourceManager
 import org.jetbrains.kotlin.ir.SourceRangeInfo
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
 
 class FirSourceManager : SourceManager {
 
@@ -17,18 +20,22 @@ class FirSourceManager : SourceManager {
             get() = file.name
 
         override val maxOffset: Int
-            get() = TODO("not implemented")
+            get() = file.psi!!.endOffset
 
         override fun getSourceRangeInfo(beginOffset: Int, endOffset: Int): SourceRangeInfo {
             TODO("not implemented")
         }
 
         override fun getLineNumber(offset: Int): Int {
-            TODO("not implemented")
+            val psi = file.psi as PsiFile
+            val document = PsiDocumentManager.getInstance(psi.project).getDocument(psi)!!
+            return document.getLineNumber(offset)
         }
 
         override fun getColumnNumber(offset: Int): Int {
-            TODO("not implemented")
+            val psi = file.psi as PsiFile
+            val document = PsiDocumentManager.getInstance(psi.project).getDocument(psi)!!
+            return offset - document.getLineStartOffset(document.getLineNumber(offset))
         }
 
     }

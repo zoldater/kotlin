@@ -5,17 +5,21 @@
 
 package org.jetbrains.kotlin.fir.backend.builders
 
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
+import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.fir.backend.FirBasedIrBuilderContext
 import org.jetbrains.kotlin.fir.backend.descriptors.FirAnnotationDescriptor
+import org.jetbrains.kotlin.fir.backend.descriptors.FirPackageFragmentDescriptor
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.impl.IrFileImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrModuleFragmentImpl
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyPackageDescriptor
+import org.jetbrains.kotlin.resolve.scopes.MemberScope
 
 class IrModuleBuilder(val context: FirBasedIrBuilderContext) {
 
@@ -60,8 +64,9 @@ class IrModuleBuilder(val context: FirBasedIrBuilderContext) {
 
     private fun createEmptyIrFile(file: FirFile): IrFileImpl {
         val fileEntry = context.sourceManager.getOrCreateFileEntry(file)
-        val packageFragmentDescriptor = context.moduleDescriptor.findPackageFragmentForFile(file)
-        val irFile = IrFileImpl(fileEntry, packageFragmentDescriptor)
+        val hackedPackageFragmentDescriptor = FirPackageFragmentDescriptor(file.packageFqName, context.moduleDescriptor)
+
+        val irFile = IrFileImpl(fileEntry, hackedPackageFragmentDescriptor)
         context.sourceManager.putFileEntry(irFile, fileEntry)
         return irFile
     }

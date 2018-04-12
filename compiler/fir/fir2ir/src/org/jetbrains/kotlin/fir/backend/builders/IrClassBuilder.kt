@@ -70,15 +70,15 @@ class IrClassBuilder(parent: IrDeclarationBuilder) : IrDeclarationBuilderExtensi
     }
 
     private fun generateFakeOverrideMemberDeclarations(irClass: IrClass, klass: FirClass) {
-        TODO()
+        // TODO()
     }
 
     private fun generateMembersDeclaredInClassBody(irClass: IrClass, klass: FirClass) {
-        TODO()
+        // TODO()
     }
 
     private fun generateMembersDeclaredInSupertypeList(irClass: IrClass, klass: FirClass) {
-        TODO()
+        // TODO
     }
 
     private fun generateDeclarationsForPrimaryConstructorParameters(irClass: IrClass, primaryConstructor: IrConstructor, klass: FirClass) {
@@ -86,6 +86,6 @@ class IrClassBuilder(parent: IrDeclarationBuilder) : IrDeclarationBuilderExtensi
     }
 
     private fun generatePrimaryConstructor(irClass: IrClass, klass: FirClass): IrConstructor? {
-        TODO()
+        return null //TODO
     }
 }

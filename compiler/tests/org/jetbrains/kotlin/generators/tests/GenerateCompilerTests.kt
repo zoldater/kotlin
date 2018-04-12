@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.codegen.flags.AbstractWriteFlagsTest
 import org.jetbrains.kotlin.codegen.ir.AbstractIrBlackBoxCodegenTest
 import org.jetbrains.kotlin.codegen.ir.AbstractIrBlackBoxInlineCodegenTest
 import org.jetbrains.kotlin.codegen.ir.AbstractIrCompileKotlinAgainstInlineKotlinTest
+import org.jetbrains.kotlin.fir.AbstractFir2IrTextTest
 import org.jetbrains.kotlin.fir.AbstractFirResolveTestCase
 import org.jetbrains.kotlin.fir.AbstractFirResolveTestCaseWithStdlib
 import org.jetbrains.kotlin.fir.builder.AbstractRawFirBuilderTestCase
@@ -211,6 +212,10 @@ fun main(args: Array<String>) {
 
         testClass<AbstractFirResolveTestCaseWithStdlib> {
             model("fir/resolve/stdlib", pattern = KT_WITHOUT_DOTS_IN_NAME)
+        }
+
+        testClass<AbstractFir2IrTextTest> {
+            model("fir/irText")
         }
 
         testClass<AbstractBytecodeListingTest> {

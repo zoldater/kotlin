@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.fir.backend.builders.IrModuleBuilder
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 
 class IrBuilder {
 
@@ -22,6 +23,7 @@ class IrBuilder {
     fun generateModuleFragment(context: FirBasedIrBuilderContext, files: Collection<FirFile>): IrModuleFragment {
         val moduleBuilder = IrModuleBuilder(context)
         val irModule = moduleBuilder.generateModuleFragmentWithoutDependencies(files)
+        irModule.patchDeclarationParents()
         return irModule
     }
 }
