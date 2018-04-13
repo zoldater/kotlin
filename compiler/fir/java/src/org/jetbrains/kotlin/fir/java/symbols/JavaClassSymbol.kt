@@ -30,10 +30,15 @@ class JavaClassSymbol(val symbolProvider: JavaSymbolProvider, javaClass: JavaCla
     override val superTypes: List<ConeClassLikeType> by lazy {
         javaClass.supertypes.map {
             (it.classifier as? JavaClass)?.let {
-                ConeClassTypeImpl(
-                    symbolProvider.getSymbolByJavaClass(it) as JavaClassSymbol,
-                    emptyArray() // TODO: Fix this?
-                )
+                val symbol = symbolProvider.getSymbolByJavaClass(it)
+                if (symbol != null) {
+                    ConeClassTypeImpl(
+                        symbol as JavaClassSymbol,
+                        emptyArray() // TODO: Fix this?
+                    )
+                } else {
+                    ConeClassErrorType("Unsupported: no (null) symbol for JavaClass supertype: ${it.name}")
+                }
             } ?: ConeClassErrorType("Unsupported: Non JavaClass superType in JavaClassSymbol") // TODO: Support it
         }
     }
