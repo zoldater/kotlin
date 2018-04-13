@@ -233,6 +233,8 @@ class RawFirBuilder(val session: FirSession) {
             if (this is KtClass && this.isInterface()) return delegatedSuperType
 
             fun isEnum() = this is KtClass && this.isEnum()
+            // TODO: in case we have no primary constructor,
+            // it may be not possible to determine delegated super type right here
             delegatedSuperType = delegatedSuperType ?: (if (isEnum()) implicitEnumType else implicitAnyType)
             if (!this.hasPrimaryConstructor()) return delegatedSuperType
 
@@ -553,6 +555,7 @@ class RawFirBuilder(val session: FirSession) {
                         typeReference,
                         isNullable,
                         unwrappedElement.receiverTypeReference.convertSafe(),
+                        // TODO: probably implicit type should not be here
                         unwrappedElement.returnTypeReference.toFirOrImplicitType()
                     )
                     for (valueParameter in unwrappedElement.parameters) {
