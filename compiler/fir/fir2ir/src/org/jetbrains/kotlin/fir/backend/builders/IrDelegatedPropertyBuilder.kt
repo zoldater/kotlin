@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.fir.backend.psi.endOffset
 import org.jetbrains.kotlin.fir.backend.psi.startOffset
 import org.jetbrains.kotlin.fir.declarations.FirProperty
+import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -32,18 +33,18 @@ class IrDelegatedPropertyBuilder(parent: IrDeclarationBuilder) : IrDeclarationBu
         }
 
         val getterDescriptor = propertyDescriptor.getter!!
-        irProperty.getter = generateDelegatedPropertyAccessor(property, delegate, getterDescriptor)
+        irProperty.getter = generateDelegatedPropertyAccessor(property.getter, delegate, getterDescriptor)
 
         if (propertyDescriptor.isVar) {
             val setterDescriptor = propertyDescriptor.setter!!
-            irProperty.setter = generateDelegatedPropertyAccessor(property, delegate, setterDescriptor)
+            irProperty.setter = generateDelegatedPropertyAccessor(property.setter, delegate, setterDescriptor)
         }
 
         return irProperty
     }
 
     private inline fun generateDelegatedPropertyAccessor(
-        property: FirProperty,
+        accessor: FirPropertyAccessor,
         delegate: FirExpression,
         accessorDescriptor: PropertyAccessorDescriptor
     ): IrFunction =
@@ -52,7 +53,9 @@ class IrDelegatedPropertyBuilder(parent: IrDeclarationBuilder) : IrDeclarationBu
             IrDeclarationOrigin.DELEGATED_PROPERTY_ACCESSOR,
             accessorDescriptor
         ).buildWithScope { irAccessor ->
-            IrFunctionBuilder(builder).generateFunctionParameterDeclarations(irAccessor, property, null)
+            IrFunctionBuilder(builder).generateFunctionParameterDeclarations(
+                irAccessor, accessor, null
+            )
             // TODO: body
         }
 

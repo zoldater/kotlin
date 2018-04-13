@@ -13,8 +13,7 @@ import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.types.*
 
-
-class StubTypeConstructor : TypeConstructor {
+class StubTypeConstructor(val classifier: ClassifierDescriptor? = null) : TypeConstructor {
     override fun getParameters(): List<TypeParameterDescriptor> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -32,7 +31,7 @@ class StubTypeConstructor : TypeConstructor {
     }
 
     override fun getDeclarationDescriptor(): ClassifierDescriptor? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return classifier
     }
 
     override fun getBuiltIns(): KotlinBuiltIns {
@@ -41,10 +40,10 @@ class StubTypeConstructor : TypeConstructor {
 
 }
 
-fun ConeKotlinType.toKotlinType(nullable: Boolean = false): SimpleType {
+fun ConeKotlinType.toKotlinType(classifier: ClassifierDescriptor? = null, nullable: Boolean = false): SimpleType {
     return KotlinTypeFactory.simpleType(
         annotations = Annotations.EMPTY, // TODO
-        constructor = StubTypeConstructor(),
+        constructor = StubTypeConstructor(classifier),
         arguments = typeArguments.map {
             when (it) {
                 StarProjection ->
@@ -61,11 +60,11 @@ fun ConeKotlinType.toKotlinType(nullable: Boolean = false): SimpleType {
     )
 }
 
-fun FirType.toKotlinType(): SimpleType {
+fun FirType.toKotlinType(classifier: ClassifierDescriptor? = null): SimpleType {
     val nullable = (this as? FirTypeWithNullability)?.isNullable == true
     if (this is FirResolvedType) {
         val coneType = this.type
-        return coneType.toKotlinType(nullable)
+        return coneType.toKotlinType(classifier, nullable)
     }
     return UnresolvedType(
         presentableName = this.render(),

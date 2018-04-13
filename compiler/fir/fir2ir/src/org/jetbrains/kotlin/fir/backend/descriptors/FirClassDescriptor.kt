@@ -7,9 +7,9 @@ package org.jetbrains.kotlin.fir.backend.descriptors
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.LazyClassReceiverParameterDescriptor
 import org.jetbrains.kotlin.fir.declarations.FirClass
+import org.jetbrains.kotlin.fir.declarations.impl.FirPrimaryConstructorImpl
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
@@ -102,16 +102,21 @@ class FirClassDescriptor(
     override fun isInline(): Boolean = declaration.isInline
 
 
-    private val receiverParameterDesc by lazy {
+    private val receiverParameterDescriptor by lazy {
         LazyClassReceiverParameterDescriptor(this)
     }
 
+    private val primaryConstructorDescriptor =
+        declaration.declarations.filterIsInstance<FirPrimaryConstructorImpl>().firstOrNull()?.let {
+            FirPrimaryConstructorDescriptor(it, this)
+        }
+
     override fun getThisAsReceiverParameter(): ReceiverParameterDescriptor {
-        return receiverParameterDesc
+        return receiverParameterDescriptor
     }
 
     override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return primaryConstructorDescriptor
     }
 
     override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {

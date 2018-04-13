@@ -16,14 +16,12 @@ import org.jetbrains.kotlin.types.TypeSubstitutor
 
 class FirValueParameterDescriptor(
     val parameter: FirValueParameter,
-    val container: CallableDescriptor
+    val container: CallableDescriptor,
+    override val index: Int
 ) : ValueParameterDescriptor {
     override fun getContainingDeclaration(): CallableDescriptor {
         return container
     }
-
-    override val index: Int
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 
     override fun declaresDefaultValue(): Boolean {
         return parameter.defaultValue != null
@@ -90,7 +88,7 @@ class FirValueParameterDescriptor(
     }
 
     override fun getType(): KotlinType {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return parameter.returnType.toKotlinType()
     }
 
     override fun isVar(): Boolean {

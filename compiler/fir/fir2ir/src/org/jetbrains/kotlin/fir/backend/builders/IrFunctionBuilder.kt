@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.backend.builders
 
+import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.fir.FirElement
@@ -13,15 +14,10 @@ import org.jetbrains.kotlin.fir.backend.descriptors.FirFunctionDescriptor
 import org.jetbrains.kotlin.fir.backend.descriptors.FirValueParameterDescriptor
 import org.jetbrains.kotlin.fir.backend.psi.endOffset
 import org.jetbrains.kotlin.fir.backend.psi.startOffset
-import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
-import org.jetbrains.kotlin.fir.declarations.FirProperty
-import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
-import org.jetbrains.kotlin.fir.declarations.FirValueParameter
+import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.impl.FirPrimaryConstructorImpl
 import org.jetbrains.kotlin.fir.types.FirType
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.declareSimpleFunctionWithOverrides
 
 class IrFunctionBuilder(parent: IrDeclarationBuilder) : IrDeclarationBuilderExtension(parent) {
@@ -47,7 +43,7 @@ class IrFunctionBuilder(parent: IrDeclarationBuilder) : IrDeclarationBuilderExte
 
     fun generateFunctionParameterDeclarations(
         irFunction: IrFunction,
-        owner: FirElement,
+        owner: FirFunction,
         receiverType: FirType?
     ) {
         builder.generateScopedTypeParameterDeclarations(irFunction, (irFunction.descriptor as FirFunctionDescriptor).typeParameters)
@@ -57,26 +53,46 @@ class IrFunctionBuilder(parent: IrDeclarationBuilder) : IrDeclarationBuilderExte
     fun generatePropertyAccessor(
         descriptor: FirAbstractPropertyAccessorDescriptor,
         property: FirProperty,
-        accessor: FirPropertyAccessor?
+        accessor: FirPropertyAccessor
     ): IrSimpleFunction =
         context.symbolTable.declareSimpleFunctionWithOverrides(
-            accessor?.startOffset ?: property.startOffset,
-            accessor?.endOffset ?: property.endOffset,
-            if (accessor != null) IrDeclarationOrigin.DEFINED else IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR,
+            accessor.startOffset,
+            accessor.endOffset,
+            IrDeclarationOrigin.DEFINED,
             descriptor
         ).buildWithScope { irAccessor ->
             builder.generateScopedTypeParameterDeclarations(irAccessor, descriptor.correspondingProperty.typeParameters)
-            generateFunctionParameterDeclarations(irAccessor, accessor ?: property, property.receiverType)
+            generateFunctionParameterDeclarations(irAccessor, accessor, property.receiverType)
             // TODO: body generation
         }
 
+    fun generatePrimaryConstructor(
+        primaryConstructorDescriptor: ClassConstructorDescriptor,
+        klass: FirClass
+    ): IrConstructor =
+        declareConstructor(
+            klass,
+            klass.declarations.filterIsInstance<FirPrimaryConstructorImpl>().first(),
+            primaryConstructorDescriptor
+        )
+
+    private inline fun declareConstructor(
+        klass: FirClass,
+        parameterOwner: FirConstructor,
+        constructorDescriptor: ClassConstructorDescriptor
+    ): IrConstructor =
+        context.symbolTable.declareConstructor(
+            klass.startOffset, klass.endOffset, IrDeclarationOrigin.DEFINED, constructorDescriptor
+        ).buildWithScope { irConstructor ->
+            generateValueParameterDeclarations(irConstructor, parameterOwner, null)
+        }
 
     private fun generateValueParameterDeclarations(
         irFunction: IrFunction,
-        owner: FirElement,
+        owner: FirFunction,
         receiverType: FirType?
     ) {
-        val functionDescriptor = irFunction.descriptor as FirFunctionDescriptor
+        val functionDescriptor = irFunction.descriptor
 
         irFunction.dispatchReceiverParameter = functionDescriptor.dispatchReceiverParameter?.let {
             generateReceiverParameterDeclaration(it, owner)
@@ -86,8 +102,9 @@ class IrFunctionBuilder(parent: IrDeclarationBuilder) : IrDeclarationBuilderExte
             generateReceiverParameterDeclaration(it, receiverType ?: owner)
         }
 
-        functionDescriptor.valueParameters.mapTo(irFunction.valueParameters) { valueParameterDescriptor ->
-            val parameter = valueParameterDescriptor.parameter
+        owner.valueParameters.mapIndexedTo(irFunction.valueParameters) { index, parameter ->
+            val valueParameterDescriptor = FirValueParameterDescriptor(parameter, functionDescriptor, index)
+            functionDescriptor.valueParameters.add(valueParameterDescriptor)
             generateValueParameterDeclaration(valueParameterDescriptor, parameter)
         }
     }

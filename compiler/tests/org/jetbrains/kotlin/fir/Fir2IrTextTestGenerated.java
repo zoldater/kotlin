@@ -30,4 +30,10 @@ public class Fir2IrTextTestGenerated extends AbstractFir2IrTextTest {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/fir/irText/simple.kt");
         doTest(fileName);
     }
+
+    @TestMetadata("withProperty.kt")
+    public void testWithProperty() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/fir/irText/withProperty.kt");
+        doTest(fileName);
+    }
 }

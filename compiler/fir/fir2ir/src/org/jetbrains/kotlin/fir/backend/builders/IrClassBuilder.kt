@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.addMember
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class IrClassBuilder(parent: IrDeclarationBuilder) : IrDeclarationBuilderExtension(parent) {
@@ -82,10 +83,17 @@ class IrClassBuilder(parent: IrDeclarationBuilder) : IrDeclarationBuilderExtensi
     }
 
     private fun generateDeclarationsForPrimaryConstructorParameters(irClass: IrClass, primaryConstructor: IrConstructor, klass: FirClass) {
-        TODO()
+        // TODO: probably not needed
     }
 
     private fun generatePrimaryConstructor(irClass: IrClass, klass: FirClass): IrConstructor? {
-        return null //TODO
+        val classDescriptor = irClass.descriptor
+        val primaryConstructorDescriptor = classDescriptor.unsubstitutedPrimaryConstructor ?: return null
+
+        return IrFunctionBuilder(builder)
+            .generatePrimaryConstructor(primaryConstructorDescriptor, klass)
+            .also {
+                irClass.addMember(it)
+            }
     }
 }

@@ -1,3 +1,4 @@
 FILE fqName:<root> fileName:simple.kt
   CLASS CLASS name:Simple modality:FINAL visibility:unknown flags:
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:Simple flags:
+    CONSTRUCTOR visibility:unknown <> () returnType:Simple flags:
