@@ -5,11 +5,13 @@
 
 package org.jetbrains.kotlin.idea.perf
 
+import org.jetbrains.kotlin.asJava.classes.KtLightClassForSourceDeclaration
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.cfg.pseudocode.containingDeclarationForPseudocode
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import java.io.File
+import java.util.*
 import kotlin.system.measureNanoTime
 
 class AllKotlinLightClassTest : AllKotlinTest() {
@@ -29,7 +31,10 @@ class AllKotlinLightClassTest : AllKotlinTest() {
                 psiFile.acceptRecursively(object : KtVisitorVoid() {
                     override fun visitClassOrObject(classOrObject: KtClassOrObject) {
                         if (classOrObject.containingDeclarationForPseudocode != null) return
-                        val lightClass = classOrObject.toLightClass() ?: return
+                        val lightClass = classOrObject.toLightClass() as? KtLightClassForSourceDeclaration ?: return
+                        Arrays.hashCode(lightClass.superTypes)
+                        Arrays.hashCode(lightClass.fields)
+                        Arrays.hashCode(lightClass.methods)
                         lightClass.hashCode()
                     }
                 })
