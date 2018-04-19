@@ -16,6 +16,7 @@ import com.intellij.psi.PsiFile
 import java.io.File
 import kotlin.system.measureNanoTime
 
+/*
 class AllKotlinInspectionTest : AllKotlinTest() {
 
     private lateinit var profileTools: List<Tools>
@@ -74,3 +75,5 @@ class AllKotlinInspectionTest : AllKotlinTest() {
     }
 
 }
+
+*/
