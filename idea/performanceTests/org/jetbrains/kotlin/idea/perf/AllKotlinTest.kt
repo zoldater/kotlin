@@ -20,7 +20,7 @@ import java.io.StringWriter
 
 abstract class AllKotlinTest : DaemonAnalyzerTestCase() {
 
-    private val rootProjectFile: File = File(".").absoluteFile
+    protected val rootProjectFile: File = File(".").absoluteFile
     private val statsFile: File = File("build/stats.csv").absoluteFile
     private val tmp by lazy { createTempDirectory() }
 

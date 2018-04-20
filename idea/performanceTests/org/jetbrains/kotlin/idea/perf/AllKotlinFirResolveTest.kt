@@ -5,6 +5,8 @@
 
 package org.jetbrains.kotlin.idea.perf
 
+import com.intellij.openapi.roots.ModuleRootModificationUtil
+import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.builder.RawFirBuilder
 import org.jetbrains.kotlin.fir.declarations.FirFile
@@ -21,6 +23,33 @@ import java.io.File
 import kotlin.system.measureNanoTime
 
 class AllKotlinFirResolveTest : AllKotlinTest() {
+
+    override fun setUpModule() {
+        super.setUpModule()
+
+        ModuleRootModificationUtil.addContentRoot(module, VfsUtil.findFileByIoFile(rootProjectFile, true)!!)
+
+        ModuleRootModificationUtil.updateModel(module) {
+            rootProjectFile.walkTopDown().onEnter {
+                it.name.toLowerCase() !in setOf("testdata", "resources")
+            }.filter {
+                it.isDirectory
+            }.forEach { dir ->
+                val vdir by lazy { VfsUtil.findFileByIoFile(dir, true)!! }
+                if (dir.name in setOf("src", "test", "tests")) {
+                    it.contentEntries.single().addSourceFolder(vdir, false)
+                } else if (dir.name in setOf("build")) {
+                    it.contentEntries.single().addExcludeFolder(vdir)
+                }
+            }
+        }
+    }
+
+    override fun setUpProject() {
+        super.setUpProject()
+        setUpModule()
+    }
+
     private fun createSession(): FirSession {
         val moduleInfo = module.productionSourceInfo()!!
         val sessionProvider = FirProjectSessionProvider(project)
