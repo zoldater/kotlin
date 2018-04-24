@@ -66,6 +66,8 @@ class AllKotlinFirResolveTest : AllKotlinTest() {
         file.toPsiFile()?.let { doFirTest(it) }
                 ?: PerFileTestResult(emptyMap(), 0L, listOf(AssertionError("PsiFile not found for $file")))
 
+    private val transformers = FirTotalResolveTransformer().transformers
+
     private fun doFirTest(psiFile: PsiFile): PerFileTestResult {
         val results = mutableMapOf<String, Long>()
         var totalNs = 0L
@@ -88,7 +90,6 @@ class AllKotlinFirResolveTest : AllKotlinTest() {
         totalNs += rawResult
 
         if (firFile != null) {
-            val transformers = FirTotalResolveTransformer().transformers
             for (transformer in transformers) {
                 val resolveResult = measureNanoTime {
                     try {
