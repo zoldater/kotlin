@@ -51,11 +51,12 @@ class AllKotlinFirResolveTest : AllKotlinTest() {
         setUpModule()
     }
 
-    private fun createSession(): FirSession {
-        val moduleInfo = module.productionSourceInfo()!!
-        val sessionProvider = FirProjectSessionProvider(project)
+    private val sessionProvider by lazy { FirProjectSessionProvider(project) }
 
-        return FirJavaModuleBasedSession(
+    private fun getOrCreateSession(): FirSession {
+        val moduleInfo = module.productionSourceInfo()!!
+
+        return sessionProvider.getSession(moduleInfo) ?: FirJavaModuleBasedSession(
             moduleInfo, sessionProvider, moduleInfo.contentScope(),
             IdeFirDependenciesSymbolProvider(moduleInfo, project, sessionProvider)
         )
@@ -70,7 +71,7 @@ class AllKotlinFirResolveTest : AllKotlinTest() {
         var totalNs = 0L
         val errors = mutableListOf<Throwable>()
 
-        val session = createSession()
+        val session = getOrCreateSession()
         val builder = RawFirBuilder(session)
         var firFile: FirFile? = null
         val rawResult = measureNanoTime {
