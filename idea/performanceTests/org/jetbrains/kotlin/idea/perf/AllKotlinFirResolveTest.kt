@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.idea.perf
 
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.builder.RawFirBuilder
 import org.jetbrains.kotlin.fir.declarations.FirFile
@@ -60,14 +61,13 @@ class AllKotlinFirResolveTest : AllKotlinTest() {
         )
     }
 
-    override fun doTest(file: File): PerFileTestResult {
+    override fun doTest(file: File): PerFileTestResult =
+        file.toPsiFile()?.let { doFirTest(it) }
+                ?: PerFileTestResult(emptyMap(), 0L, listOf(AssertionError("PsiFile not found for $file")))
+
+    private fun doFirTest(psiFile: PsiFile): PerFileTestResult {
         val results = mutableMapOf<String, Long>()
         var totalNs = 0L
-
-        val psiFile = file.toPsiFile() ?: run {
-            return PerFileTestResult(results, totalNs, listOf(AssertionError("PsiFile not found for $file")))
-        }
-
         val errors = mutableListOf<Throwable>()
 
         val session = createSession()
@@ -103,5 +103,6 @@ class AllKotlinFirResolveTest : AllKotlinTest() {
         }
 
         return PerFileTestResult(results, totalNs, errors)
+
     }
 }
