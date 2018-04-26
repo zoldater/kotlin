@@ -18,6 +18,7 @@ dependencies {
     compile(project(":compiler:modules"))
     compile(project(":compiler:fir:cones"))
     compile(project(":core:descriptors"))
+    compileOnly(project(":compiler:ir.tree"))
     generatorClasspath(project("visitors-generator"))
 
     compileOnly(intellijCoreDep()) { includeJars("intellij-core", "annotations") }
