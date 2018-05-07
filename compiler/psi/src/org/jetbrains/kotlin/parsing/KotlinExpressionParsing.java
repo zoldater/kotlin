@@ -435,12 +435,18 @@ public class KotlinExpressionParsing extends AbstractKotlinParsing {
      */
     private void parsePostfixExpression() {
         PsiBuilder.Marker expression = mark();
+        IElementType tt = tt();
 
         boolean firstExpressionParsed = at(COLONCOLON) ? parseDoubleColonSuffix(mark()) : parseAtomicExpression();
 
         while (true) {
             if (interruptedWithNewLine()) {
-                break;
+                if (tt == IDENTIFIER && parseCallWithClosure()) {
+                    expression.done(CALL_EXPRESSION);
+                }
+                else {
+                   break;
+                }
             }
             else if (at(LBRACKET)) {
                 parseArrayAccess();
@@ -479,6 +485,7 @@ public class KotlinExpressionParsing extends AbstractKotlinParsing {
                 }
             }
             expression = expression.precede();
+            tt = tt();
         }
         expression.drop();
     }
@@ -522,7 +529,9 @@ public class KotlinExpressionParsing extends AbstractKotlinParsing {
     private void parseSelectorCallExpression() {
         PsiBuilder.Marker mark = mark();
         parseAtomicExpression();
-        if (!myBuilder.newlineBeforeCurrentToken() && parseCallSuffix()) {
+
+        boolean isNewLineBeforeCurrent = myBuilder.newlineBeforeCurrentToken();
+        if ((isNewLineBeforeCurrent && parseCallWithClosure()) || (!isNewLineBeforeCurrent && parseCallSuffix())) {
             mark.done(CALL_EXPRESSION);
         }
         else {
