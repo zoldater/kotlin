@@ -2,10 +2,13 @@ fun log(s: String) {
 }
 
 class A(x: String) {
-    var x: String = x
+    var x: String
         set(value) {
             log(value)
             field = value
         }
 
+    init {
+        this.x = x
+    }
 }
