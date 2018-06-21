@@ -918,6 +918,8 @@ public class KotlinExpressionParsing extends AbstractKotlinParsing {
         }
 
         entry.done(WHEN_ENTRY);
+        entry.setCustomEdgeTokenBinders(PrecedingCommentsBinder.INSTANCE, null);
+
         consumeIf(SEMICOLON);
     }
 
