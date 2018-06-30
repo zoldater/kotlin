@@ -18563,6 +18563,11 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 runTest("compiler/testData/diagnostics/tests/smartCasts/alwaysNullWithJava.kt");
             }
 
+            @TestMetadata("argumentOfCallReassignsVariable.kt")
+            public void testArgumentOfCallReassignsVariable() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/smartCasts/argumentOfCallReassignsVariable.kt");
+            }
+
             @TestMetadata("classObjectMember.kt")
             public void testClassObjectMember() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/smartCasts/classObjectMember.kt");

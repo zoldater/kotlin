@@ -80,7 +80,7 @@ public class DataFlowInfoForArgumentsImpl extends MutableDataFlowInfoForArgument
     @Override
     public DataFlowInfo getResultInfo() {
         if (resultInfo == null) return initialDataFlowInfo;
-        return initialDataFlowInfo.and(resultInfo);
+        return resultInfo;
     }
 
     @Override
