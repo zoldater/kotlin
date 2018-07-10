@@ -49,7 +49,7 @@ fun findScriptDefinition(file: VirtualFile, project: Project): KotlinScriptDefin
         if (psiFile !is KtFile || !psiFile.isScript()) {
             return null
         }
-        return psiFile.script?.kotlinScriptDefinition?.value
+        return psiFile.script?.kotlinScriptDefinition
     }
 
     return ScriptDefinitionProvider.getInstance(project).findScriptDefinition(file.name)
@@ -57,7 +57,7 @@ fun findScriptDefinition(file: VirtualFile, project: Project): KotlinScriptDefin
 
 fun findScriptDefinition(psiFile: PsiFile): KotlinScriptDefinition? {
     if (psiFile.isDirectory) return null
-    return (psiFile as? KtFile)?.script?.kotlinScriptDefinition?.value
+    return (psiFile as? KtFile)?.script?.kotlinScriptDefinition
 }
 
 abstract class LazyScriptDefinitionProvider : ScriptDefinitionProvider {

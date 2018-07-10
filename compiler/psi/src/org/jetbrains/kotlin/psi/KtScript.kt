@@ -35,9 +35,9 @@ class KtScript : KtNamedDeclarationStub<KotlinScriptStub>, KtDeclarationContaine
     val blockExpression: KtBlockExpression
         get() = findNotNullChildByClass(KtBlockExpression::class.java)
 
-    constructor(node: ASTNode) : super(node) {}
+    constructor(node: ASTNode) : super(node)
 
-    constructor(stub: KotlinScriptStub) : super(stub, KtStubElementTypes.SCRIPT) {}
+    constructor(stub: KotlinScriptStub) : super(stub, KtStubElementTypes.SCRIPT)
 
     override fun getFqName(): FqName {
         val stub = stub
@@ -48,15 +48,9 @@ class KtScript : KtNamedDeclarationStub<KotlinScriptStub>, KtDeclarationContaine
         return containingKtFile.packageFqName.child(kotlinScriptDefinition.getScriptName(this))
     }
 
-    override fun getName(): String? {
-        return fqName.shortName().asString()
-    }
+    override fun getName(): String? = fqName.shortName().asString()
 
-    override fun getDeclarations(): List<KtDeclaration> {
-        return PsiTreeUtil.getChildrenOfTypeAsList(blockExpression, KtDeclaration::class.java)
-    }
+    override fun getDeclarations(): List<KtDeclaration> = PsiTreeUtil.getChildrenOfTypeAsList(blockExpression, KtDeclaration::class.java)
 
-    override fun <R, D> accept(visitor: KtVisitor<R, D>, data: D): R {
-        return visitor.visitScript(this, data)
-    }
+    override fun <R, D> accept(visitor: KtVisitor<R, D>, data: D): R = visitor.visitScript(this, data)
 }
