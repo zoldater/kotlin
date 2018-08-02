@@ -741,6 +741,8 @@ class ResolveElementCache(
 
         override fun getScripts(): MutableMap<KtScript, LazyScriptDescriptor> = hashMapOf()
 
+        override fun getScriptBodies(): MutableMap<KtScriptBody, SimpleFunctionDescriptor> = hashMapOf()
+
         override fun getOuterDataFlowInfo(): DataFlowInfo = DataFlowInfo.EMPTY
 
         override fun getTopDownAnalysisMode() = topDownAnalysisMode
