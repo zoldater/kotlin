@@ -14,15 +14,15 @@ import org.jetbrains.kotlin.codegen.context.ScriptContext
 import org.jetbrains.kotlin.codegen.serialization.JvmSerializerExtension
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.ScriptDescriptor
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames
 import org.jetbrains.kotlin.load.kotlin.header.KotlinClassHeader
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getElementTextWithContext
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.BindingContext.PROVIDE_DELEGATE_RESOLVED_CALL
+import org.jetbrains.kotlin.resolve.BindingContext.VARIABLE
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassNotAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassOrAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
@@ -35,6 +35,8 @@ import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodGenericSignature
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
 import org.jetbrains.kotlin.script.ScriptBodyTarget
 import org.jetbrains.kotlin.serialization.DescriptorSerializer
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
+import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.*
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
@@ -193,6 +195,8 @@ class ScriptCodegen private constructor(
                 iv.putfield(classType.internalName, PropertyCodegen.ScriptEnvPropertyAccessorStrategy.MAP_FIELD_NAME, mapType.descriptor)
             }
 
+            generateInitializersFromBody(mv, iv, frameMap, methodContext)
+
             val codegen = ExpressionCodegen(mv, frameMap, Type.VOID_TYPE, methodContext, state, this)
 
             generateInitializers { codegen }
@@ -202,6 +206,54 @@ class ScriptCodegen private constructor(
 
         mv.visitMaxs(-1, -1)
         mv.visitEnd()
+    }
+
+    private fun generateInitializersFromBody(
+        mv: MethodVisitor,
+        iv: InstructionAdapter,
+        frameMap: FrameMap,
+        methodContext: MethodContext
+    ) {
+
+        val codegen = ExpressionCodegen(mv, frameMap, Type.VOID_TYPE, methodContext, state, this)
+
+        val bodyDecl = scriptDeclaration.declarations.firstIsInstance<KtScriptBody>()
+        val bodyDesc = bindingContext.get(BindingContext.FUNCTION, bodyDecl)!!
+        val bodySig = "\$scriptBody()[Ljava/lang/Object" // typeMapper.mapSignatureSkipGeneric(bodyDesc).asmMethod.descriptor
+
+        // TODO: constructor params?
+
+        iv.invokevirtual(classAsmType.internalName, bodyDecl.name!!, bodySig, false)
+
+        val bodyResultsArray = StackValue.onStack(AsmUtil.getArrayType(OBJECT_TYPE))
+
+        for ((idx, declaration) in scriptDeclaration.declarations.withIndex()) {
+
+            val bodyResultElement = StackValue.arrayElement(OBJECT_TYPE, null, bodyResultsArray, StackValue.constant(idx, Type.INT_TYPE))
+
+            when (declaration) {
+                is KtProperty -> initializePropertyFromValue(codegen, declaration, bodyResultElement)
+//                is KtNamedFunction, is KtTypeAlias -> genSimpleMember(declaration)
+//                is KtClassOrObject -> genClassOrObject(declaration)
+//                is KtDestructuringDeclaration -> for (entry in declaration.entries) {
+//                    genSimpleMember(entry)
+//                }
+            }
+        }
+    }
+
+    private fun initializePropertyFromValue(codegen: ExpressionCodegen, property: KtDeclaration, value: StackValue) {
+
+        val propertyDescriptor = bindingContext.get(VARIABLE, property) as PropertyDescriptor
+        val propValue = codegen.intermediateValueForProperty(propertyDescriptor, true, false, null, true, StackValue.LOCAL_0, null, false)
+
+        val provideDelegateResolvedCall = bindingContext.get(PROVIDE_DELEGATE_RESOLVED_CALL, propertyDescriptor)
+
+        val valueToStore = provideDelegateResolvedCall?.let {
+            PropertyCodegen.invokeDelegatedPropertyConventionMethod(codegen, provideDelegateResolvedCall, value, propertyDescriptor)
+        } ?: value
+
+        propValue.store(valueToStore, codegen.v)
     }
 
     private fun genFieldsForParameters(classBuilder: ClassBuilder) {
@@ -238,21 +290,22 @@ class ScriptCodegen private constructor(
     }
 
     private fun genMembers() {
+        val scriptBodyTarget = scriptContext.script.kotlinScriptDefinition.scriptBodyTarget
         for (declaration in scriptDeclaration.declarations) {
-            when (declaration) {
-                is KtScriptBody -> {
-                    val descriptor = bindingContext.get(BindingContext.FUNCTION, declaration)!!
-                    val origin = OtherOrigin(declaration, descriptor)
-                    val strategy = ScriptBodyGenerationStrategy(
-                        bindingContext, state, scriptDeclaration, declaration, descriptor,
-                        scriptContext.script.kotlinScriptDefinition.scriptBodyTarget
-                    )
-                    functionCodegen.generateMethod(origin, descriptor, strategy)
-                }
-                is KtProperty, is KtNamedFunction, is KtTypeAlias -> genSimpleMember(declaration)
-                is KtClassOrObject -> genClassOrObject(declaration)
-                is KtDestructuringDeclaration -> for (entry in declaration.entries) {
-                    genSimpleMember(entry)
+            if (declaration is KtScriptBody) {
+                val descriptor = bindingContext.get(BindingContext.FUNCTION, declaration)!!
+                val origin = OtherOrigin(declaration, descriptor)
+                val strategy = ScriptBodyGenerationStrategy(
+                    bindingContext, state, scriptDeclaration, declaration, descriptor, scriptBodyTarget
+                )
+                functionCodegen.generateMethod(origin, descriptor, strategy)
+            } else if (scriptBodyTarget == ScriptBodyTarget.Constructor) {
+                when (declaration) {
+                    is KtProperty, is KtNamedFunction, is KtTypeAlias -> genSimpleMember(declaration)
+                    is KtClassOrObject -> genClassOrObject(declaration)
+                    is KtDestructuringDeclaration -> for (entry in declaration.entries) {
+                        genSimpleMember(entry)
+                    }
                 }
             }
         }
