@@ -48,3 +48,10 @@ internal actual fun <T> arrayOfNulls(reference: Array<T>, size: Int): Array<T> {
 internal fun copyOfRangeToIndexCheck(toIndex: Int, size: Int) {
     if (toIndex > size) throw IndexOutOfBoundsException("toIndex ($toIndex) is greater than size ($size).")
 }
+
+
+@SinceKotlin("1.3")
+@PublishedApi
+@kotlin.jvm.JvmName("contentDeepHashCode")
+internal fun <T> Array<out T>.contentDeepHashCodeImpl(): Int =
+    java.util.Arrays.deepHashCode(this) // returns valid result by accident

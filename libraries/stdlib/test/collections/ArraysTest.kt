@@ -209,10 +209,19 @@ class ArraysTest {
     @Test fun contentDeepEquals() {
         val arr1 = arrayOf("a", 1, intArrayOf(2))
         val arr2 = arrayOf("a", 1, intArrayOf(2))
+        val arr3 = arrayOf("a", 1, uintArrayOf(2u))
+        val arr4 = arrayOf("a", 1, uintArrayOf(2u))
         assertFalse(arr1 contentEquals arr2)
         assertTrue(arr1 contentDeepEquals arr2)
+
+        assertFalse(arr1 contentDeepEquals arr3)
+        assertTrue(arr3 contentDeepEquals arr4)
+
         arr2[2] = arr1
         assertFalse(arr1 contentDeepEquals arr2)
+
+        arr4[2] = arr3
+        assertFalse(arr3 contentDeepEquals arr4)
     }
 
     @Test fun contentToString() {
@@ -230,8 +239,8 @@ class ArraysTest {
             return
         }
 
-        val arr = arrayOf("aa", 1, null, charArrayOf('d'))
-        assertEquals("[aa, 1, null, [d]]", arr.contentDeepToString())
+        val arr = arrayOf("aa", 1, null, charArrayOf('d'), ubyteArrayOf(255u))
+        assertEquals("[aa, 1, null, [d], [255]]", arr.contentDeepToString())
     }
 
     @Test fun contentDeepToStringNoRecursion() {
@@ -262,6 +271,16 @@ class ArraysTest {
     @Test fun contentDeepHashCode() {
         val arr = arrayOf(null, Value(2), arrayOf(Value(3)))
         assertEquals(((1*31 + 0)*31 + 2) * 31 + (1 * 31 + 3), arr.contentDeepHashCode())
+
+        val intArray2 = arrayOf(intArrayOf(1, 2), intArrayOf(3, 4))
+        val intList2 = listOf(listOf(1, 2), listOf(3, 4))
+
+        assertEquals(intList2.hashCode(), intArray2.contentDeepHashCode())
+
+        val uintArray2 = arrayOf(uintArrayOf(1u, 2u), uintArrayOf(3u, 4u))
+        val uintList2 = listOf(listOf(1u, 2u), listOf(3u, 4u))
+
+        assertEquals(uintList2.hashCode(), uintArray2.contentDeepHashCode())
     }
 
 
