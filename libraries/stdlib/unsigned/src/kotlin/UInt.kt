@@ -180,7 +180,7 @@ public inline class UInt @PublishedApi internal constructor(@PublishedApi intern
     @kotlin.internal.InlineOnly
     public inline fun toUInt(): UInt = this
     @kotlin.internal.InlineOnly
-    public inline fun toULong(): ULong = ULong(data.toLong() and 0xFFFF_FFFF)
+    public inline fun toULong(): ULong = data.toULong() and 0xFFFF_FFFFu
 
     public override fun toString(): String = toLong().toString()
 
