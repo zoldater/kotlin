@@ -30,6 +30,8 @@ abstract class KotlinGradleAbstractMultiplatformModuleBuilder(
 
     override fun getNodeIcon(): Icon = KotlinIcons.MPP
 
+    override fun canCreateModule(): Boolean = false
+
     override fun createWizardSteps(wizardContext: WizardContext, modulesProvider: ModulesProvider): Array<ModuleWizardStep> {
         super.createWizardSteps(wizardContext, modulesProvider)  // initializes GradleModuleBuilder.myWizardContext
         return arrayOf(
