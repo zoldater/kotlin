@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.idea.caches.lightClasses.KtLightClassForDecompiledDeclaration
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElement
 import org.jetbrains.kotlin.load.java.structure.*
@@ -33,7 +32,6 @@ import org.jetbrains.kotlin.load.java.structure.impl.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.psi.psiUtil.parameterIndex
 import org.jetbrains.kotlin.resolve.jvm.JavaDescriptorResolver
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -86,16 +84,6 @@ fun PsiMember.getJavaOrKotlinMemberDescriptor(resolutionFacade: ResolutionFacade
         }
         else -> null
     }
-}
-
-fun PsiParameter.getParameterDescriptor(): ValueParameterDescriptor? = javaResolutionFacade()?.let {
-    getParameterDescriptor(it)
-}
-
-fun PsiParameter.getParameterDescriptor(resolutionFacade: ResolutionFacade): ValueParameterDescriptor? {
-    val method = declarationScope as? PsiMethod ?: return null
-    val methodDescriptor = method.getJavaMethodDescriptor(resolutionFacade) ?: return null
-    return methodDescriptor.valueParameters[parameterIndex()]
 }
 
 fun PsiClass.resolveToDescriptor(
