@@ -105,22 +105,18 @@ sealed class LazyLightClassDataHolder(
         private val dummyDelegate: PsiClass? by lazyPub { inexactStub?.let(findDelegate) }
 
         override fun getOwnFields(containingClass: KtLightClass): List<KtLightField> {
-            if (dummyDelegate == null) return KtLightFieldImpl.fromClsFields(clsDelegate, containingClass)
-
-            return dummyDelegate!!.fields.map { dummyField ->
+            return dummyDelegate?.fields?.map { dummyField ->
                 val fieldOrigin = KtLightFieldImpl.getOrigin(dummyField)
 
                 val fieldName = dummyField.name!!
                 KtLightFieldImpl.lazy(dummyField, fieldOrigin, containingClass) {
                     clsDelegate.findFieldByName(fieldName, false).assertMatches(dummyField, containingClass)
                 }
-            }
+            } ?: KtLightFieldImpl.fromClsFields(clsDelegate, containingClass)
         }
 
         override fun getOwnMethods(containingClass: KtLightClass): List<KtLightMethod> {
-            if (dummyDelegate == null) return KtLightMethodImpl.fromClsMethods(clsDelegate, containingClass)
-
-            return dummyDelegate!!.methods.map { dummyMethod ->
+            return dummyDelegate?.methods?.map { dummyMethod ->
                 val methodOrigin = KtLightMethodImpl.getOrigin(dummyMethod)
 
                 KtLightMethodImpl.lazy(dummyMethod, containingClass, methodOrigin) {
@@ -134,10 +130,10 @@ sealed class LazyLightClassDataHolder(
                        Resulting light member is not consistent in this case, so this should happen only for erroneous code
                     */
                     val exactDelegateMethod = clsDelegate.findMethodsByName(dummyMethod.name, false).firstOrNull(byMemberIndex)
-                            ?: clsDelegate.methods.firstOrNull(byMemberIndex)
+                        ?: clsDelegate.methods.firstOrNull(byMemberIndex)
                     exactDelegateMethod.assertMatches(dummyMethod, containingClass)
                 }
-            }
+            } ?: KtLightMethodImpl.fromClsMethods(clsDelegate, containingClass)
         }
     }
 
