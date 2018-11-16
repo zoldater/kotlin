@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.idea.refactoring.inline
 import com.intellij.lang.findUsages.DescriptiveNameUtil
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringBundle
@@ -54,7 +55,12 @@ class KotlinInlineCallableProcessor(
     override fun findUsages(): Array<UsageInfo> {
         if (inlineThisOnly && reference != null) return arrayOf(UsageInfo(reference))
         val usages = runReadAction {
-            val searchScope = GlobalSearchScope.projectScope(myProject)
+            val enclosingElement = KtPsiUtil.getEnclosingElementForLocalDeclaration(declaration)
+            val searchScope = if (enclosingElement != null) {
+                LocalSearchScope(enclosingElement)
+            } else {
+                GlobalSearchScope.projectScope(myProject)
+            }
             ReferencesSearch.search(declaration, searchScope)
         }
         return usages.map(::UsageInfo).toTypedArray()

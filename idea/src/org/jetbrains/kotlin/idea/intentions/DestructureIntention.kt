@@ -20,6 +20,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
+import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.util.Processor
 import com.intellij.util.Query
@@ -204,7 +205,13 @@ class DestructureIntention : SelfTargetingRangeIntention<KtDeclaration>(
                             Name.identifier(it), NoLookupLocation.FROM_BUILTINS).single())
                 }
 
-                ReferencesSearch.search(declaration).iterateOverMapEntryPropertiesUsages(
+                val enclosingElement = KtPsiUtil.getEnclosingElementForLocalDeclaration(declaration)
+                val references = if (enclosingElement != null) {
+                    ReferencesSearch.search(declaration, LocalSearchScope(enclosingElement))
+                } else {
+                    ReferencesSearch.search(declaration)
+                }
+                references.iterateOverMapEntryPropertiesUsages(
                         context,
                         { index, usageData -> noBadUsages = usagesToRemove[index].add(usageData, index) && noBadUsages },
                         { noBadUsages = false }
