@@ -72,6 +72,7 @@ val testForWebDemo by task<Test> {
 val test: Test by tasks
 test.apply {
     exclude("**/*JavaToKotlinConverterForWebDemoTestGenerated*")
+    // Comment this line to make possible to run J2K tests from IDE
     dependsOn(testForWebDemo)
 }
 
