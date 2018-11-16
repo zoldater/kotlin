@@ -78,7 +78,7 @@ val testForWebDemo by task<Test> {
 val test: Test by tasks
 test.apply {
     exclude("**/*JavaToKotlinConverterForWebDemoTestGenerated*")
-    dependsOn(testForWebDemo)
+    //dependsOn(testForWebDemo)
 }
 
 ideaPlugin()
