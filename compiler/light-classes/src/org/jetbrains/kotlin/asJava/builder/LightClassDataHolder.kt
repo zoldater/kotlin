@@ -50,9 +50,9 @@ interface LightClassDataHolder {
 }
 
 interface LightClassData {
-    val clsDelegate: PsiClass
+    val clsDelegate: PsiClass?
 
-    val supertypes: Array<PsiClassType> get() { return clsDelegate.superTypes }
+    val supertypes: Array<out PsiClassType> get() { return clsDelegate?.superTypes.orEmpty() }
 
     fun getOwnFields(containingClass: KtLightClass): List<KtLightField>
     fun getOwnMethods(containingClass: KtLightClass): List<KtLightMethod>
