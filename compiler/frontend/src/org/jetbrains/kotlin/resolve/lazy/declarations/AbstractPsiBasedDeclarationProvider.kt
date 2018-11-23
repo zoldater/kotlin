@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.resolve.lazy.declarations
 
 import com.google.common.collect.ArrayListMultimap
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.safeNameForLazyResolve
 import org.jetbrains.kotlin.resolve.lazy.data.KtClassInfoUtil
@@ -92,9 +93,19 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
     override fun getDeclarations(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): List<KtDeclaration> =
         index().allDeclarations
 
-    override fun getFunctionDeclarations(name: Name): List<KtNamedFunction> = index().functions[name.safeNameForLazyResolve()].toList()
+    override fun getFunctionDeclarations(name: Name): List<KtNamedFunction> {
+        if (name.isSpecial && name != SpecialNames.NO_NAME_PROVIDED) {
+            throw IllegalStateException("Access at name $name for function index")
+        }
+        return index().functions[name.safeNameForLazyResolve()].toList()
+    }
 
-    override fun getPropertyDeclarations(name: Name): List<KtProperty> = index().properties[name.safeNameForLazyResolve()].toList()
+    override fun getPropertyDeclarations(name: Name): List<KtProperty> {
+        if (name.isSpecial && name != SpecialNames.NO_NAME_PROVIDED) {
+            throw IllegalStateException("Access at name $name for function index")
+        }
+        return index().properties[name.safeNameForLazyResolve()].toList()
+    }
 
     override fun getDestructuringDeclarationsEntries(name: Name): Collection<KtDestructuringDeclarationEntry> =
         index().destructuringDeclarationsEntries[name.safeNameForLazyResolve()].toList()
