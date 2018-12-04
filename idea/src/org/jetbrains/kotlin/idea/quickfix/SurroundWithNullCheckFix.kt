@@ -28,14 +28,13 @@ import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
 import org.jetbrains.kotlin.psi.psiUtil.getLastParentOfTypeInRow
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
-import org.jetbrains.kotlin.psi.psiUtil.getParentOfTypesAndPredicate
-import org.jetbrains.kotlin.resolve.bindingContextUtil.isUsedAsExpression
+import org.jetbrains.kotlin.resolve.bindingContextUtil.getStatementParentIfAny
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.typeUtil.isNullabilityMismatch
 
 class SurroundWithNullCheckFix(
-        expression: KtExpression,
-        nullableExpression: KtExpression
+    expression: KtExpression,
+    nullableExpression: KtExpression
 ) : KotlinQuickFixAction<KtExpression>(expression), HighPriorityAction {
     private val nullableExpressionPointer = nullableExpression.createSmartPointer()
 
@@ -53,11 +52,6 @@ class SurroundWithNullCheckFix(
 
     companion object : KotlinSingleIntentionActionFactory() {
 
-        private fun KtExpression.hasAcceptableParent() = with (parent) {
-            this is KtBlockExpression || this.parent is KtIfExpression ||
-            this is KtWhenEntry || this.parent is KtLoopExpression
-        }
-
         override fun createAction(diagnostic: Diagnostic): IntentionAction? {
             val element = diagnostic.psiElement
             val expressionParent = element.getParentOfType<KtExpression>(strict = element is KtOperationReferenceExpression) ?: return null
@@ -65,20 +59,16 @@ class SurroundWithNullCheckFix(
 
             val parent = element.parent
             val nullableExpression =
-                    when (parent) {
-                        is KtDotQualifiedExpression -> parent.receiverExpression
-                        is KtBinaryExpression -> parent.left
-                        is KtCallExpression -> parent.calleeExpression
-                        else -> return null
-                    } as? KtReferenceExpression ?: return null
+                when (parent) {
+                    is KtDotQualifiedExpression -> parent.receiverExpression
+                    is KtBinaryExpression -> parent.left
+                    is KtCallExpression -> parent.calleeExpression
+                    else -> return null
+                } as? KtReferenceExpression ?: return null
 
             if (!nullableExpression.isStableSimpleExpression(context)) return null
 
-            val expressionTarget = expressionParent.getParentOfTypesAndPredicate(
-                strict = false, parentClasses = *arrayOf(KtExpression::class.java)
-            ) {
-                !it.isUsedAsExpression(context) && it.hasAcceptableParent()
-            } ?: return null
+            val expressionTarget = expressionParent.getStatementParentIfAny(context) ?: return null
             // Surround declaration (even of local variable) with null check is generally a bad idea
             if (expressionTarget is KtDeclaration) return null
 

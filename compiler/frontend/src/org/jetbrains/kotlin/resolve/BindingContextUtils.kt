@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
+import org.jetbrains.kotlin.psi.psiUtil.getParentOfTypesAndPredicate
 import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingContext.*
@@ -35,7 +36,6 @@ import org.jetbrains.kotlin.resolve.scopes.utils.takeSnapshot
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.noTypeInfo
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
-import org.jetbrains.kotlin.util.slicedMap.ReadOnlySlice
 
 fun KtReturnExpression.getTargetFunctionDescriptor(context: BindingContext): FunctionDescriptor? {
     val targetLabel = getTargetLabel()
@@ -58,6 +58,17 @@ fun KtExpression.isUsedAsExpression(context: BindingContext): Boolean = context[
 fun KtExpression.isUsedAsResultOfLambda(context: BindingContext): Boolean = context[BindingContext.USED_AS_RESULT_OF_LAMBDA, this]!!
 fun KtExpression.isUsedAsStatement(context: BindingContext): Boolean = !isUsedAsExpression(context)
 
+private fun KtExpression.hasBlockOrCompoundParent() = with(parent) {
+    this is KtBlockExpression || this is KtWhenEntry || parent is KtIfExpression || parent is KtLoopExpression
+}
+
+fun KtExpression.getStatementParentIfAny(context: BindingContext): KtExpression? {
+    return getParentOfTypesAndPredicate(
+        strict = false, parentClasses = *arrayOf(KtExpression::class.java)
+    ) {
+        !it.isUsedAsExpression(context) && it.hasBlockOrCompoundParent()
+    } ?: return null
+}
 
 fun <C : ResolutionContext<C>> ResolutionContext<C>.recordDataFlowInfo(expression: KtExpression?) {
     if (expression == null) return
