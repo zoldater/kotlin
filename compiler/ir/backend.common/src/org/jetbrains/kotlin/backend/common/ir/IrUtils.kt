@@ -335,3 +335,5 @@ val IrFunction.isStatic: Boolean
 
 val IrDeclaration.isTopLevel: Boolean
     get() = parent is IrPackageFragment
+
+val IrFunction.isOverridable: Boolean get() = this is IrSimpleFunction && this.isOverridable
