@@ -18161,6 +18161,26 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                         runTest("compiler/testData/diagnostics/tests/scopes/inheritance/statics/overloadStatic.kt");
                     }
 
+                    @TestMetadata("selfReferenceInSuperConstructorCallOfObject.kt")
+                    public void testSelfReferenceInSuperConstructorCallOfObject() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/scopes/inheritance/statics/selfReferenceInSuperConstructorCallOfObject.kt");
+                    }
+
+                    @TestMetadata("selfReferenceInSuperConstructorCallOfObject1_4.kt")
+                    public void testSelfReferenceInSuperConstructorCallOfObject1_4() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/scopes/inheritance/statics/selfReferenceInSuperConstructorCallOfObject1_4.kt");
+                    }
+
+                    @TestMetadata("selfReferenceInSuperConstructorCallOfTopLevelObject.kt")
+                    public void testSelfReferenceInSuperConstructorCallOfTopLevelObject() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/scopes/inheritance/statics/selfReferenceInSuperConstructorCallOfTopLevelObject.kt");
+                    }
+
+                    @TestMetadata("selfReferenceInSuperConstructorCallWithCrossReference.kt")
+                    public void testSelfReferenceInSuperConstructorCallWithCrossReference() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/scopes/inheritance/statics/selfReferenceInSuperConstructorCallWithCrossReference.kt");
+                    }
+
                     @TestMetadata("staticFunVsImport.kt")
                     public void testStaticFunVsImport() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/scopes/inheritance/statics/staticFunVsImport.kt");

@@ -818,6 +818,9 @@ public class DefaultErrorMessages {
         MAP.put(ASSIGNING_SINGLE_ELEMENT_TO_VARARG_IN_NAMED_FORM_ANNOTATION_ERROR, "Assigning single elements to varargs in named form is forbidden");
         MAP.put(REDUNDANT_SPREAD_OPERATOR_IN_NAMED_FORM_IN_ANNOTATION, "Redundant spread (*) operator");
 
+        MAP.put(SELF_REFERENCE_IN_SUPER_CONSTRUCTOR_CALL_OF_OBJECT_WARNING, "Access to members in the super constructor call of this object via self-reference is deprecated");
+        MAP.put(SELF_REFERENCE_IN_SUPER_CONSTRUCTOR_CALL_OF_OBJECT, "Access to members in the super constructor call of this object via self-reference is prohibited");
+
         MAP.put(CREATING_AN_INSTANCE_OF_ABSTRACT_CLASS, "Cannot create an instance of an abstract class");
 
         MAP.put(TYPE_INFERENCE_CONFLICTING_SUBSTITUTIONS, "Type inference failed: {0}", TYPE_INFERENCE_CONFLICTING_SUBSTITUTIONS_RENDERER);

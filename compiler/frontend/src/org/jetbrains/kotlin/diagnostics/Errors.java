@@ -694,6 +694,9 @@ public interface Errors {
     DiagnosticFactory0<KtExpression> ASSIGNING_SINGLE_ELEMENT_TO_VARARG_IN_NAMED_FORM_ANNOTATION_ERROR = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<KtExpression> REDUNDANT_SPREAD_OPERATOR_IN_NAMED_FORM_IN_ANNOTATION = DiagnosticFactory0.create(WARNING);
 
+    DiagnosticFactory0<KtExpression> SELF_REFERENCE_IN_SUPER_CONSTRUCTOR_CALL_OF_OBJECT_WARNING = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory0<KtExpression> SELF_REFERENCE_IN_SUPER_CONSTRUCTOR_CALL_OF_OBJECT = DiagnosticFactory0.create(ERROR);
+
     // Call resolution
 
     DiagnosticFactory0<KtExpression> ILLEGAL_SELECTOR = DiagnosticFactory0.create(ERROR);
