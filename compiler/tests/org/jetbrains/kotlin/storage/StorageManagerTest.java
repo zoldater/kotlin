@@ -335,26 +335,6 @@ public class StorageManagerTest extends TestCase {
         assertEquals(1, counter.getCount());
     }
 
-    public void testNullablePostComputeNoRecursion() throws Exception {
-        CounterImpl counter = new CounterImpl();
-        NullableLazyValue<Collection<String>> v = m.createNullableLazyValueWithPostCompute(
-                () -> {
-                    ArrayList<String> strings = new ArrayList<>();
-                    strings.add("first");
-                    return strings;
-                },
-                strings -> {
-                    counter.inc();
-                    strings.add("postComputed");
-                    return Unit.INSTANCE;
-                }
-        );
-
-        assertEquals(Arrays.asList("first", "postComputed"), v.invoke());
-        v.invoke();
-        assertEquals(1, counter.getCount());
-    }
-
     public void testRecursionPreventionWithDefaultOnSecondRun() throws Exception {
         @SuppressWarnings("unchecked")
         class C {

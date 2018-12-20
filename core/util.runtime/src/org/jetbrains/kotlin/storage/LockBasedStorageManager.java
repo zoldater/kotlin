@@ -225,24 +225,6 @@ public class LockBasedStorageManager implements StorageManager {
         };
     }
 
-    @NotNull
-    @Override
-    public <T> NullableLazyValue<T> createNullableLazyValueWithPostCompute(
-            @NotNull Function0<? extends T> computable, @NotNull final Function1<? super T, Unit> postCompute
-    ) {
-        return new LockBasedLazyValue<T>(this, computable) {
-            @Override
-            protected void postCompute(@Nullable T value) {
-                postCompute.invoke(value);
-            }
-
-            @Override
-            protected String presentableName() {
-                return "NullableLazyValueWithPostCompute";
-            }
-        };
-    }
-
     @Override
     public <T> T compute(@NotNull Function0<? extends T> computable) {
         lock.lock();

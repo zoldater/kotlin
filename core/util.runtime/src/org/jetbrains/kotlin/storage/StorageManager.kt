@@ -54,17 +54,21 @@ interface StorageManager {
      *                    behavior - notably, AbstractTypeConstructor). It means that it is up to particular implementation
      *                    to provide (or not to provide) thread-safety guarantees on writes made in postCompute -- see javadoc for
      *                    LockBasedLazyValue for details.
+     *
+     * WARNING!
+     *
+     * Please, THINK TWICE before using lazy value with non-trivial postCompute and recursion handling!
+     *
+     * Practice has proved that lazy values with postCompute create immensely complicated code patterns, which are very
+     * hard to debug and argue about and are the source of very hard-to-find bugs, both in general logic and memory consistency.
+     *
+     * Don't use it unless you're absolutely sure what you're doing. 
      */
     fun <T : Any> createLazyValueWithPostCompute(computable: () -> T, onRecursiveCall: ((Boolean) -> T)?, postCompute: (T) -> Unit): NotNullLazyValue<T>
 
     fun <T : Any> createNullableLazyValue(computable: () -> T?): NullableLazyValue<T>
 
     fun <T : Any> createRecursionTolerantNullableLazyValue(computable: () -> T?, onRecursiveCall: T?): NullableLazyValue<T>
-
-    /**
-     * See javadoc for createLazyValueWithPostCompute
-     */
-    fun <T : Any> createNullableLazyValueWithPostCompute(computable: () -> T?, postCompute: (T?) -> Unit): NullableLazyValue<T>
 
     fun <T> compute(computable: () -> T): T
 }

@@ -68,8 +68,6 @@ abstract class ObservableStorageManager(private val delegate: StorageManager) : 
 
     override fun <T : Any> createRecursionTolerantLazyValue(computable: () -> T, onRecursiveCall: (Boolean) -> T): NotNullLazyValue<T> {
         return delegate.createRecursionTolerantLazyValue(computable.observable, onRecursiveCall)
-    override fun <T: Any> createNullableLazyValueWithPostCompute(computable: () -> T?, postCompute: (T?) -> Unit): NullableLazyValue<T> {
-        return delegate.createNullableLazyValueWithPostCompute(computable.observable, postCompute)
     }
 
     override fun <T> compute(computable: () -> T): T {
