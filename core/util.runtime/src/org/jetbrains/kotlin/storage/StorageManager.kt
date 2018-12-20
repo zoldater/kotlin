@@ -42,6 +42,8 @@ interface StorageManager {
 
     fun <T : Any> createRecursionTolerantLazyValue(computable: () -> T, onRecursiveCall: T): NotNullLazyValue<T>
 
+    fun <T : Any> createRecursionTolerantLazyValue(computable: () -> T, onRecursiveCall: (Boolean) -> T): NotNullLazyValue<T>
+
     /**
      * @param onRecursiveCall is called if the computation calls itself recursively.
      *                        The parameter to it is {@code true} for the first call, {@code false} otherwise.

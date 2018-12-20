@@ -156,6 +156,25 @@ public class LockBasedStorageManager implements StorageManager {
 
     @NotNull
     @Override
+    public <T> NotNullLazyValue<T> createRecursionTolerantLazyValue(
+            @NotNull Function0<? extends T> computable, @NotNull final Function1<? super Boolean, ? extends T> onRecursiveCall
+    ) {
+        return new LockBasedNotNullLazyValue<T>(this, computable) {
+            @NotNull
+            @Override
+            protected RecursionDetectedResult<T> recursionDetected(boolean firstTime) {
+                return RecursionDetectedResult.value(onRecursiveCall.invoke(firstTime));
+            }
+
+            @Override
+            protected String presentableName() {
+                return "RecursionTolerantLazyValue";
+            }
+        };
+    }
+
+    @NotNull
+    @Override
     public <T> NotNullLazyValue<T> createLazyValueWithPostCompute(
             @NotNull Function0<? extends T> computable,
             final Function1<? super Boolean, ? extends T> onRecursiveCall,

@@ -52,7 +52,7 @@ public class DeferredType extends WrappedType {
     ) {
         //noinspection unchecked
         DeferredType deferredType =
-                new DeferredType(storageManager.createLazyValueWithPostCompute(compute, RECURSION_PREVENTER, t -> null));
+                new DeferredType(storageManager.createRecursionTolerantLazyValue(compute, RECURSION_PREVENTER));
         trace.record(DEFERRED_TYPE, new Box<>(deferredType));
         return deferredType;
     }
