@@ -23,16 +23,22 @@ import org.jetbrains.kotlin.js.translate.general.Translation;
 import org.jetbrains.kotlin.js.translate.intrinsic.functions.factories.ArrayFIF;
 import org.jetbrains.kotlin.js.translate.intrinsic.functions.factories.TopLevelFIF;
 import org.jetbrains.kotlin.js.translate.reference.ReferenceTranslator;
-import org.jetbrains.kotlin.js.translate.utils.*;
+import org.jetbrains.kotlin.js.translate.utils.AnnotationsUtils;
+import org.jetbrains.kotlin.js.translate.utils.JsAstUtils;
+import org.jetbrains.kotlin.js.translate.utils.TranslationUtils;
+import org.jetbrains.kotlin.js.translate.utils.UtilsKt;
 import org.jetbrains.kotlin.name.Name;
-import org.jetbrains.kotlin.psi.*;
+import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS;
+import org.jetbrains.kotlin.psi.KtExpression;
+import org.jetbrains.kotlin.psi.KtIsExpression;
+import org.jetbrains.kotlin.psi.KtTypeReference;
 import org.jetbrains.kotlin.resolve.DescriptorUtils;
 import org.jetbrains.kotlin.resolve.checkers.PrimitiveNumericComparisonInfo;
 import org.jetbrains.kotlin.types.KotlinType;
 
 import java.util.Collections;
 
-import static org.jetbrains.kotlin.builtins.FunctionTypesKt.isFunctionTypeOrSubtype;
+import static org.jetbrains.kotlin.builtins.FunctionTypesKt.isFunctionType;
 import static org.jetbrains.kotlin.builtins.KotlinBuiltIns.isArray;
 import static org.jetbrains.kotlin.js.descriptorUtils.DescriptorUtilsKt.getNameIfStandardType;
 import static org.jetbrains.kotlin.js.translate.utils.BindingUtils.getTypeByReference;
@@ -181,7 +187,7 @@ public final class PatternTranslator extends AbstractTranslator {
 
     @Nullable
     private JsExpression getIsTypeCheckCallableForBuiltin(@NotNull KotlinType type) {
-        if (isFunctionTypeOrSubtype(type) && !ReflectionTypes.isNumberedKPropertyOrKMutablePropertyType(type)) {
+        if (isFunctionType(type) && !ReflectionTypes.isNumberedKPropertyOrKMutablePropertyType(type)) {
             return namer().isTypeOf(new JsStringLiteral("function"));
         }
 

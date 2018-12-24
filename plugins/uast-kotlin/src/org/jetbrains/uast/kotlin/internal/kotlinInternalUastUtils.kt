@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.elements.FakeFileForLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightElements
-import org.jetbrains.kotlin.builtins.isBuiltinFunctionalTypeOrSubtype
+import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.codegen.signature.BothSignatureWriter
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.load.java.lazy.descriptors.LazyJavaPackageFragment
@@ -299,7 +299,7 @@ internal fun KtExpression.getExpectedType(): KotlinType? = analyze()[BindingCont
 internal fun KtTypeReference.getType(): KotlinType? = analyze()[BindingContext.TYPE, this]
 
 internal fun KotlinType.getFunctionalInterfaceType(source: UElement, element: KtElement): PsiType? =
-    takeIf { it.isInterface() && !it.isBuiltinFunctionalTypeOrSubtype }?.toPsiType(source, element, false)
+    takeIf { it.isInterface() && !it.isBuiltinFunctionalType }?.toPsiType(source, element, false)
 
 internal fun KotlinULambdaExpression.getFunctionalInterfaceType(): PsiType? {
     val parent = psi.parent

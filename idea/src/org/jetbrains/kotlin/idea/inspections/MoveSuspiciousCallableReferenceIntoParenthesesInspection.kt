@@ -12,7 +12,6 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
-import org.jetbrains.kotlin.builtins.isBuiltinFunctionalTypeOrSubtype
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -29,7 +28,6 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getParameterForArgument
 import org.jetbrains.kotlin.resolve.calls.callUtil.getParentCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getParentResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
 class MoveSuspiciousCallableReferenceIntoParenthesesInspection : AbstractKotlinInspection() {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
@@ -45,7 +43,7 @@ class MoveSuspiciousCallableReferenceIntoParenthesesInspection : AbstractKotlinI
                         val expectedType = originalParameterDescriptor.type
                         if (expectedType.isBuiltinFunctionalType) {
                             val returnType = expectedType.getReturnTypeFromFunctionType()
-                            if (returnType.isBuiltinFunctionalTypeOrSubtype) return
+                            if (returnType.isBuiltinFunctionalType) return
                             if (parentResolvedCall.call.callElement.getParentCall(context) != null) return
                         }
                     }

@@ -397,7 +397,7 @@ class GenericCandidateResolver(
     ) = if (!TypeUtils.noExpectedType(context.expectedType) &&
         ownerReturnType != null &&
         TypeUtils.isTypeParameter(ownerReturnType) &&
-        literalExpectedType.isFunctionTypeOrSubtype &&
+        literalExpectedType.isFunctionType &&
         getReturnTypeForCallable(literalExpectedType) == ownerReturnType)
         context.expectedType
     else DONT_CARE
@@ -512,7 +512,7 @@ class GenericCandidateResolver(
             return substitutedType
 
         val shapeType = argumentTypeResolver.getShapeTypeOfCallableReference(callableReference, context, false)
-        if (shapeType != null && shapeType.isFunctionTypeOrSubtype && !hasUnknownFunctionParameter(shapeType))
+        if (shapeType != null && shapeType.isBuiltinFunctionalType && !hasUnknownFunctionParameter(shapeType))
             return shapeType
 
         return null

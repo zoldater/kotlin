@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.js.inline
 import com.google.common.collect.HashMultimap
 import com.google.gwt.dev.js.ThrowExceptionOnErrorReporter
 import com.intellij.util.containers.SLRUCache
-import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
+import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.js.backend.ast.metadata.*
@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils.getModuleName
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.inline.InlineStrategy
 import org.jetbrains.kotlin.utils.JsLibraryUtils
-import org.jetbrains.kotlin.utils.sure
 import java.io.File
 import java.io.StringReader
 
@@ -362,7 +361,7 @@ private fun JsFunction.markInlineArguments(descriptor: CallableDescriptor) {
 
     for ((i, param) in params.withIndex()) {
         val type = param.type
-        if (!type.isFunctionTypeOrSubtype) continue
+        if (!type.isFunctionType) continue
 
         inlineFuns.add(paramsJs[i + offset].name)
     }

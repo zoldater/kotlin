@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.idea.highlighter
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
+import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
@@ -84,7 +84,7 @@ internal class FunctionsHighlightingVisitor(holder: AnnotationHolder, bindingCon
             calleeDescriptor.isDynamic() -> DYNAMIC_FUNCTION_CALL
             resolvedCall is VariableAsFunctionResolvedCall -> {
                 val container = calleeDescriptor.containingDeclaration
-                val containedInFunctionClassOrSubclass = container is ClassDescriptor && container.defaultType.isFunctionTypeOrSubtype
+                val containedInFunctionClassOrSubclass = container is ClassDescriptor && container.defaultType.isFunctionType
                 if (containedInFunctionClassOrSubclass)
                     VARIABLE_AS_FUNCTION_CALL
                 else

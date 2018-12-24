@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.psi2ir.generators
 
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
-import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
+import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.SyntheticFieldDescriptor
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
@@ -405,7 +405,7 @@ private fun StatementGenerator.generateSamConversionForValueArgumentsIfRequired(
         val underlyingParameterType = underlyingValueParameters[i].type
 
         if (!SingleAbstractMethodUtils.isSamType(underlyingParameterType)) continue
-        if (!originalParameterType.isFunctionTypeOrSubtype) continue
+        if (!originalParameterType.isFunctionType) continue
 
         val originalArgument = call.irValueArgumentsByIndex[i] ?: continue
 

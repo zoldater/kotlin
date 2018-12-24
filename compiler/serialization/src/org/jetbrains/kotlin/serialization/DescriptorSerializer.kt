@@ -394,7 +394,7 @@ class DescriptorSerializer private constructor(
     private fun CallableMemberDescriptor.isSuspendOrHasSuspendTypesInSignature(): Boolean {
         if (this is FunctionDescriptor && isSuspend) return true
 
-        return allTypesFromSignature().any { type -> type.contains(UnwrappedType::isSuspendFunctionTypeOrSubtype) }
+        return allTypesFromSignature().any { type -> type.contains(UnwrappedType::isSuspendFunctionType) }
     }
 
     private fun CallableMemberDescriptor.hasInlineClassTypesInSignature(): Boolean {

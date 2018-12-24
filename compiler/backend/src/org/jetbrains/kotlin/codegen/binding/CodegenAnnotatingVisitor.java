@@ -689,7 +689,7 @@ class CodegenAnnotatingVisitor extends KtVisitorVoid {
     }
 
     private void recordSuspendFunctionTypeWrapperForArgument(ParameterDescriptor parameter, KtExpression argumentExpression) {
-        if (FunctionTypesKt.isSuspendFunctionTypeOrSubtype(parameter.getType())) {
+        if (FunctionTypesKt.isSuspendFunctionType(parameter.getType())) {
 
             // SuspendFunctionN type is mapped to is mapped to FunctionTypeN+1, but we also need to remove an argument for return type
             // So, it could be parameter.getType().getArguments().size() + 1 - 1
