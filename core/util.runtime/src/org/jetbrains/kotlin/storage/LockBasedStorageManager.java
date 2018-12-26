@@ -291,18 +291,6 @@ public class LockBasedStorageManager implements StorageManager {
         RECURSION_WAS_DETECTED
     }
 
-    /**
-     * Important thread-safety note!
-     *
-     * This implementation publishes value **BEFORE** calling postCompute on it.
-     *
-     * It means that thread-safety of actions in postCompute() and recursion prevention
-     * rely *solely* on the `storageManager.lock()`.
-     *
-     * And yes, there are a LockBasedStorageManager.NO_LOCKS, which doesn't have lock at all,
-     * so if you have some `StorageManager` (or even if it is an instanceof `LockBasedStorageManager`),
-     * thread-safety of produced lazy values still not guaranteed.
-     */
     private static class LockBasedLazyValue<T> implements NullableLazyValue<T> {
         private final LockBasedStorageManager storageManager;
         private final Function0<? extends T> computable;
@@ -353,8 +341,8 @@ public class LockBasedStorageManager implements StorageManager {
                 value = NotValue.COMPUTING;
                 try {
                     T typedValue = computable.invoke();
-                    value = typedValue;
                     postCompute(typedValue);
+                    value = typedValue;
                     return typedValue;
                 }
                 catch (Throwable throwable) {

@@ -17,52 +17,71 @@
 package org.jetbrains.kotlin.types
 
 import org.jetbrains.kotlin.descriptors.SupertypeLoopChecker
+import org.jetbrains.kotlin.storage.NotNullLazyValue
 import org.jetbrains.kotlin.storage.StorageManager
 
 abstract class AbstractTypeConstructor(storageManager: StorageManager) : TypeConstructor {
-    override fun getSupertypes() = supertypes().supertypesWithoutCycles
-
-    // In current version diagnostic about loops in supertypes is reported on each vertex (supertype reference) that lies on the cycle.
-    // To achieve that we store both versions of supertypes --- before and after loops disconnection.
-    // The first one is used for computation of neighbours in supertypes graph (see Companion.computeNeighbours)
-    private class Supertypes(val allSupertypes: Collection<KotlinType>) {
-        // initializer is only needed as a stub for case when 'getSupertypes' is called while 'supertypes' are being calculated
-        var supertypesWithoutCycles: List<KotlinType> = listOf(ErrorUtils.ERROR_TYPE_FOR_LOOP_IN_SUPERTYPES)
+    override fun getSupertypes(): List<KotlinType> {
+        println("Trigger getSupertypes for ${this.declarationDescriptor?.name}")
+        allSupertypesLazyValue()
+        return supertypesWithoutCyclesLazyValue()
     }
 
-    private val supertypes = storageManager.createLazyValueWithPostCompute(
-        { Supertypes(computeSupertypes()) },
-        { Supertypes(listOf(ErrorUtils.ERROR_TYPE_FOR_LOOP_IN_SUPERTYPES)) },
-        { supertypes ->
-            // It's important that loops disconnection begins in post-compute phase, because it guarantees that
-            // when we start calculation supertypes of supertypes (for computing neighbours), they start their disconnection loop process
-            // either, and as we want to report diagnostic about loops on all declarations they should see consistent version of 'allSupertypes'
-            var resultWithoutCycles =
-                supertypeLoopChecker.findLoopsInSupertypesAndDisconnect(
-                    this, supertypes.allSupertypes,
-                    { it.computeNeighbours(useCompanions = false) },
-                    { reportSupertypeLoopError(it) }
-                )
+    private var allSupertypesLazyValue: NotNullLazyValue<Collection<KotlinType>> =
+        storageManager.createRecursionTolerantLazyValue(
+            computable = {
+                println("Computing all supertypes for ${this.declarationDescriptor?.name}")
+                computeSupertypes().also {
+                    println("Computed all supertypes for ${this.declarationDescriptor?.name}")
+                }
+            },
+            onRecursiveCall = {
+                println("Got recursion for ${this.declarationDescriptor?.name}")
+                listOf(ErrorUtils.ERROR_TYPE_FOR_LOOP_IN_SUPERTYPES)
+            }
+        )
 
-            if (resultWithoutCycles.isEmpty()) {
-                resultWithoutCycles = defaultSupertypeIfEmpty()?.let { listOf(it) }.orEmpty()
+    private var supertypesWithoutCyclesLazyValue: NotNullLazyValue<List<KotlinType>> =
+        storageManager.createRecursionTolerantLazyValue(
+            computable = {
+                println("Starting disconnection for ${this.declarationDescriptor?.name}")
+                computeDisconnectedSupertypes(allSupertypesLazyValue()).also {
+                    println("Finished disconnection for ${this.declarationDescriptor?.name}")
+                }
+            },
+            onRecursiveCall = {
+                listOf(ErrorUtils.ERROR_TYPE_FOR_LOOP_IN_SUPERTYPES)
+            }
+        )
+
+    private fun computeDisconnectedSupertypes(allSupertypes: Collection<KotlinType>): List<KotlinType> {
+        // It's important that loops disconnection begins in post-compute phase, because it guarantees that
+        // when we start calculation supertypes of supertypes (for computing neighbours), they start their disconnection loop process
+        // either, and as we want to report diagnostic about loops on all declarations they should see consistent version of 'allSupertypes'
+        val resultWithoutCycles =
+            supertypeLoopChecker.findLoopsInSupertypesAndDisconnect(
+                this, allSupertypes,
+                { it.computeNeighbours(useCompanions = false) },
+                { reportSupertypeLoopError(it) }
+            ).ifEmpty {
+                listOfNotNull(defaultSupertypeIfEmpty())
             }
 
-            // We also check if there are a loop with additional edges going from owner of companion to
-            // the companion itself.
-            // Note that we use already disconnected types to not report two diagnostics on cyclic supertypes
-            supertypeLoopChecker.findLoopsInSupertypesAndDisconnect(
-                this, resultWithoutCycles,
-                { it.computeNeighbours(useCompanions = true) },
-                { reportScopesLoopError(it) }
-            )
+        // We also check if there are a loop with additional edges going from owner of companion to
+        // the companion itself.
+        // Note that we use already disconnected types to not report two diagnostics on cyclic supertypes
+        supertypeLoopChecker.findLoopsInSupertypesAndDisconnect(
+            this, resultWithoutCycles,
+            { it.computeNeighbours(useCompanions = true) },
+            { reportScopesLoopError(it) }
+        )
 
-            supertypes.supertypesWithoutCycles = (resultWithoutCycles as? List<KotlinType>) ?: resultWithoutCycles.toList()
-        })
+        return (resultWithoutCycles as? List<KotlinType>) ?: resultWithoutCycles.toList()
+    }
 
     private fun TypeConstructor.computeNeighbours(useCompanions: Boolean): Collection<KotlinType> =
         (this as? AbstractTypeConstructor)?.let { abstractClassifierDescriptor ->
-            abstractClassifierDescriptor.supertypes().allSupertypes +
+            abstractClassifierDescriptor.allSupertypesLazyValue() +
                     abstractClassifierDescriptor.getAdditionalNeighboursInSupertypeGraph(useCompanions)
         } ?: supertypes
 
@@ -77,5 +96,5 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : TypeCon
     protected open fun defaultSupertypeIfEmpty(): KotlinType? = null
 
     // Only for debugging
-    fun renderAdditionalDebugInformation(): String = "supertypes=${supertypes.renderDebugInformation()}"
+    fun renderAdditionalDebugInformation(): String = "supertypes=${allSupertypesLazyValue.renderDebugInformation()}"
 }
