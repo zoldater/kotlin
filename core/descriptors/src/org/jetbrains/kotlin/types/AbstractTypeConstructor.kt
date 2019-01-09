@@ -21,37 +21,18 @@ import org.jetbrains.kotlin.storage.NotNullLazyValue
 import org.jetbrains.kotlin.storage.StorageManager
 
 abstract class AbstractTypeConstructor(storageManager: StorageManager) : TypeConstructor {
-    override fun getSupertypes(): List<KotlinType> {
-        println("Trigger getSupertypes for ${this.declarationDescriptor?.name}")
-        allSupertypesLazyValue()
-        return supertypesWithoutCyclesLazyValue()
-    }
+    override fun getSupertypes(): List<KotlinType> = supertypesWithoutCyclesLazyValue()
 
     private var allSupertypesLazyValue: NotNullLazyValue<Collection<KotlinType>> =
         storageManager.createRecursionTolerantLazyValue(
-            computable = {
-                println("Computing all supertypes for ${this.declarationDescriptor?.name}")
-                computeSupertypes().also {
-                    println("Computed all supertypes for ${this.declarationDescriptor?.name}")
-                }
-            },
-            onRecursiveCall = {
-                println("Got recursion for ${this.declarationDescriptor?.name}")
-                listOf(ErrorUtils.ERROR_TYPE_FOR_LOOP_IN_SUPERTYPES)
-            }
+            computable = { computeSupertypes() },
+            onRecursiveCall = { listOf(ErrorUtils.ERROR_TYPE_FOR_LOOP_IN_SUPERTYPES) }
         )
 
     private var supertypesWithoutCyclesLazyValue: NotNullLazyValue<List<KotlinType>> =
         storageManager.createRecursionTolerantLazyValue(
-            computable = {
-                println("Starting disconnection for ${this.declarationDescriptor?.name}")
-                computeDisconnectedSupertypes(allSupertypesLazyValue()).also {
-                    println("Finished disconnection for ${this.declarationDescriptor?.name}")
-                }
-            },
-            onRecursiveCall = {
-                listOf(ErrorUtils.ERROR_TYPE_FOR_LOOP_IN_SUPERTYPES)
-            }
+            computable = { computeDisconnectedSupertypes(allSupertypesLazyValue()) },
+            onRecursiveCall = { listOf(ErrorUtils.ERROR_TYPE_FOR_LOOP_IN_SUPERTYPES) }
         )
 
     private fun computeDisconnectedSupertypes(allSupertypes: Collection<KotlinType>): List<KotlinType> {

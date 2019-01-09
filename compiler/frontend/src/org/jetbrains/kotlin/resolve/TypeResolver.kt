@@ -125,7 +125,9 @@ class TypeResolver(
 
         if (!type.isBare) {
             for (argument in type.actualType.arguments) {
-                forceResolveTypeContents(argument.type)
+                if (!argument.isStarProjection) {
+                    forceResolveTypeContents(argument.type)
+                }
             }
             c.trace.record(resolvedTypeSlice, typeReference, type.actualType)
         }
