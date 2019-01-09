@@ -499,6 +499,7 @@ public class DefaultErrorMessages {
         MAP.put(RETURN_IN_FUNCTION_WITH_EXPRESSION_BODY,
                 "Returns are not allowed for functions with expression body. Use block body in '{...}'");
         MAP.put(NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY, "A 'return' expression required in a function with a block body ('{...}')");
+        MAP.put(NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY_MIGRATION, "A 'return' expression required in a function with a block body ('{...}'). Incorrect code coudl be allowed by 1.3.0-1.3.10 compilers");
         MAP.put(RETURN_TYPE_MISMATCH, "This function must return a value of type {0}", RENDER_TYPE);
         MAP.put(EXPECTED_TYPE_MISMATCH, "Expected a value of type {0}", RENDER_TYPE);
         MAP.put(ASSIGNMENT_TYPE_MISMATCH,
