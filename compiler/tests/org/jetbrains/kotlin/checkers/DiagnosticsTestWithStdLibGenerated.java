@@ -1204,6 +1204,11 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
                     runTest("compiler/testData/diagnostics/testsWithStdLib/contracts/dsl/errors/notFirstStatement.kt");
                 }
 
+                @TestMetadata("onTopLevelAccessors.kt")
+                public void testOnTopLevelAccessors() throws Exception {
+                    runTest("compiler/testData/diagnostics/testsWithStdLib/contracts/dsl/errors/onTopLevelAccessors.kt");
+                }
+
                 @TestMetadata("referenceToProperty.kt")
                 public void testReferenceToProperty() throws Exception {
                     runTest("compiler/testData/diagnostics/testsWithStdLib/contracts/dsl/errors/referenceToProperty.kt");

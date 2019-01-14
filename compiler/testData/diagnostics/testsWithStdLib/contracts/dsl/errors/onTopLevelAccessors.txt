@@ -1,0 +1,6 @@
+package
+
+public val kotlin.String?.asNonNull: kotlin.String
+public var kotlin.Boolean.foo: kotlin.Unit
+public fun test1(/*0*/ x: kotlin.String?): kotlin.Unit
+public fun test2(/*0*/ x: kotlin.Any?): kotlin.Unit

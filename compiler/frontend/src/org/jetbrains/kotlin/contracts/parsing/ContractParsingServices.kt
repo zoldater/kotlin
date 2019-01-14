@@ -21,10 +21,7 @@ import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.description.ContractDescription
 import org.jetbrains.kotlin.contracts.description.ContractProviderKey
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
-import org.jetbrains.kotlin.descriptors.isOverridable
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.psiUtil.isContractDescriptionCallPsiCheck
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -111,6 +108,9 @@ class ContractParsingServices(val languageVersionSettings: LanguageVersionSettin
         if (functionDescriptor == null)
             collector.contractNotAllowed("Contracts are allowed only for functions")
 
+        if (functionDescriptor is PropertyAccessorDescriptor) {
+            collector.contractNotAllowed("Contracts are not allowed yet for property accessors")
+        }
 
         if (callContext.ownerDescriptor.containingDeclaration !is PackageFragmentDescriptor
             || scope.kind != LexicalScopeKind.CODE_BLOCK
