@@ -20,7 +20,7 @@ class B2: A<IC>(), I
 fun box(): String {
     val b = B()
     b.t = IC(10)
-    if (b.t != IC(10)) return "Fail 1"
+    if (b.foo() != IC(10)) return "Fail 1"
 
     val b2 = B2()
     b2.t = IC(10)
