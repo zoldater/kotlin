@@ -24,10 +24,10 @@ expect open class Container {
 actual open class Container {
     actual fun publicFun() {}               // OK: public -> public
 
-    actual fun <!ACTUAL_WITHOUT_EXPECT!>internalFun1<!>() {}            // OK: internal -> public
+    actual fun internalFun1() {}            // OK: internal -> public
     actual internal fun internalFun2() {}   // OK: internal -> internal
 
-    actual fun <!ACTUAL_WITHOUT_EXPECT!>protectedFun1<!>() {}           // OK: protected -> public
+    actual fun protectedFun1() {}           // OK: protected -> public
     actual protected fun protectedFun2() {} // OK: protected -> protected
 
     actual <!ACTUAL_WITHOUT_EXPECT!>internal<!> fun protectedFun3() {}  // BAD: protected -> internal
