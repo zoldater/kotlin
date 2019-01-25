@@ -15,6 +15,7 @@ expect open class Container {
     protected fun protectedFun3()
 
     open internal fun openInternalFun()
+    open fun openPublicFun()
 }
 
 // MODULE: m2-jvm(m1-common)
@@ -34,4 +35,5 @@ actual open class Container {
     actual <!ACTUAL_WITHOUT_EXPECT!>protected<!> fun internalFun3() {}  // BAD: internal -> protected
 
     actual open fun <!ACTUAL_WITHOUT_EXPECT!>openInternalFun<!>() {}    // BAD: internal+open -> public
+    actual internal fun <!ACTUAL_WITHOUT_EXPECT!>openPublicFun<!>() {}  // BAD: open+public -> internal
 }
