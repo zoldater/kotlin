@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DescriptorWithContainerSource
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
-import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.*
 import java.lang.UnsupportedOperationException
 
@@ -556,7 +555,7 @@ open class WrappedClassDescriptor(
 
 
     private val _defaultType: SimpleType by lazy {
-        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope)
+        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope) { unsubstitutedMemberScope }
     }
 
     override fun getDefaultType(): SimpleType = _defaultType
@@ -667,7 +666,7 @@ open class WrappedEnumEntryDescriptor(
 
 
     private val _defaultType: SimpleType by lazy {
-        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope)
+        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope) { unsubstitutedMemberScope }
     }
 
     override fun getDefaultType(): SimpleType = _defaultType
