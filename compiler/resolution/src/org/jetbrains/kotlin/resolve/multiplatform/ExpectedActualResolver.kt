@@ -433,8 +433,8 @@ object ExpectedActualResolver {
     ): Boolean {
         val compare = Visibilities.compare(a.visibility, b.visibility)
         return when {
-            // For virtual declarations visibility should match precisely, see the KT-19664
-            a is MemberDescriptor && a.modality != Modality.FINAL -> compare == 0
+            // For overridable declarations visibility should match precisely, see KT-19664
+            a is CallableMemberDescriptor && a.isOverridable -> compare == 0
 
             // For non-overridable declarations actuals are allowed to have more permissive visibility
             else -> compare != null && compare <= 0
