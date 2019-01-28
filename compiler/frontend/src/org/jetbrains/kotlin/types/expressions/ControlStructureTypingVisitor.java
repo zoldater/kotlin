@@ -47,13 +47,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.jetbrains.kotlin.diagnostics.Errors.*;
 import static org.jetbrains.kotlin.resolve.BindingContext.*;
 import static org.jetbrains.kotlin.resolve.calls.context.ContextDependency.INDEPENDENT;
 import static org.jetbrains.kotlin.types.TypeUtils.*;
-import static org.jetbrains.kotlin.types.expressions.ControlStructureTypingUtils.createCallForSpecialConstruction;
-import static org.jetbrains.kotlin.types.expressions.ControlStructureTypingUtils.createDataFlowInfoForArgumentsForIfCall;
+import static org.jetbrains.kotlin.types.expressions.ControlStructureTypingUtils.*;
 import static org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.*;
 
 public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
@@ -497,6 +497,9 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
 
     @Override
     public KotlinTypeInfo visitTryExpression(@NotNull KtTryExpression expression, ExpressionTypingContext typingContext) {
+        if (typingContext.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)) {
+            return visitTryExpressionNewInference(expression, typingContext);
+        }
         ExpressionTypingContext context = typingContext.replaceContextDependency(INDEPENDENT);
         KtExpression tryBlock = expression.getTryBlock();
         List<KtCatchClause> catchClauses = expression.getCatchClauses();
@@ -508,15 +511,8 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
             KtExpression catchBody = catchClause.getCatchBody();
             boolean nothingInCatchBranch = false;
             if (catchParameter != null) {
-                checkCatchParameterDeclaration(catchParameter, context);
+                VariableDescriptor variableDescriptor = checkCatchParameterTypeAndGetExceptionDescriptor(catchParameter, context);
 
-                VariableDescriptor variableDescriptor = components.descriptorResolver.resolveLocalVariableDescriptor(
-                        context.scope, catchParameter, context.trace);
-                KotlinType catchParameterType = variableDescriptor.getType();
-                checkCatchParameterType(catchParameter, catchParameterType, context);
-
-                KotlinType throwableType = components.builtIns.getThrowable().getDefaultType();
-                components.dataFlowAnalyzer.checkType(catchParameterType, catchParameter, context.replaceExpectedType(throwableType));
                 if (catchBody != null) {
                     LexicalWritableScope catchScope = newWritableScopeImpl(context, LexicalScopeKind.CATCH, components.overloadChecker);
                     catchScope.addVariableDescriptor(variableDescriptor);
@@ -535,15 +531,7 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
         }
 
         KotlinTypeInfo tryResult = facade.getTypeInfo(tryBlock, context);
-        ExpressionTypingContext tryOutputContext = context.replaceExpectedType(NO_EXPECTED_TYPE);
-        if (!nothingInAllCatchBranches &&
-            facade.getComponents().languageVersionSettings.supportsFeature(LanguageFeature.SoundSmartCastsAfterTry)) {
-            PreliminaryLoopVisitor tryVisitor = PreliminaryLoopVisitor.visitTryBlock(expression);
-            tryOutputContext = tryOutputContext.replaceDataFlowInfo(
-                    tryVisitor.clearDataFlowInfoForAssignedLocalVariables(tryOutputContext.dataFlowInfo,
-                                                                          components.languageVersionSettings)
-            );
-        }
+        ExpressionTypingContext tryOutputContext = getTryOutputContext(expression, nothingInAllCatchBranches, context.replaceExpectedType(NO_EXPECTED_TYPE));
 
         KotlinTypeInfo result = TypeInfoFactoryKt.noTypeInfo(tryOutputContext);
         if (finallyBlock != null) {
@@ -563,6 +551,127 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
         else {
             return result.replaceType(CommonSupertypes.commonSupertype(types));
         }
+    }
+
+    private KotlinTypeInfo visitTryExpressionNewInference(@NotNull KtTryExpression tryExpression, ExpressionTypingContext context) {
+        KtBlockExpression tryBlock = tryExpression.getTryBlock();
+        List<KtCatchClause> catchClauses = tryExpression.getCatchClauses();
+        KtFinallySection finallySection = tryExpression.getFinallyBlock();
+
+        DataFlowInfo dataFlowInfoBeforeTry = context.dataFlowInfo;
+
+        List<KtExpression> catchBlocks = Lists.newArrayList();
+        List<kotlin.Pair<KtExpression, VariableDescriptor>> catchedExceptions = Lists.newArrayList();
+
+        for (KtCatchClause catchClause : catchClauses) {
+            KtParameter catchParameter = catchClause.getCatchParameter();
+            KtExpression catchBody = catchClause.getCatchBody();
+            if (catchParameter != null) {
+                VariableDescriptor variableDescriptor = checkCatchParameterTypeAndGetExceptionDescriptor(catchParameter, context);
+                if (catchBody != null) {
+                    catchBlocks.add(catchBody);
+                    catchedExceptions.add(new kotlin.Pair<>(catchBody, variableDescriptor));
+                }
+            }
+        }
+
+        KtBlockExpression finallyBlock = null;
+        if (finallySection != null) {
+            finallyBlock = finallySection.getFinalExpression();
+        }
+
+        List<KtExpression> arguments = Lists.newArrayList(tryBlock);
+        arguments.addAll(catchBlocks);
+
+        Call callForTry = createCallForSpecialConstruction(tryExpression, tryExpression,arguments);
+        MutableDataFlowInfoForArguments dataFlowInfoForArguments = createDataFlowInfoForArgumentsOfTryCall(callForTry, dataFlowInfoBeforeTry);
+        ResolvedCall<FunctionDescriptor> resolvedCall = components.controlStructureTypingUtils
+                .resolveTryAsCall(callForTry, tryExpression, catchedExceptions, context, dataFlowInfoForArguments);
+
+        return processTryBranches(tryExpression, context, tryBlock, catchBlocks, finallyBlock, resolvedCall, dataFlowInfoBeforeTry);
+    }
+
+    private VariableDescriptor checkCatchParameterTypeAndGetExceptionDescriptor(@NotNull KtParameter catchParameter, ExpressionTypingContext context) {
+        checkCatchParameterDeclaration(catchParameter, context);
+
+        VariableDescriptor variableDescriptor = components.descriptorResolver
+                .resolveLocalVariableDescriptor(context.scope, catchParameter, context.trace);
+        KotlinType catchParameterType = variableDescriptor.getType();
+        checkCatchParameterType(catchParameter, catchParameterType, context);
+        KotlinType throwableType = components.builtIns.getThrowable().getDefaultType();
+        components.dataFlowAnalyzer.checkType(catchParameterType, catchParameter, context.replaceExpectedType(throwableType));
+        return variableDescriptor;
+    }
+
+    @NotNull
+    private KotlinTypeInfo processTryBranches(
+            KtTryExpression tryExpression,
+            ExpressionTypingContext context,
+            KtExpression tryBlock,
+            List<KtExpression> catchBlocks,
+            @Nullable KtExpression finallyBlock,
+            ResolvedCall<FunctionDescriptor> resolvedCall,
+            DataFlowInfo dataFlowInfoBeforeTry
+    ) {
+        BindingContext bindingContext = context.trace.getBindingContext();
+        KotlinTypeInfo tryInfo = BindingContextUtils.getRecordedTypeInfo(tryBlock, bindingContext);
+        List<KotlinTypeInfo> catchTypeInfos = catchBlocks.stream()
+                .map(catchBlock -> BindingContextUtils.getRecordedTypeInfo(catchBlock, bindingContext))
+                .collect(Collectors.toList());
+
+        boolean nothingInAllCatchBranches = true;
+
+        for (KotlinTypeInfo catchTypeInfo : catchTypeInfos) {
+            if (catchTypeInfo == null) continue;
+            KotlinType catchType = catchTypeInfo.getType();
+            if (catchType != null && !KotlinBuiltIns.isNothing(catchType)) {
+                nothingInAllCatchBranches = false;
+            }
+        }
+
+        ExpressionTypingContext contextWithoutExpectType = context.replaceExpectedType(NO_EXPECTED_TYPE);
+        ExpressionTypingContext tryOutputContext = getTryOutputContext(tryExpression, nothingInAllCatchBranches, contextWithoutExpectType);
+
+        DataFlowInfo resultDataFlowInfo = dataFlowInfoBeforeTry;
+
+        KotlinType resultType = resolvedCall.getResultingDescriptor().getReturnType();
+        KotlinTypeInfo result = TypeInfoFactoryKt.createTypeInfo(resultType, tryOutputContext);
+
+        if (finallyBlock != null) {
+            return facade.getTypeInfo(finallyBlock, tryOutputContext).replaceType(resultType);
+        }
+
+        if (!nothingInAllCatchBranches || tryInfo == null) {
+            return result;
+        }
+
+        KotlinType tryType = tryInfo.getType();
+        if (resultType != null && tryType != null) {
+            DataFlowInfo tryDataFlowInfo = tryInfo.getDataFlowInfo();
+            DataFlowValue resultValue = components.dataFlowValueFactory.createDataFlowValue(tryExpression, resultType, tryOutputContext);
+            DataFlowValue tryValue = components.dataFlowValueFactory.createDataFlowValue(tryBlock, tryType, tryOutputContext);
+            tryDataFlowInfo.assign(resultValue, tryValue, components.languageVersionSettings);
+            resultDataFlowInfo = tryDataFlowInfo;
+        }
+
+        return TypeInfoFactoryKt.createTypeInfo(
+                components.dataFlowAnalyzer.checkType(resultType, tryExpression, tryOutputContext),
+                resultDataFlowInfo
+        );
+    }
+
+    private ExpressionTypingContext getTryOutputContext(
+            KtTryExpression tryExpression,
+            boolean nothingInAllCatchBranches,
+            ExpressionTypingContext context
+    ) {
+        if (!nothingInAllCatchBranches && facade.getComponents().languageVersionSettings.supportsFeature(LanguageFeature.SoundSmartCastsAfterTry)) {
+            PreliminaryLoopVisitor tryVisitor = PreliminaryLoopVisitor.visitTryBlock(tryExpression);
+            context = context.replaceDataFlowInfo(
+                    tryVisitor.clearDataFlowInfoForAssignedLocalVariables(context.dataFlowInfo, components.languageVersionSettings)
+            );
+        }
+        return context;
     }
 
     private static void checkCatchParameterType(KtParameter catchParameter, KotlinType catchParameterType, ExpressionTypingContext context) {

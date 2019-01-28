@@ -22,6 +22,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.util.PsiTreeUtil;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
@@ -67,7 +68,7 @@ public class ControlStructureTypingUtils {
     private static final Logger LOG = Logger.getInstance(ControlStructureTypingUtils.class);
 
     public enum ResolveConstruct {
-        IF("if"), ELVIS("elvis"), EXCL_EXCL("ExclExcl"), WHEN("when");
+        IF("if"), ELVIS("elvis"), EXCL_EXCL("ExclExcl"), WHEN("when"), TRY("try");
 
         private final String name;
         private final Name specialFunctionName;
@@ -94,7 +95,7 @@ public class ControlStructureTypingUtils {
 
     private final CallResolver callResolver;
     private final DataFlowAnalyzer dataFlowAnalyzer;
-    private final ModuleDescriptor moduleDescriptor;
+    /*package*/ final ModuleDescriptor moduleDescriptor;
 
     public ControlStructureTypingUtils(
             @NotNull CallResolver callResolver,
@@ -116,6 +117,25 @@ public class ControlStructureTypingUtils {
     ) {
         SimpleFunctionDescriptorImpl function = createFunctionDescriptorForSpecialConstruction(
                 construct, argumentNames, isArgumentNullable);
+        return resolveSpecialConstructionAsCall(call, function, construct, context, dataFlowInfoForArguments);
+    }
+
+    /*package*/ ResolvedCall<FunctionDescriptor> resolveTryAsCall(
+            @NotNull Call call,
+            @NotNull KtTryExpression tryExpression,
+            @NotNull List<Pair<KtExpression, VariableDescriptor>> catchedExceptions,
+            @NotNull ExpressionTypingContext context,
+            @Nullable MutableDataFlowInfoForArguments dataFlowInfoForArguments
+    ) {
+        return ControlStructureTypingUtilsKt.resolveTryAsCallImpl(this, call,tryExpression, catchedExceptions, context, dataFlowInfoForArguments);
+    }
+
+    /*package*/ ResolvedCall<FunctionDescriptor> resolveSpecialConstructionAsCall(
+            @NotNull Call call,
+            @NotNull SimpleFunctionDescriptorImpl function,
+            @NotNull ResolveConstruct construct,
+            @NotNull ExpressionTypingContext context,
+            @Nullable MutableDataFlowInfoForArguments dataFlowInfoForArguments) {
         TracingStrategy tracing = createTracingForSpecialConstruction(call, construct.getName(), context);
         TypeSubstitutor knownTypeParameterSubstitutor = createKnownTypeParameterSubstitutorForSpecialCall(construct, function, context.expectedType, context.languageVersionSettings);
         ResolutionCandidate<FunctionDescriptor> resolutionCandidate =
@@ -147,7 +167,7 @@ public class ControlStructureTypingUtils {
         return TypeSubstitutor.create(ImmutableMap.of(typeParameterConstructor, typeProjection));
     }
 
-    private SimpleFunctionDescriptorImpl createFunctionDescriptorForSpecialConstruction(
+    /*package*/ SimpleFunctionDescriptorImpl createFunctionDescriptorForSpecialConstruction(
             @NotNull ResolveConstruct construct,
             @NotNull List<String> argumentNames,
             @NotNull List<Boolean> isArgumentNullable
@@ -250,6 +270,17 @@ public class ControlStructureTypingUtils {
             dataFlowInfoForArgumentsMap.put(argument, entryDataFlowInfo);
         }
         return createIndependentDataFlowInfoForArgumentsForCall(subjectDataFlowInfo, dataFlowInfoForArgumentsMap);
+    }
+
+    public static MutableDataFlowInfoForArguments createDataFlowInfoForArgumentsOfTryCall(
+            @NotNull Call callForTry,
+            @NotNull DataFlowInfo dataFlowInfoBeforeTry
+    ) {
+        Map<ValueArgument, DataFlowInfo> dataFlowInfoForArgumentsMap = new HashMap<>();
+        for (ValueArgument argument : callForTry.getValueArguments()) {
+            dataFlowInfoForArgumentsMap.put(argument, dataFlowInfoBeforeTry);
+        }
+        return createIndependentDataFlowInfoForArgumentsForCall(dataFlowInfoBeforeTry, dataFlowInfoForArgumentsMap);
     }
 
     /*package*/ static Call createCallForSpecialConstruction(
