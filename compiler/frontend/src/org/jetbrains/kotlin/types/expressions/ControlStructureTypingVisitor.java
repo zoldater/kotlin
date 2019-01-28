@@ -576,7 +576,7 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
         arguments.addAll(catchBlocks);
 
         Call callForTry = createCallForSpecialConstruction(tryExpression, tryExpression, arguments);
-        MutableDataFlowInfoForArguments dataFlowInfoForArguments = createDataFlowInfoForArgumentsOfTryCall(callForTry, dataFlowInfoBeforeTry);
+        MutableDataFlowInfoForArguments dataFlowInfoForArguments = createDataFlowInfoForArgumentsOfTryCall(callForTry, dataFlowInfoBeforeTry, dataFlowInfoBeforeTry);
         ResolvedCall<FunctionDescriptor> resolvedCall = components.controlStructureTypingUtils
                 .resolveTryAsCall(callForTry, tryExpression, catchClausesBlocksAndParameters, context, dataFlowInfoForArguments);
 

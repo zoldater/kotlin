@@ -58,6 +58,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue;
 import org.jetbrains.kotlin.types.*;
 import org.jetbrains.kotlin.types.typeUtil.TypeUtilsKt;
 
+import javax.xml.ws.Holder;
 import java.util.*;
 
 import static org.jetbrains.kotlin.diagnostics.Errors.TYPE_INFERENCE_FAILED_ON_SPECIAL_CONSTRUCT;
@@ -139,7 +140,7 @@ public class ControlStructureTypingUtils {
         for (Pair<KtExpression, VariableDescriptor> descriptorPair : catchedExceptions) {
             KtExpression catchBlock = descriptorPair.getFirst();
             VariableDescriptor catchedExceptionDescriptor = descriptorPair.getSecond();
-            context.trace.record(BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, catchBlock, catchedExceptionDescriptor);
+            context.trace.record(BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, catchBlock, new Holder<>(catchedExceptionDescriptor));
         }
         return resolveSpecialConstructionAsCall(call, function, ResolveConstruct.TRY, context, dataFlowInfoForArguments);
     }
@@ -289,11 +290,14 @@ public class ControlStructureTypingUtils {
 
     public static MutableDataFlowInfoForArguments createDataFlowInfoForArgumentsOfTryCall(
             @NotNull Call callForTry,
-            @NotNull DataFlowInfo dataFlowInfoBeforeTry
+            @NotNull DataFlowInfo dataFlowInfoBeforeTry,
+            @NotNull DataFlowInfo dataFlowInfoAfterTry
     ) {
         Map<ValueArgument, DataFlowInfo> dataFlowInfoForArgumentsMap = new HashMap<>();
-        for (ValueArgument argument : callForTry.getValueArguments()) {
-            dataFlowInfoForArgumentsMap.put(argument, dataFlowInfoBeforeTry);
+        List<? extends ValueArgument> valueArguments = callForTry.getValueArguments();
+        dataFlowInfoForArgumentsMap.put(valueArguments.get(0), dataFlowInfoBeforeTry);
+        for (int i = 1; i < valueArguments.size(); i++) {
+            dataFlowInfoForArgumentsMap.put(valueArguments.get(i), dataFlowInfoAfterTry);
         }
         return createIndependentDataFlowInfoForArgumentsForCall(dataFlowInfoBeforeTry, dataFlowInfoForArgumentsMap);
     }

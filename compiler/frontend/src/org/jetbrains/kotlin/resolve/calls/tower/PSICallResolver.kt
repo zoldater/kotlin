@@ -689,13 +689,16 @@ class PSICallResolver(
     private fun BasicCallResolutionContext.expandContextForCatchClause(ktExpression: Any): BasicCallResolutionContext {
         if (ktExpression !is KtExpression) return this
 
-        val variableDescriptor = trace.bindingContext[NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, ktExpression] ?: return this
-        val redeclarationChecker = scope.safeAs<LexicalWritableScope>()?.redeclarationChecker ?: LocalRedeclarationChecker.DO_NOTHING
+        val variableDescriptorHolder = trace.bindingContext[NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, ktExpression] ?: return this
+        val variableDescriptor = variableDescriptorHolder.value ?: return this
+        variableDescriptorHolder.value = null
 
-        val scope = with(scope) {
-            LexicalWritableScope(this, ownerDescriptor, isOwnerDescriptorAccessibleByLabel, redeclarationChecker, kind)
+        val redeclarationChecker = expressionTypingServices.createLocalRedeclarationChecker(trace)
+
+        val newLexicalWritableScope = with(scope) {
+            LexicalWritableScope(this, ownerDescriptor, false, redeclarationChecker, LexicalScopeKind.CATCH)
         }
-        scope.addVariableDescriptor(variableDescriptor)
-        return replaceScope(scope)
+        newLexicalWritableScope.addVariableDescriptor(variableDescriptor)
+        return replaceScope(newLexicalWritableScope)
     }
 }

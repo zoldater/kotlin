@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.cfg.LeakingThisDescriptor;
 import org.jetbrains.kotlin.cfg.TailRecursionKind;
 import org.jetbrains.kotlin.contracts.description.InvocationKind;
 import org.jetbrains.kotlin.contracts.model.Computation;
-import org.jetbrains.kotlin.contracts.model.Functor;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.kotlin.name.FqName;
@@ -44,6 +43,7 @@ import org.jetbrains.kotlin.types.expressions.PreliminaryDeclarationVisitor;
 import org.jetbrains.kotlin.util.Box;
 import org.jetbrains.kotlin.util.slicedMap.*;
 
+import javax.xml.ws.Holder;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -264,7 +264,7 @@ public interface BindingContext {
 
     WritableSlice<KtExpression, PrimitiveNumericComparisonInfo> PRIMITIVE_NUMERIC_COMPARISON_INFO = Slices.createSimpleSlice();
 
-    WritableSlice<KtExpression, VariableDescriptor> NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
+    WritableSlice<KtExpression, Holder<VariableDescriptor>> NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
 
     @SuppressWarnings("UnusedDeclaration")
     @Deprecated // This field is needed only for the side effects of its initializer
