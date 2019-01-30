@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.psi.*;
+import org.jetbrains.kotlin.resolve.BindingContext;
 import org.jetbrains.kotlin.resolve.BindingContextUtils;
 import org.jetbrains.kotlin.resolve.BindingTrace;
 import org.jetbrains.kotlin.resolve.calls.CallResolver;
@@ -127,15 +128,29 @@ public class ControlStructureTypingUtils {
             @NotNull ExpressionTypingContext context,
             @Nullable MutableDataFlowInfoForArguments dataFlowInfoForArguments
     ) {
-        return ControlStructureTypingUtilsKt.resolveTryAsCallImpl(this, call,tryExpression, catchedExceptions, context, dataFlowInfoForArguments);
+        List<String> argumentNames = Lists.newArrayList("tryBlock");
+        List<Boolean> argumentsNullability = Lists.newArrayList(false);
+        for (int i = 0; i < tryExpression.getCatchClauses().size(); i++) {
+            argumentNames.add("catchBlock" + i);
+            argumentsNullability.add(false);
+        }
+        SimpleFunctionDescriptorImpl function =
+                createFunctionDescriptorForSpecialConstruction(ResolveConstruct.TRY, argumentNames, argumentsNullability);
+        for (Pair<KtExpression, VariableDescriptor> descriptorPair : catchedExceptions) {
+            KtExpression catchBlock = descriptorPair.getFirst();
+            VariableDescriptor catchedExceptionDescriptor = descriptorPair.getSecond();
+            context.trace.record(BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, catchBlock, catchedExceptionDescriptor);
+        }
+        return resolveSpecialConstructionAsCall(call, function, ResolveConstruct.TRY, context, dataFlowInfoForArguments);
     }
 
-    /*package*/ ResolvedCall<FunctionDescriptor> resolveSpecialConstructionAsCall(
+    private ResolvedCall<FunctionDescriptor> resolveSpecialConstructionAsCall(
             @NotNull Call call,
             @NotNull SimpleFunctionDescriptorImpl function,
             @NotNull ResolveConstruct construct,
             @NotNull ExpressionTypingContext context,
-            @Nullable MutableDataFlowInfoForArguments dataFlowInfoForArguments) {
+            @Nullable MutableDataFlowInfoForArguments dataFlowInfoForArguments
+    ) {
         TracingStrategy tracing = createTracingForSpecialConstruction(call, construct.getName(), context);
         TypeSubstitutor knownTypeParameterSubstitutor = createKnownTypeParameterSubstitutorForSpecialCall(construct, function, context.expectedType, context.languageVersionSettings);
         ResolutionCandidate<FunctionDescriptor> resolutionCandidate =
@@ -167,7 +182,7 @@ public class ControlStructureTypingUtils {
         return TypeSubstitutor.create(ImmutableMap.of(typeParameterConstructor, typeProjection));
     }
 
-    /*package*/ SimpleFunctionDescriptorImpl createFunctionDescriptorForSpecialConstruction(
+    private SimpleFunctionDescriptorImpl createFunctionDescriptorForSpecialConstruction(
             @NotNull ResolveConstruct construct,
             @NotNull List<String> argumentNames,
             @NotNull List<Boolean> isArgumentNullable

@@ -3241,6 +3241,11 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/assignTry.kt");
         }
 
+        @TestMetadata("tryDataFlowInfo.kt")
+        public void testTryDataFlowInfo() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/tryDataFlowInfo.kt");
+        }
+
         @TestMetadata("tryExpression.kt")
         public void testTryExpression() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/tryExpression.kt");
