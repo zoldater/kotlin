@@ -43,7 +43,6 @@ import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo;
 import org.jetbrains.kotlin.types.expressions.PreliminaryDeclarationVisitor;
 import org.jetbrains.kotlin.util.Box;
 import org.jetbrains.kotlin.util.slicedMap.*;
-import org.omg.CORBA.ObjectHolder;
 
 import javax.xml.ws.Holder;
 import java.util.Collection;
