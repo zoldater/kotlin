@@ -3246,6 +3246,11 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/boundedSmartcasts.kt");
         }
 
+        @TestMetadata("boundedSmartcasts_tryDFA.kt")
+        public void testBoundedSmartcasts_tryDFA() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/boundedSmartcasts_tryDFA.kt");
+        }
+
         @TestMetadata("catchRedeclaration.kt")
         public void testCatchRedeclaration() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/catchRedeclaration.kt");
@@ -3256,14 +3261,29 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/correctSmartcasts.kt");
         }
 
+        @TestMetadata("correctSmartcasts_tryDFA.kt")
+        public void testCorrectSmartcasts_tryDFA() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/correctSmartcasts_tryDFA.kt");
+        }
+
         @TestMetadata("falseNegativeSmartcasts.kt")
         public void testFalseNegativeSmartcasts() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falseNegativeSmartcasts.kt");
         }
 
+        @TestMetadata("falseNegativeSmartcasts_tryDFA.kt")
+        public void testFalseNegativeSmartcasts_tryDFA() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falseNegativeSmartcasts_tryDFA.kt");
+        }
+
         @TestMetadata("falsePositiveSmartcasts.kt")
         public void testFalsePositiveSmartcasts() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falsePositiveSmartcasts.kt");
+        }
+
+        @TestMetadata("falsePositiveSmartcasts_tryDFA.kt")
+        public void testFalsePositiveSmartcasts_tryDFA() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falsePositiveSmartcasts_tryDFA.kt");
         }
 
         @TestMetadata("tryExpression.kt")

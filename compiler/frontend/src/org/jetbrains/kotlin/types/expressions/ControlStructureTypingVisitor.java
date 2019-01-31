@@ -576,6 +576,7 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
         ExpressionTypingContext tryOutputContext = tryInputContext.replaceDataFlowInfo(
                 tryVisitor.clearDataFlowInfoForAssignedLocalVariables(dataFlowInfoBeforeTry, components.languageVersionSettings)
         );
+        DataFlowInfo dataFlowInfoAfterTry = tryOutputContext.dataFlowInfo;
 
         List<KtExpression> catchBlocks = Lists.newArrayList();
         List<kotlin.Pair<KtExpression, VariableDescriptor>> catchClausesBlocksAndParameters = Lists.newArrayList();
@@ -602,14 +603,23 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
 
         Call callForTry = createCallForSpecialConstruction(tryExpression, tryExpression, arguments);
 
-        MutableDataFlowInfoForArguments dataFlowInfoForArguments = createDataFlowInfoForArgumentsOfTryCall(callForTry, dataFlowInfoBeforeTry, dataFlowInfoBeforeTry);
+        MutableDataFlowInfoForArguments dataFlowInfoForArguments;
+        if (components.languageVersionSettings.supportsFeature(LanguageFeature.NewDataFlowForTryExpressions)) {
+            dataFlowInfoForArguments = createDataFlowInfoForArgumentsOfTryCall(callForTry, dataFlowInfoBeforeTry, dataFlowInfoAfterTry);
+        } else {
+            dataFlowInfoForArguments = createDataFlowInfoForArgumentsOfTryCall(callForTry, dataFlowInfoBeforeTry, dataFlowInfoBeforeTry);
+        }
         ResolvedCall<FunctionDescriptor> resolvedCall = components.controlStructureTypingUtils
                 .resolveTryAsCall(callForTry, tryExpression, catchClausesBlocksAndParameters, tryInputContext, dataFlowInfoForArguments);
         KotlinType resultType = resolvedCall.getResultingDescriptor().getReturnType();
 
         BindingContext bindingContext = tryInputContext.trace.getBindingContext();
 
-        return processTryBranches(tryExpression, tryBlock, tryInputContext, dataFlowInfoBeforeTry, catchBlocks, finallyBlock, bindingContext, resultType);
+        if (components.languageVersionSettings.supportsFeature(LanguageFeature.NewDataFlowForTryExpressions)) {
+            return processTryBranchesWithNewDataFlowAlgorithm(tryExpression, tryBlock, tryOutputContext, dataFlowInfoAfterTry, catchBlocks, finallyBlock, bindingContext, resultType);
+        } else {
+            return processTryBranches(tryExpression, tryBlock, tryInputContext, dataFlowInfoBeforeTry, catchBlocks, finallyBlock, bindingContext, resultType);
+        }
     }
 
     @NotNull
@@ -655,8 +665,85 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
         }
     }
 
+    @NotNull
+    private KotlinTypeInfo processTryBranchesWithNewDataFlowAlgorithm(
+            @NotNull KtTryExpression tryExpression,
+            KtBlockExpression tryBlock,
+            ExpressionTypingContext tryOutputContext,
+            DataFlowInfo dataFlowInfoAfterTry,
+            List<KtExpression> catchBlocks,
+            KtBlockExpression finallyBlock,
+            BindingContext bindingContext,
+            KotlinType resultType
+    ) {
+        /*
+         * In [resolveTryExpressionWithNewInference] was described meaning of tryOutputContext.
+         * Here was added some others context and another definitions:
+         * - catchOutputContextFromNonNothingBranches is tryOutputContext that was cut with assignments from all catch branches that not returns Nothing
+         * - catchOutputContextFromAllBranches is tryOutputContext that was cut with assignments from all catch branches
+         * - tryInfo is resolved KotlinTypeInfo of try branch, so its dataFlowInfo contains all interesting infos from try block
+         *     (e.g. info about s != null from example in function [resolveTryExpressionWithNewInference])
+         * - finallyTypeInfo is resolved with OI KotlinTypeInfo of finally branch (it's resolved with assumption that we can came into
+         *     finally block from any catch block, even if it returns Nothing)
+         * - resultDataFlowInfo is dataFlowInfo that leaves after try/catch
+         *
+         *
+         * All analysis passes under strict assumption, that we can fail with exception in any place of try block, so we can't use any
+         *     resolved dataFlowInfo from it. But, there is a one case, when we can use it: if there is no catch branches or all catch
+         *     branches returns Nothing, so we can run code after try only if there was no exceptions in try block, so we can use
+         *     dataFlowInfo from it (see nothingInAllCatchBranches variable)
+         */
+        List<Boolean> branchesReturnsNothing = whatCatchBranchesReturnsNothing(catchBlocks, bindingContext);
+        PreliminaryLoopVisitor catchVisitorForNonNothingBranches = PreliminaryLoopVisitor.visitCatchBlocks(tryExpression, mapNot(branchesReturnsNothing));
+        ExpressionTypingContext catchOutputContextFromNonNothingBranches = tryOutputContext.replaceDataFlowInfo(
+                catchVisitorForNonNothingBranches.clearDataFlowInfoForAssignedLocalVariables(dataFlowInfoAfterTry, components.languageVersionSettings)
+        );
+
+        KotlinTypeInfo tryInfo = BindingContextUtils.getRecordedTypeInfo(tryBlock, bindingContext);
+        boolean nothingInAllCatchBranches = allMatch(branchesReturnsNothing);
+        DataFlowInfo resultDataFlowInfo;
+        if (tryInfo == null) {
+            resultDataFlowInfo = DataFlowInfo.Companion.getEMPTY();
+        } else if (nothingInAllCatchBranches) {
+            resultDataFlowInfo = tryInfo.getDataFlowInfo();
+        } else {
+            resultDataFlowInfo = catchOutputContextFromNonNothingBranches.dataFlowInfo;
+        }
+
+        if (resultType != null) {
+            DataFlowValue resultValue = components.dataFlowValueFactory.createDataFlowValue(tryExpression, resultType, catchOutputContextFromNonNothingBranches);
+            DataFlowValue tryValue = components.dataFlowValueFactory.createDataFlowValue(tryBlock, resultType, catchOutputContextFromNonNothingBranches);
+            resultDataFlowInfo = resultDataFlowInfo.assign(resultValue, tryValue, components.languageVersionSettings);
+            for (int i = 0; i < catchBlocks.size(); i++) {
+                if (branchesReturnsNothing.get(i)) continue;
+                KtExpression catchBlock = catchBlocks.get(i);
+                DataFlowValue catchValue = components.dataFlowValueFactory.createDataFlowValue(catchBlock, resultType, tryOutputContext);
+                resultDataFlowInfo = resultDataFlowInfo.assign(resultValue, catchValue, components.languageVersionSettings);
+            }
+        }
+
+        if (finallyBlock != null) {
+            PreliminaryLoopVisitor catchVisitor = PreliminaryLoopVisitor.visitCatchBlocks(tryExpression);
+            ExpressionTypingContext catchOutputContextFromAllBranches = tryOutputContext.replaceDataFlowInfo(
+                    catchVisitor.clearDataFlowInfoForAssignedLocalVariables(dataFlowInfoAfterTry, components.languageVersionSettings)
+            );
+            KotlinTypeInfo finallyTypeInfo = facade.getTypeInfo(finallyBlock, catchOutputContextFromAllBranches);
+            DataFlowInfo finallyDataFlowInfo = finallyTypeInfo.getDataFlowInfo();
+            resultDataFlowInfo = finallyDataFlowInfo.and(resultDataFlowInfo);
+        }
+
+        return TypeInfoFactoryKt.createTypeInfo(
+                components.dataFlowAnalyzer.checkType(resultType, tryExpression, catchOutputContextFromNonNothingBranches),
+                resultDataFlowInfo
+        );
+    }
+
     private static boolean allMatch(List<Boolean> list) {
         return list.stream().allMatch(it -> it);
+    }
+
+    private static List<Boolean> mapNot(List<Boolean> list) {
+        return list.stream().map(it -> !it).collect(Collectors.toList());
     }
 
     private static boolean isCatchBranchesReturnsNothing(List<KtExpression> catchBlocks, BindingContext bindingContext) {
