@@ -11,6 +11,10 @@ annotation class Anno(
 )
 
 fun box(): String {
+    when (1) {
+        0 -> fun named8(): Int {return 1}
+        else -> fun named9() = 1
+    }
     val ms = Anno::class.java.declaredMethods
 
     return (ms.single { it.name == "o" }.annotations.single() as Name).value +

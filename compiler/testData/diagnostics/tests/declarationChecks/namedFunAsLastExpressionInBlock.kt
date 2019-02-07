@@ -27,15 +27,15 @@ fun test() {
     <!SYNTAX!><!>fun named7() = 1
 
     val x3 = when (1) {
-        0 -> <!EXPECTED_TYPE_MISMATCH!>fun named8(): Int {return 1}<!>
-        else -> <!EXPECTED_TYPE_MISMATCH!>fun named9() = 1<!>
+        0 -> <!OI;EXPECTED_TYPE_MISMATCH!>fun <!NI;ANONYMOUS_FUNCTION_WITH_NAME!>named8<!>(): Int {return 1}<!>
+        else -> <!OI;EXPECTED_TYPE_MISMATCH!>fun <!NI;ANONYMOUS_FUNCTION_WITH_NAME!>named9<!>() = 1<!>
     }
 
     val x31 = when (1) {
         0 -> {
-            <!EXPECTED_TYPE_MISMATCH!>fun named10(): Int {return 1}<!>
+            <!OI;EXPECTED_TYPE_MISMATCH!>fun named10(): Int {return 1}<!>
         }
-        else -> <!EXPECTED_TYPE_MISMATCH!>fun named11() = 1<!>
+        else -> <!OI;EXPECTED_TYPE_MISMATCH!>fun <!NI;ANONYMOUS_FUNCTION_WITH_NAME!>named11<!>() = 1<!>
     }
 
     val x4 = {
@@ -45,6 +45,7 @@ fun test() {
     x4 checkType { _<Function1<Int, Unit>>() }
 
     <!UNUSED_LAMBDA_EXPRESSION!>{ y: Int -> fun named14(): Int {return 1} }<!>
+    val b = (fun <!ANONYMOUS_FUNCTION_WITH_NAME!>named15<!>(): Boolean { return true })()
 }
 
 fun <T> run(block: () -> T): T = null!!
@@ -55,5 +56,15 @@ fun success() {
     run2 { fun named2() = 1 }
 
     val x = run { fun named3() = 1 }
-    x checkType { <!NI;DEBUG_INFO_UNRESOLVED_WITH_TARGET, NI;UNRESOLVED_REFERENCE_WRONG_RECEIVER!>_<!><Unit>() }
+    x checkType { _<Unit>() }
+
+    val y = when (1) {
+        0 -> {
+            <!OI;EXPECTED_TYPE_MISMATCH!>fun named4(): Int {return 1}<!>
+        }
+        else -> {
+            <!OI;EXPECTED_TYPE_MISMATCH!>fun named5(): Int {return 1}<!>
+        }
+    }
+    y checkType { <!OI;TYPE_MISMATCH!>_<!><Unit>() }
 }
