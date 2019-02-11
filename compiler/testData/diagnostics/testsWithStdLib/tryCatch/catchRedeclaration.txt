@@ -4,6 +4,7 @@ public fun test1(): kotlin.Unit
 public fun test2(): kotlin.Unit
 public fun test3(): kotlin.Unit
 public fun test4(): kotlin.Unit
+public fun test5(): kotlin.Unit
 
 public final class MyException : kotlin.Exception /* = java.lang.Exception */ {
     public constructor MyException()
@@ -18,6 +19,7 @@ public final class MyException : kotlin.Exception /* = java.lang.Exception */ {
     public final override /*1*/ /*fake_override*/ fun getSuppressed(): kotlin.Array<(out) kotlin.Throwable!>!
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun initCause(/*0*/ cause: kotlin.Throwable!): kotlin.Throwable!
+    public final fun myFun(): kotlin.Unit
     public open override /*1*/ /*fake_override*/ fun printStackTrace(): kotlin.Unit
     public open override /*1*/ /*fake_override*/ fun printStackTrace(/*0*/ s: java.io.PrintStream!): kotlin.Unit
     public open override /*1*/ /*fake_override*/ fun printStackTrace(/*0*/ s: java.io.PrintWriter!): kotlin.Unit

@@ -4,19 +4,6 @@ class ExcA : Exception()
 
 class ExcB : Exception()
 
-fun test1() {
-    val s: String? = try {
-        ""
-    }
-    catch (e: ExcA) {
-        null
-    }
-    catch (e: ExcB) {
-        "aaa"
-    }
-    s<!UNSAFE_CALL!>.<!>length
-}
-
 fun test2() {
     val s: String? = <!NI;TYPE_MISMATCH!>try {
         ""

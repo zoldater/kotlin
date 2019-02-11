@@ -5,6 +5,7 @@ public fun test2(/*0*/ s: kotlin.String?): kotlin.Unit
 public fun test3(): kotlin.Unit
 public fun test4(): kotlin.Unit
 public fun test5(/*0*/ s: kotlin.String?): kotlin.Unit
+public fun test6(/*0*/ s: kotlin.String?): kotlin.Unit
 
 public final class ExcA : kotlin.Exception /* = java.lang.Exception */ {
     public constructor ExcA()

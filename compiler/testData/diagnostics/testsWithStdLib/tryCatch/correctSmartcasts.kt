@@ -75,3 +75,13 @@ fun test5(s: String?) {
     }
     s<!UNSAFE_CALL!>.<!>length
 }
+
+fun test6(s: String?) {
+    try {
+        requireNotNull(s)
+    }
+    catch (e: Exception) {
+        return
+    }
+    <!DEBUG_INFO_SMARTCAST!>s<!>.length
+}

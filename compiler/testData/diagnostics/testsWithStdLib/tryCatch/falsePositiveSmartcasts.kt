@@ -84,3 +84,22 @@ fun test5() {
     <!DEBUG_INFO_SMARTCAST!>s1<!>.length
     <!DEBUG_INFO_SMARTCAST!>s2<!>.length
 }
+
+fun test6(s1: String?, s2: String?) {
+    var s: String? = null
+    s = ""
+    try {
+        s = null
+        requireNotNull(s1)
+    }
+    catch (e: Exception) {
+        return
+    }
+    finally {
+        <!DEBUG_INFO_SMARTCAST!>s<!>.length
+        requireNotNull(s2)
+    }
+    <!DEBUG_INFO_SMARTCAST!>s<!>.length
+    s1<!UNSAFE_CALL!>.<!>length
+    <!DEBUG_INFO_SMARTCAST!>s2<!>.length
+}

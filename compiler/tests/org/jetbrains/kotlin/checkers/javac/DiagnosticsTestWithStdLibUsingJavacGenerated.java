@@ -3246,11 +3246,6 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/boundedSmartcasts.kt");
         }
 
-        @TestMetadata("boundedSmartcasts_tryDFA.kt")
-        public void testBoundedSmartcasts_tryDFA() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/boundedSmartcasts_tryDFA.kt");
-        }
-
         @TestMetadata("catchRedeclaration.kt")
         public void testCatchRedeclaration() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/catchRedeclaration.kt");
@@ -3261,9 +3256,9 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/correctSmartcasts.kt");
         }
 
-        @TestMetadata("correctSmartcasts_tryDFA.kt")
-        public void testCorrectSmartcasts_tryDFA() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/correctSmartcasts_tryDFA.kt");
+        @TestMetadata("correctSmartcasts_after.kt")
+        public void testCorrectSmartcasts_after() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/correctSmartcasts_after.kt");
         }
 
         @TestMetadata("falseNegativeSmartcasts.kt")
@@ -3271,9 +3266,9 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falseNegativeSmartcasts.kt");
         }
 
-        @TestMetadata("falseNegativeSmartcasts_tryDFA.kt")
-        public void testFalseNegativeSmartcasts_tryDFA() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falseNegativeSmartcasts_tryDFA.kt");
+        @TestMetadata("falseNegativeSmartcasts_after.kt")
+        public void testFalseNegativeSmartcasts_after() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falseNegativeSmartcasts_after.kt");
         }
 
         @TestMetadata("falsePositiveSmartcasts.kt")
@@ -3281,9 +3276,9 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falsePositiveSmartcasts.kt");
         }
 
-        @TestMetadata("falsePositiveSmartcasts_tryDFA.kt")
-        public void testFalsePositiveSmartcasts_tryDFA() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falsePositiveSmartcasts_tryDFA.kt");
+        @TestMetadata("falsePositiveSmartcasts_after.kt")
+        public void testFalsePositiveSmartcasts_after() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/tryCatch/falsePositiveSmartcasts_after.kt");
         }
 
         @TestMetadata("tryExpression.kt")

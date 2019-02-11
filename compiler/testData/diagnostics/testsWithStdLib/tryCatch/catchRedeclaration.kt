@@ -2,6 +2,8 @@
 
 class MyException : Exception() {
     val myField = "field"
+
+    fun myFun() {}
 }
 
 fun test1() {
@@ -34,5 +36,18 @@ fun test4() {
     catch (e: Exception) {
         val <!REDECLARATION, UNUSED_VARIABLE!>a<!> = 42
         val <!NAME_SHADOWING, REDECLARATION, UNUSED_VARIABLE!>a<!> = "foo"
+    }
+}
+
+fun test5() {
+    try {}
+    catch (e: Exception) {
+        val <!UNUSED_VARIABLE!>a<!>: Int = 42
+        try {}
+        catch (e: MyException) {
+            e.myFun()
+            val <!NAME_SHADOWING!>a<!>: String = ""
+            a.length
+        }
     }
 }

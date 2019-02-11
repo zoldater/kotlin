@@ -77,26 +77,6 @@ fun test3(x: Int?) {
     }
 }
 
-
-fun test4(x: Int?) {
-    val y = try {
-        x
-    }
-    catch (e: Exception) {
-        return
-    }
-
-    if (x != null) {
-        <!DEBUG_INFO_SMARTCAST!>x<!>.inc()
-        y<!UNSAFE_CALL!>.<!>inc()
-    }
-
-    if (y != null) {
-        x<!UNSAFE_CALL!>.<!>inc()
-        <!DEBUG_INFO_SMARTCAST!>y<!>.inc()
-    }
-}
-
 fun test5(x: Int?) {
     val y = try {
         x
