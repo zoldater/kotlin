@@ -6,7 +6,7 @@ fun test1(s1: String?) {
     var s: String? = null
     s = ""
     try {
-        s = null
+        s = ""
         requireNotNull(s1)
     }
     catch (e: Exception) {
