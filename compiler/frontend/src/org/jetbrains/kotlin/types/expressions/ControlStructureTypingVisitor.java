@@ -120,13 +120,13 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
                 Lists.newArrayList(false, false),
                 context, dataFlowInfoForArguments);
 
-        return processBranches(
+        return processIfBranches(
                 ifExpression, context, conditionDataFlowInfo,
                 loopBreakContinuePossibleInCondition, elseBranch, thenBranch, resolvedCall);
     }
 
     @NotNull
-    private KotlinTypeInfo processBranches(
+    private KotlinTypeInfo processIfBranches(
             KtIfExpression ifExpression,
             ExpressionTypingContext context,
             DataFlowInfo conditionDataFlowInfo,
