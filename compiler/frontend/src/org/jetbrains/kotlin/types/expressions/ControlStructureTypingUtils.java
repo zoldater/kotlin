@@ -58,7 +58,6 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue;
 import org.jetbrains.kotlin.types.*;
 import org.jetbrains.kotlin.types.typeUtil.TypeUtilsKt;
 
-import javax.xml.ws.Holder;
 import java.util.*;
 
 import static org.jetbrains.kotlin.diagnostics.Errors.TYPE_INFERENCE_FAILED_ON_SPECIAL_CONSTRUCT;
@@ -140,7 +139,7 @@ public class ControlStructureTypingUtils {
         for (Pair<KtExpression, VariableDescriptor> descriptorPair : catchedExceptions) {
             KtExpression catchBlock = descriptorPair.getFirst();
             VariableDescriptor catchedExceptionDescriptor = descriptorPair.getSecond();
-            context.trace.record(BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, catchBlock, new Holder<>(catchedExceptionDescriptor));
+            context.trace.record(BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, catchBlock, Ref.create(catchedExceptionDescriptor));
         }
         return resolveSpecialConstructionAsCall(call, function, ResolveConstruct.TRY, context, dataFlowInfoForArguments);
     }

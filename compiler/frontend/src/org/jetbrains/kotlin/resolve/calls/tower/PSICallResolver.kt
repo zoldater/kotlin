@@ -689,15 +689,15 @@ class PSICallResolver(
         if (ktExpression !is KtExpression) return this
 
         val variableDescriptorHolder = trace.bindingContext[NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, ktExpression] ?: return this
-        val variableDescriptor = variableDescriptorHolder.value ?: return this
-        variableDescriptorHolder.value = null
+        val variableDescriptor = variableDescriptorHolder.get() ?: return this
+        variableDescriptorHolder.set(null)
 
         val redeclarationChecker = expressionTypingServices.createLocalRedeclarationChecker(trace)
 
-        val newLexicalWritableScope = with(scope) {
+        val catchScope = with(scope) {
             LexicalWritableScope(this, ownerDescriptor, false, redeclarationChecker, LexicalScopeKind.CATCH)
         }
-        newLexicalWritableScope.addVariableDescriptor(variableDescriptor)
-        return replaceScope(newLexicalWritableScope)
+        catchScope.addVariableDescriptor(variableDescriptor)
+        return replaceScope(catchScope)
     }
 }
