@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.resolve.checkers
 
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.analyzer.CombinedModuleInfo
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.LanguageFeature
@@ -413,7 +412,5 @@ class ExpectedActualDeclarationChecker(
 
             return this
         }
-
-        private fun ModuleInfo.unwrapModuleInfo(): List<ModuleInfo> = if (this is CombinedModuleInfo) this.containedModules else listOf(this)
     }
 }

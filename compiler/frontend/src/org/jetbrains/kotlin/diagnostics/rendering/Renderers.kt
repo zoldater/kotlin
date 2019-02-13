@@ -22,7 +22,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.analyzer.moduleInfo
-import org.jetbrains.kotlin.analyzer.unwrapPlatform
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.cfg.WhenMissingCase
 import org.jetbrains.kotlin.cfg.hasUnknown
@@ -89,7 +88,7 @@ object Renderers {
     @JvmField
     val MODULE_WITH_PLATFORM = Renderer<ModuleDescriptor> { module ->
         val platform = module.platform
-        val moduleName = module.moduleInfo?.unwrapPlatform()?.displayedName ?: ""
+        val moduleName = module.moduleInfo?.displayedName ?: ""
         val platformNameIfAny = if (platform == null || platform.isCommon()) "" else " for " + platform.single().platformName
 
         moduleName + platformNameIfAny

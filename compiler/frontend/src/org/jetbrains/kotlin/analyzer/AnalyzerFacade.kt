@@ -89,7 +89,7 @@ class EmptyResolverForProject<M : ModuleInfo> : ResolverForProject<M>() {
 class ResolverForProjectImpl<M : ModuleInfo>(
     private val debugName: String,
     private val projectContext: ProjectContext,
-    modules: Collection<M>,
+    private val modulesFromThisResolver: Collection<M>,
     private val modulesContent: (M) -> ModuleContent<M>,
     private val moduleLanguageSettingsProvider: LanguageSettingsProvider,
     private val resolverForModuleFactoryByPlatform: (TargetPlatform?) -> ResolverForModuleFactory,
@@ -121,14 +121,6 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     // Protected by ("projectContext.storageManager.lock")
     private val moduleInfoByDescriptor = mutableMapOf<ModuleDescriptorImpl, M>()
 
-    @Suppress("UNCHECKED_CAST")
-    private val moduleInfoToResolvableInfo: Map<M, M> =
-        modules.flatMap { module -> module.flatten().map { modulePart -> modulePart to module } }.toMap() as Map<M, M>
-
-    init {
-        assert(moduleInfoToResolvableInfo.values.toSet() == modules.toSet())
-    }
-
     override fun tryGetResolverForModule(moduleInfo: M): ResolverForModule? {
         if (!isCorrectModuleInfo(moduleInfo)) {
             return null
@@ -159,7 +151,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     private val resolverByModuleDescriptor = mutableMapOf<ModuleDescriptor, ResolverForModule>()
 
     override val allModules: Collection<M> by lazy {
-        this.moduleInfoToResolvableInfo.keys + delegateResolver.allModules
+        modulesFromThisResolver + delegateResolver.allModules
     }
 
     override val name: String
@@ -224,9 +216,8 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     }
 
     private fun doGetDescriptorForModule(module: M): ModuleDescriptorImpl {
-        val moduleFromThisResolver = moduleInfoToResolvableInfo[module]
+        val moduleFromThisResolver = module.takeIf { it in modulesFromThisResolver }
                 ?: return delegateResolver.descriptorForModule(module) as ModuleDescriptorImpl
-
         return projectContext.storageManager.compute {
             var moduleData = descriptorByModule.getOrPut(moduleFromThisResolver) {
                 createModuleDescriptor(moduleFromThisResolver)
@@ -277,18 +268,6 @@ data class ModuleContent<out M : ModuleInfo>(
 interface PlatformAnalysisParameters {
     object Empty : PlatformAnalysisParameters
 }
-
-interface CombinedModuleInfo : ModuleInfo {
-    val containedModules: List<ModuleInfo>
-    val platformModule: ModuleInfo
-}
-
-fun ModuleInfo.flatten(): List<ModuleInfo> = when (this) {
-    is CombinedModuleInfo -> listOf(this) + containedModules
-    else -> listOf(this)
-}
-
-fun ModuleInfo.unwrapPlatform(): ModuleInfo = if (this is CombinedModuleInfo) platformModule else this
 
 interface TrackableModuleInfo : ModuleInfo {
     fun createModificationTracker(): ModificationTracker
