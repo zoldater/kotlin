@@ -58,7 +58,7 @@ import static org.junit.Assume.assumeThat;
 
 // part of org.jetbrains.plugins.gradle.tooling.builder.AbstractModelBuilderTest
 @RunWith(value = Parameterized.class)
-public abstract class AbstractModelBuilderTest {
+public abstract class AbstractModelBuilderTest extends AbstractModelBuilderTestBase {
 
     public static final Object[][] SUPPORTED_GRADLE_VERSIONS = {{"3.5"}, {"4.9"}};
 
@@ -140,7 +140,7 @@ public abstract class AbstractModelBuilderTest {
 
         try {
             ProjectImportAction projectImportAction = new ProjectImportAction(false);
-            projectImportAction.addExtraProjectModelClasses(getModels());
+            addExtraProjectModelClasses(projectImportAction, getModels());
             BuildActionExecuter<ProjectImportAction.AllModels> buildActionExecutor = connection.action(projectImportAction);
             File initScript = GradleExecutionHelper.generateInitScript(false, getToolingExtensionClasses());
             assertNotNull(initScript);
@@ -185,7 +185,7 @@ public abstract class AbstractModelBuilderTest {
         }
     }
 
-    protected abstract Set<Class> getModels();
+    protected abstract Set<Class<?>> getModels();
 
 
     private <T> Map<String, T> getModulesMap(final Class<T> aClass) {
