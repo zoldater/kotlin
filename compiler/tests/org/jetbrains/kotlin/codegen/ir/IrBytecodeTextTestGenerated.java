@@ -3348,6 +3348,11 @@ public class IrBytecodeTextTestGenerated extends AbstractIrBytecodeTextTest {
             runTest("compiler/testData/codegen/bytecodeText/when/kt18818.kt");
         }
 
+        @TestMetadata("lookupSwitch.kt")
+        public void testLookupSwitch() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/when/lookupSwitch.kt");
+        }
+
         @TestMetadata("noBoxingInDefaultWhenWithSpecialCases.kt")
         public void testNoBoxingInDefaultWhenWithSpecialCases() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/when/noBoxingInDefaultWhenWithSpecialCases.kt");
@@ -3386,6 +3391,11 @@ public class IrBytecodeTextTestGenerated extends AbstractIrBytecodeTextTest {
         @TestMetadata("subjectValInStringWhenHasLocalVariableSlot.kt")
         public void testSubjectValInStringWhenHasLocalVariableSlot() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/when/subjectValInStringWhenHasLocalVariableSlot.kt");
+        }
+
+        @TestMetadata("tableSwitch.kt")
+        public void testTableSwitch() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/when/tableSwitch.kt");
         }
 
         @TestMetadata("whenNull.kt")
