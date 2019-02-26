@@ -31,7 +31,6 @@ import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.util.PsiModificationTracker
-import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -52,11 +51,9 @@ import org.jetbrains.kotlin.idea.core.isVisible
 import org.jetbrains.kotlin.idea.imports.canBeReferencedViaImport
 import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
-import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
-import org.jetbrains.kotlin.js.resolve.JsPlatform
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
@@ -67,7 +64,7 @@ import org.jetbrains.kotlin.resolve.bindingContextUtil.getDataFlowInfoBefore
 import org.jetbrains.kotlin.resolve.calls.callUtil.getParentCall
 import org.jetbrains.kotlin.resolve.calls.context.ContextDependency
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
+import org.jetbrains.kotlin.resolve.isJvm
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.scopes.ExplicitImportsScope
 import org.jetbrains.kotlin.resolve.scopes.utils.addImportingScope
@@ -332,7 +329,7 @@ internal class ImportFix(expression: KtSimpleNameExpression) : OrdinaryImportFix
                 processor = processor
         )
 
-        if (TargetPlatformDetector.getPlatform(element.containingKtFile) == JvmPlatform) {
+        if (TargetPlatformDetector.getPlatform(element.containingKtFile).isJvm()) {
             indicesHelper.processJvmCallablesByName(
                     name,
                     filter = { it.hasModifierProperty(PsiModifier.STATIC) },
@@ -625,13 +622,15 @@ internal object ImportForMissingOperatorFactory : ImportFixBase.Factory() {
 }
 
 
-private fun KotlinIndicesHelper.getClassesByName(expressionForPlatform: KtExpression, name: String) =
-    when (TargetPlatformDetector.getPlatform(expressionForPlatform.containingKtFile)) {
-        JvmPlatform -> getJvmClassesByName(name)
+private fun KotlinIndicesHelper.getClassesByName(expressionForPlatform: KtExpression, name: String): Collection<ClassDescriptor> {
+    val platform = TargetPlatformDetector.getPlatform(expressionForPlatform.containingKtFile)
+    return when {
+        platform.isJvm() -> getJvmClassesByName(name)
         else -> getKotlinClasses({ it == name },
             // Enum entries should be contributes with members import fix
                                  psiFilter = { ktDeclaration -> ktDeclaration !is KtEnumEntry },
                                  kindFilter = { kind -> kind != ClassKind.ENUM_ENTRY })
     }
+}
 
 private fun CallTypeAndReceiver<*, *>.toFilter() = { descriptor: DeclarationDescriptor -> this.callType.descriptorKindFilter.accepts(descriptor) }

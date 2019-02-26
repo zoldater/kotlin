@@ -23,7 +23,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.resolve.JvmTarget
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.context.GlobalContext
@@ -33,22 +33,15 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticUtils
 import org.jetbrains.kotlin.frontend.di.createContainerForLazyBodyResolve
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
-import org.jetbrains.kotlin.idea.caches.resolve.util.compilerServices
 import org.jetbrains.kotlin.idea.compiler.IDELanguageSettingsProvider
 import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
+import org.jetbrains.kotlin.idea.project.findCompilerServices
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
-import org.jetbrains.kotlin.js.resolve.JsPlatform
-import org.jetbrains.kotlin.js.resolve.JsPlatformCompilerServices
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 import org.jetbrains.kotlin.resolve.*
-import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
-import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatformCompilerServices
-import org.jetbrains.kotlin.resolve.konan.platform.KonanPlatform
-import org.jetbrains.kotlin.resolve.konan.platform.NativePlatformCompilerServices
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
-import java.lang.IllegalStateException
 import java.util.*
 
 internal class PerFileAnalysisCache(val file: KtFile, componentProvider: ComponentProvider) {
@@ -194,9 +187,10 @@ private object KotlinResolveDataProvider {
 
             val moduleInfo = analyzableElement.containingKtFile.getModuleInfo()
 
+            // TODO: should return proper platform!
             val targetPlatform = moduleInfo.platform ?: TargetPlatformDetector.getPlatform(analyzableElement.containingKtFile)
             val targetPlatformVersion = IDELanguageSettingsProvider.getTargetPlatform(moduleInfo, project).let {
-                if (targetPlatform == JvmPlatform && it !is JvmTarget) JvmTarget.DEFAULT else it
+                if (targetPlatform.isJvm() && it !is JvmTarget) JvmTarget.DEFAULT else it
             }
 
             val lazyTopDownAnalyzer = createContainerForLazyBodyResolve(
@@ -206,8 +200,7 @@ private object KotlinResolveDataProvider {
                 trace,
                 targetPlatform,
                 bodyResolveCache,
-                targetPlatformVersion,
-                targetPlatform.compilerServices,
+                targetPlatform.findCompilerServices,
                 analyzableElement.languageVersionSettings
             ).get<LazyTopDownAnalyzer>()
 

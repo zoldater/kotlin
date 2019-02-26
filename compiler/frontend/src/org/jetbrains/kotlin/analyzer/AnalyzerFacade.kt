@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.config.TargetPlatformVersion
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.context.ModuleContext
 import org.jetbrains.kotlin.context.ProjectContext
@@ -38,10 +37,7 @@ import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.resolve.CompilerEnvironment
-import org.jetbrains.kotlin.resolve.MultiTargetPlatform
-import org.jetbrains.kotlin.resolve.TargetEnvironment
-import org.jetbrains.kotlin.resolve.TargetPlatform
+import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.storage.getValue
 import java.util.*
@@ -93,7 +89,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     private val projectContext: ProjectContext,
     modules: Collection<M>,
     private val modulesContent: (M) -> ModuleContent<M>,
-    private val modulePlatforms: (M) -> MultiTargetPlatform?,
+    private val modulePlatforms: (M) -> TargetPlatform?,
     private val moduleLanguageSettingsProvider: LanguageSettingsProvider,
     private val resolverForModuleFactoryByPlatform: (TargetPlatform?) -> ResolverForModuleFactory,
     private val platformParameters: (TargetPlatform) -> PlatformAnalysisParameters,
@@ -188,7 +184,16 @@ class ResolverForProjectImpl<M : ModuleInfo>(
                     moduleLanguageSettingsProvider.getLanguageVersionSettings(module, projectContext.project, isReleaseCoroutines)
                 val targetPlatformVersion = moduleLanguageSettingsProvider.getTargetPlatform(module, projectContext.project)
 
-                val resolverForModuleFactory = resolverForModuleFactoryByPlatform(module.platform)
+                // FIXME(dsavvinov): temporary hack; ideally, module.platform should already return JvmPlatform with proper target.
+                // (maybe it does already, have to check out)
+                val platform = module.platform?.let {
+                    if (it.isJvm() && targetPlatformVersion is JvmTarget)
+                        DefaultBuiltInPlatforms.jvmPlatformByTargetVersion(targetPlatformVersion)
+                    else
+                        it
+                }
+
+                val resolverForModuleFactory = resolverForModuleFactoryByPlatform(platform)
                 resolverForModuleFactory.createResolverForModule(
                     descriptor as ModuleDescriptorImpl,
                     projectContext.withModule(descriptor),
@@ -196,8 +201,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
                     platformParameters(module.platform ?: TODO("Missing platform!")),
                     targetEnvironment,
                     this@ResolverForProjectImpl,
-                    languageVersionSettings,
-                    targetPlatformVersion
+                    languageVersionSettings
                 )
             }
         }
@@ -299,8 +303,7 @@ abstract class ResolverForModuleFactory {
         platformParameters: PlatformAnalysisParameters,
         targetEnvironment: TargetEnvironment,
         resolverForProject: ResolverForProject<M>,
-        languageVersionSettings: LanguageVersionSettings,
-        targetPlatformVersion: TargetPlatformVersion
+        languageVersionSettings: LanguageVersionSettings
     ): ResolverForModule
 }
 

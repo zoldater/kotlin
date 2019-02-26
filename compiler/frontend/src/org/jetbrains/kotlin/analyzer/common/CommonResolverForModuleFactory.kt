@@ -19,10 +19,11 @@ package org.jetbrains.kotlin.analyzer.common
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.kotlin.resolve.TargetPlatform
 import org.jetbrains.kotlin.analyzer.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.config.TargetPlatformVersion
+import org.jetbrains.kotlin.resolve.TargetPlatformVersion
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.container.useImpl
@@ -71,7 +72,7 @@ object CommonResolverForModuleFactory : ResolverForModuleFactory() {
 
     fun analyzeFiles(
         files: Collection<KtFile>, moduleName: Name, dependOnBuiltIns: Boolean, languageVersionSettings: LanguageVersionSettings,
-        capabilities: Map<ModuleDescriptor.Capability<*>, Any?> = mapOf(MultiTargetPlatform.CAPABILITY to MultiTargetPlatform.Common),
+        capabilities: Map<ModuleDescriptor.Capability<*>, Any?> = emptyMap(),
         metadataPartProviderFactory: (ModuleContent<ModuleInfo>) -> MetadataPartProvider
     ): AnalysisResult {
         val moduleInfo = SourceModuleInfo(moduleName, capabilities, dependOnBuiltIns)
@@ -89,7 +90,7 @@ object CommonResolverForModuleFactory : ResolverForModuleFactory() {
             ProjectContext(project),
             listOf(moduleInfo),
             modulesContent = { ModuleContent(it, files, GlobalSearchScope.allScope(project)) },
-            modulePlatforms = { MultiTargetPlatform.Common },
+            modulePlatforms = { DefaultBuiltInPlatforms.commonPlatform },
             moduleLanguageSettingsProvider = object : LanguageSettingsProvider {
                 override fun getLanguageVersionSettings(
                     moduleInfo: ModuleInfo,
@@ -121,8 +122,7 @@ object CommonResolverForModuleFactory : ResolverForModuleFactory() {
         platformParameters: PlatformAnalysisParameters,
         targetEnvironment: TargetEnvironment,
         resolverForProject: ResolverForProject<M>,
-        languageVersionSettings: LanguageVersionSettings,
-        targetPlatformVersion: TargetPlatformVersion
+        languageVersionSettings: LanguageVersionSettings
     ): ResolverForModule {
         val (moduleInfo, syntheticFiles, moduleContentScope) = moduleContent
         val project = moduleContext.project
@@ -156,7 +156,7 @@ object CommonResolverForModuleFactory : ResolverForModuleFactory() {
         metadataPartProvider: MetadataPartProvider,
         languageVersionSettings: LanguageVersionSettings
     ): StorageComponentContainer = createContainer("ResolveCommonCode", CommonPlatformCompilerServices) {
-        configureModule(moduleContext, CommonPlatform, TargetPlatformVersion.NoVersion, CommonPlatformCompilerServices, bindingTrace)
+        configureModule(moduleContext, CommonPlatform, CommonPlatformCompilerServices, bindingTrace)
 
         useInstance(moduleContentScope)
         useInstance(LookupTracker.DO_NOTHING)

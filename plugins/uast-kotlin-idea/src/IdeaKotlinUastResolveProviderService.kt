@@ -20,7 +20,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.codegen.ClassBuilderMode
 import org.jetbrains.kotlin.codegen.state.IncompatibleClassTracker
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
-import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.resolve.JvmTarget
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.calls.callUtil.getCall
-import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
+import org.jetbrains.kotlin.resolve.isJvm
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.uast.kotlin.KotlinUastResolveProviderService
 
@@ -50,7 +50,7 @@ class IdeaKotlinUastResolveProviderService : KotlinUastResolveProviderService {
 
     override fun isJvmElement(psiElement: PsiElement): Boolean {
         val module = psiElement.module
-        return module == null || TargetPlatformDetector.getPlatform(module) is JvmPlatform
+        return module == null || TargetPlatformDetector.getPlatform(module).isJvm()
     }
 
     override fun getLanguageVersionSettings(element: KtElement): LanguageVersionSettings {
