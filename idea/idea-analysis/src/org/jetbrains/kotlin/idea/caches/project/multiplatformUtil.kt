@@ -111,5 +111,5 @@ val ModuleDescriptor.implementedDescriptors: List<ModuleDescriptor>
         return moduleSourceInfo.expectedBy.mapNotNull { it.toDescriptor() }
     }
 
-fun ModuleSourceInfo.toDescriptor() = KotlinCacheService.getInstance(module.project)
-    .getResolutionFacadeByModuleInfo(this, platform)?.moduleDescriptor
+private fun ModuleSourceInfo.toDescriptor() = KotlinCacheService.getInstance(module.project)
+    .getResolutionFacadeByModuleInfo(this)?.moduleDescriptor
