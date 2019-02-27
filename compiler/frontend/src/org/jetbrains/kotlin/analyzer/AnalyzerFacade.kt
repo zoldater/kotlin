@@ -193,7 +193,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
                     descriptor as ModuleDescriptorImpl,
                     projectContext.withModule(descriptor),
                     moduleContent,
-                    platformParameters(resolverForModuleFactory.targetPlatform),
+                    platformParameters(module.platform ?: TODO("Missing platform!")),
                     targetEnvironment,
                     this@ResolverForProjectImpl,
                     languageVersionSettings,
@@ -302,8 +302,6 @@ abstract class ResolverForModuleFactory {
         languageVersionSettings: LanguageVersionSettings,
         targetPlatformVersion: TargetPlatformVersion
     ): ResolverForModule
-
-    abstract val targetPlatform: TargetPlatform
 }
 
 class LazyModuleDependencies<M : ModuleInfo>(
