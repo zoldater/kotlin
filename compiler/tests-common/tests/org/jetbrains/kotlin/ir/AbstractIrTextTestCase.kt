@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.resolve.descriptorUtil.propertyIfAccessor
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.utils.rethrow
 import java.io.File
@@ -163,18 +164,6 @@ abstract class AbstractIrTextTestCase : AbstractIrGeneratorTestCase() {
                     "Symbol is not bound to declaration: ${declaration.render()}"
                 }
             }
-
-            val containingDeclarationDescriptor = declaration.descriptor.containingDeclaration
-            if (containingDeclarationDescriptor != null) {
-                val parent = declaration.parent
-                if (parent is IrDeclaration) {
-                    require(parent.descriptor == containingDeclarationDescriptor) {
-                        "In declaration ${declaration.descriptor}: " +
-                                "Mismatching parent descriptor (${parent.descriptor}) " +
-                                "and containing declaration descriptor ($containingDeclarationDescriptor)"
-                    }
-                }
-            }
         }
 
         override fun visitFunction(declaration: IrFunction) {
@@ -182,7 +171,7 @@ abstract class AbstractIrTextTestCase : AbstractIrGeneratorTestCase() {
 
             val functionDescriptor = declaration.descriptor
 
-            checkTypeParameters(functionDescriptor, declaration, functionDescriptor.typeParameters)
+            checkTypeParameters(functionDescriptor, declaration, functionDescriptor.propertyIfAccessor.typeParameters)
 
             val expectedDispatchReceiver = functionDescriptor.dispatchReceiverParameter
             val actualDispatchReceiver = declaration.dispatchReceiverParameter?.descriptor
@@ -267,11 +256,17 @@ abstract class AbstractIrTextTestCase : AbstractIrGeneratorTestCase() {
             val declaredTypeParameters = declaration.typeParameters.map { it.descriptor }
 
             if (declaredTypeParameters.size != expectedTypeParameters.size) {
-                error("$descriptor: Type parameters mismatch: $declaredTypeParameters != $expectedTypeParameters")
+                error(
+                    "Type parameters mismatch: expected $expectedTypeParameters, declared $declaredTypeParameters\n" +
+                            "\t$descriptor\n" +
+                            "\t${declaration.render()}"
+                )
             } else {
                 declaredTypeParameters.zip(expectedTypeParameters).forEach { (declaredTypeParameter, expectedTypeParameter) ->
                     require(declaredTypeParameter == expectedTypeParameter) {
-                        "$descriptor: Type parameters mismatch: $declaredTypeParameter != $expectedTypeParameter"
+                        "Type parameters mismatch: expected $expectedTypeParameter, declared $declaredTypeParameter\n" +
+                                "\t$descriptor\n" +
+                                "\t${declaration.render()}"
                     }
                 }
             }

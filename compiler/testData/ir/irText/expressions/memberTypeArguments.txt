@@ -2,7 +2,8 @@ FILE fqName:<root> fileName:/memberTypeArguments.kt
   CLASS CLASS name:GenericClass modality:FINAL visibility:public flags: superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:GenericClass<T> flags:
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> (value:T) returnType:GenericClass<T> flags:primary
+    CONSTRUCTOR visibility:public <T> (value:T) returnType:GenericClass<T> flags:primary
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
       VALUE_PARAMETER name:value index:0 type:T flags:
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'

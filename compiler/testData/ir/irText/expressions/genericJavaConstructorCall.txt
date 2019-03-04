@@ -1,0 +1,22 @@
+FILE fqName:<root> fileName:/genericJavaConstructorCall.kt
+  FUN name:test1 visibility:public modality:FINAL <> () returnType:J flags:
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='test1(): J'
+        CALL 'constructor J(T!, T!)' type=J origin=null
+          <T : Any!>: kotlin.Int
+          x: CONST Int type=kotlin.Int value=123
+          y: CONST Int type=kotlin.Int value=456
+  FUN name:test2 visibility:public modality:FINAL <> () returnType:J flags:
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='test2(): J'
+        CALL 'constructor J(T!, T!)' type=J origin=null
+          <T : Any!>: kotlin.Any?
+          x: CONST Int type=kotlin.Int value=123
+          y: CONST String type=kotlin.String value="abc"
+  FUN name:test3 visibility:public modality:FINAL <> () returnType:J flags:
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='test3(): J'
+        CALL 'constructor J(T!, T!)' type=J origin=null
+          <T : Any!>: kotlin.Number
+          x: CONST Int type=kotlin.Int value=123
+          y: CONST Int type=kotlin.Int value=456

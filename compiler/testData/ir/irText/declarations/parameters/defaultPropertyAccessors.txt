@@ -75,7 +75,8 @@ FILE fqName:<root> fileName:/defaultPropertyAccessors.kt
   CLASS CLASS name:InPrimaryCtor modality:FINAL visibility:public flags: superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:InPrimaryCtor<T> flags:
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> (testInPrimaryCtor1:T, testInPrimaryCtor2:kotlin.Int) returnType:InPrimaryCtor<T> flags:primary
+    CONSTRUCTOR visibility:public <T> (testInPrimaryCtor1:T, testInPrimaryCtor2:kotlin.Int) returnType:InPrimaryCtor<T> flags:primary
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
       VALUE_PARAMETER name:testInPrimaryCtor1 index:0 type:T flags:
       VALUE_PARAMETER name:testInPrimaryCtor2 index:1 type:kotlin.Int flags:
         EXPRESSION_BODY

@@ -2,7 +2,8 @@ FILE fqName:<root> fileName:/delegatingConstructorCallToTypeAliasConstructor.kt
   CLASS CLASS name:Cell modality:OPEN visibility:public flags: superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:Cell<T> flags:
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> (value:T) returnType:Cell<T> flags:primary
+    CONSTRUCTOR visibility:public <T> (value:T) returnType:Cell<T> flags:primary
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
       VALUE_PARAMETER name:value index:0 type:T flags:
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'

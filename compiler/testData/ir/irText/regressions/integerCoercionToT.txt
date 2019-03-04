@@ -23,7 +23,8 @@ FILE fqName:<root> fileName:/integerCoercionToT.kt
   CLASS CLASS name:CInt32VarX modality:FINAL visibility:public flags: superTypes:[CPointed]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:CInt32VarX<T> flags:
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> () returnType:CInt32VarX<T> flags:primary
+    CONSTRUCTOR visibility:public <T> () returnType:CInt32VarX<T> flags:primary
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'
         INSTANCE_INITIALIZER_CALL classDescriptor='CInt32VarX'

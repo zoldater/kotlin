@@ -114,10 +114,10 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
             generateValueParameterDeclarations(irAccessor, ktAccessor ?: ktProperty, ktProperty.receiverTypeReference)
             val ktBodyExpression = ktAccessor?.bodyExpression
             irAccessor.body =
-                    if (ktBodyExpression != null)
-                        createBodyGenerator(irAccessor.symbol).generateFunctionBody(ktBodyExpression)
-                    else
-                        generateDefaultAccessorBody(descriptor, irAccessor)
+                if (ktBodyExpression != null)
+                    createBodyGenerator(irAccessor.symbol).generateFunctionBody(ktBodyExpression)
+                else
+                    generateDefaultAccessorBody(descriptor, irAccessor)
         }
 
     fun generateDefaultAccessorForPrimaryConstructorParameter(
@@ -257,6 +257,7 @@ class FunctionGenerator(declarationGenerator: DeclarationGenerator) : Declaratio
             IrDeclarationOrigin.DEFINED,
             constructorDescriptor
         ).buildWithScope { irConstructor ->
+            declarationGenerator.generateScopedTypeParameterDeclarations(irConstructor, constructorDescriptor.typeParameters)
             generateValueParameterDeclarations(irConstructor, ktParametersElement, null)
             irConstructor.body = createBodyGenerator(irConstructor.symbol).generateBody()
             irConstructor.returnType = constructorDescriptor.returnType.toIrType()

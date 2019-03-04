@@ -3,7 +3,9 @@ FILE fqName:<root> fileName:/typeParameterBeforeBound.kt
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:Test1<T, U> flags:
     TYPE_PARAMETER name:T index:0 variance: superTypes:[U]
     TYPE_PARAMETER name:U index:1 variance: superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> () returnType:Test1<T, U> flags:primary
+    CONSTRUCTOR visibility:public <T, U> () returnType:Test1<T, U> flags:primary
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[U]
+      TYPE_PARAMETER name:U index:1 variance: superTypes:[kotlin.Any?]
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'
         INSTANCE_INITIALIZER_CALL classDescriptor='Test1'

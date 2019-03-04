@@ -2,7 +2,8 @@ FILE fqName:<root> fileName:/dataClassesGeneric.kt
   CLASS CLASS name:Test1 modality:FINAL visibility:public flags:data superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:Test1<T> flags:
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> (x:T) returnType:Test1<T> flags:primary
+    CONSTRUCTOR visibility:public <T> (x:T) returnType:Test1<T> flags:primary
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
       VALUE_PARAMETER name:x index:0 type:T flags:
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'
@@ -110,7 +111,8 @@ FILE fqName:<root> fileName:/dataClassesGeneric.kt
   CLASS CLASS name:Test2 modality:FINAL visibility:public flags:data superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:Test2<T> flags:
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Number]
-    CONSTRUCTOR visibility:public <> (x:T) returnType:Test2<T> flags:primary
+    CONSTRUCTOR visibility:public <T> (x:T) returnType:Test2<T> flags:primary
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Number]
       VALUE_PARAMETER name:x index:0 type:T flags:
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'
@@ -207,7 +209,8 @@ FILE fqName:<root> fileName:/dataClassesGeneric.kt
   CLASS CLASS name:Test3 modality:FINAL visibility:public flags:data superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:Test3<T> flags:
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> (x:kotlin.collections.List<T>) returnType:Test3<T> flags:primary
+    CONSTRUCTOR visibility:public <T> (x:kotlin.collections.List<T>) returnType:Test3<T> flags:primary
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Any?]
       VALUE_PARAMETER name:x index:0 type:kotlin.collections.List<T> flags:
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'

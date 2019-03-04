@@ -882,6 +882,11 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
             runTest("compiler/testData/ir/irText/expressions/funImportedFromObject.kt");
         }
 
+        @TestMetadata("genericJavaConstructorCall.kt")
+        public void testGenericJavaConstructorCall() throws Exception {
+            runTest("compiler/testData/ir/irText/expressions/genericJavaConstructorCall.kt");
+        }
+
         @TestMetadata("genericPropertyCall.kt")
         public void testGenericPropertyCall() throws Exception {
             runTest("compiler/testData/ir/irText/expressions/genericPropertyCall.kt");

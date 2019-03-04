@@ -2,14 +2,16 @@ FILE fqName:<root> fileName:/genericInnerClass.kt
   CLASS CLASS name:Outer modality:FINAL visibility:public flags: superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:Outer<T1> flags:
     TYPE_PARAMETER name:T1 index:0 variance: superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> () returnType:Outer<T1> flags:primary
+    CONSTRUCTOR visibility:public <T1> () returnType:Outer<T1> flags:primary
+      TYPE_PARAMETER name:T1 index:0 variance: superTypes:[kotlin.Any?]
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'
         INSTANCE_INITIALIZER_CALL classDescriptor='Outer'
     CLASS CLASS name:Inner modality:FINAL visibility:public flags:inner superTypes:[kotlin.Any]
       $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:Outer.Inner<T2, T1> flags:
       TYPE_PARAMETER name:T2 index:0 variance: superTypes:[kotlin.Any?]
-      CONSTRUCTOR visibility:public <> ($this:Outer<T1>) returnType:Outer.Inner<T2, T1> flags:primary
+      CONSTRUCTOR visibility:public <T2> ($this:Outer<T1>) returnType:Outer.Inner<T2, T1> flags:primary
+        TYPE_PARAMETER name:T2 index:0 variance: superTypes:[kotlin.Any?]
         $outer: VALUE_PARAMETER name:<this> type:Outer<T1> flags:
         BLOCK_BODY
           DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'

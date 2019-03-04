@@ -2,7 +2,8 @@ FILE fqName:<root> fileName:/typeAliasCtorForGenericClass.kt
   CLASS CLASS name:A modality:FINAL visibility:public flags: superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:A<Q> flags:
     TYPE_PARAMETER name:Q index:0 variance: superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> (q:Q) returnType:A<Q> flags:primary
+    CONSTRUCTOR visibility:public <Q> (q:Q) returnType:A<Q> flags:primary
+      TYPE_PARAMETER name:Q index:0 variance: superTypes:[kotlin.Any?]
       VALUE_PARAMETER name:q index:0 type:Q flags:
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'

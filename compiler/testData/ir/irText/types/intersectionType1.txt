@@ -2,7 +2,8 @@ FILE fqName:<root> fileName:/intersectionType1.kt
   CLASS CLASS name:In modality:FINAL visibility:public flags: superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:In<I> flags:
     TYPE_PARAMETER name:I index:0 variance:in superTypes:[kotlin.Any?]
-    CONSTRUCTOR visibility:public <> () returnType:In<I> flags:primary
+    CONSTRUCTOR visibility:public <I> () returnType:In<I> flags:primary
+      TYPE_PARAMETER name:I index:0 variance:in superTypes:[kotlin.Any?]
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'
         INSTANCE_INITIALIZER_CALL classDescriptor='In'

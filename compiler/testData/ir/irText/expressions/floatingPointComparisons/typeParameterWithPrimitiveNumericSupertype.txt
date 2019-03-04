@@ -136,7 +136,8 @@ FILE fqName:<root> fileName:/typeParameterWithPrimitiveNumericSupertype.kt
   CLASS CLASS name:F modality:FINAL visibility:public flags: superTypes:[kotlin.Any]
     $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:F<T> flags:
     TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Float]
-    CONSTRUCTOR visibility:public <> () returnType:F<T> flags:primary
+    CONSTRUCTOR visibility:public <T> () returnType:F<T> flags:primary
+      TYPE_PARAMETER name:T index:0 variance: superTypes:[kotlin.Float]
       BLOCK_BODY
         DELEGATING_CONSTRUCTOR_CALL 'constructor Any()'
         INSTANCE_INITIALIZER_CALL classDescriptor='F'
