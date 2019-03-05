@@ -116,10 +116,6 @@ class KotlinTypeMapper @JvmOverloads constructor(
         }
     }
 
-    fun getLanguageVersionSettings(): LanguageVersionSettings {
-        return languageVersionSettings
-    }
-
     fun mapOwner(descriptor: DeclarationDescriptor): Type {
         return mapOwner(descriptor, true)
     }
