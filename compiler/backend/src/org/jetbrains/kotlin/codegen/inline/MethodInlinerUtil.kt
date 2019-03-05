@@ -26,6 +26,7 @@ import org.jetbrains.org.objectweb.asm.tree.*
 import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
 import org.jetbrains.org.objectweb.asm.tree.analysis.SourceValue
 
+var inc = 0
 fun MethodInliner.getLambdaIfExistsAndMarkInstructions(
     sourceValue: SourceValue,
     processSwap: Boolean,
@@ -36,9 +37,15 @@ fun MethodInliner.getLambdaIfExistsAndMarkInstructions(
     val toDeleteInner = SmartSet.create<AbstractInsnNode>()
 
     val lambdaSet = SmartSet.create<LambdaInfo?>()
+    if (++inc == 20) {
+        // TODO: breakpoint, Arrays.testKt945
+        println()
+    }
     sourceValue.insns.mapTo(lambdaSet) {
         getLambdaIfExistsAndMarkInstructions(it, processSwap, insnList, frames, toDeleteInner)
     }
+
+    --inc
 
     return lambdaSet.singleOrNull()?.also {
         toDelete.addAll(toDeleteInner)

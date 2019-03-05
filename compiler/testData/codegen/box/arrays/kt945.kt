@@ -1,9 +1,10 @@
-fun box() : String {
-    val data = Array<Array<Boolean>>(3) { Array<Boolean>(4, {false}) }
-    for(d in data) {
-        if(d.size != 4) return "fail"
-        for(b in d) if (b) return "fail"
-    }
+inline fun bar(f: () -> Unit) {
+    f()
+}
 
-    return "OK"
+fun foo() {
+    bar {
+        Array(2) { false }
+        Unit
+    }
 }
