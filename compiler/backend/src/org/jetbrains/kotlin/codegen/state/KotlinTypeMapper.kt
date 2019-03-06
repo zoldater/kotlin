@@ -1235,20 +1235,8 @@ class KotlinTypeMapper @JvmOverloads constructor(
                 return CommonSupertypes.commonSupertype(intersectionType.supertypes)
             }
 
-            override fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): Type? {
-                return null
-            }
-
-            override fun getPredefinedInternalNameForClass(classDescriptor: ClassDescriptor): String? {
-                return null
-            }
-
             override fun processErrorType(kotlinType: KotlinType, descriptor: ClassDescriptor) {
                 throw IllegalStateException(generateErrorMessageForErrorType(kotlinType, descriptor))
-            }
-
-            override fun preprocessType(kotlinType: KotlinType): KotlinType? {
-                return null
             }
         }
 

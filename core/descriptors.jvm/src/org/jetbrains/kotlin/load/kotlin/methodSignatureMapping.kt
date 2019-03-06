@@ -161,9 +161,6 @@ internal object TypeMappingConfigurationImpl : TypeMappingConfiguration<JvmType>
         throw AssertionError("There should be no intersection type in existing descriptors, but found: " + intersectionType.supertypes.joinToString())
     }
 
-    override fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): JvmType? = null
-    override fun getPredefinedInternalNameForClass(classDescriptor: ClassDescriptor): String? = null
-
     override fun processErrorType(kotlinType: KotlinType, descriptor: ClassDescriptor) {
         // DO nothing
     }

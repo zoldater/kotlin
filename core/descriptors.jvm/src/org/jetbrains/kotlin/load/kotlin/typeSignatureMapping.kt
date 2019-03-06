@@ -40,8 +40,8 @@ interface TypeMappingConfiguration<out T : Any> {
     fun commonSupertype(
         intersectionType: IntersectionTypeConstructor
     ): KotlinType
-    fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): T?
-    fun getPredefinedInternalNameForClass(classDescriptor: ClassDescriptor): String?
+    fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): T? = null
+    fun getPredefinedInternalNameForClass(classDescriptor: ClassDescriptor): String? = null
     fun processErrorType(kotlinType: KotlinType, descriptor: ClassDescriptor)
     // returns null when type doesn't need to be preprocessed
     fun preprocessType(kotlinType: KotlinType): KotlinType? = null
