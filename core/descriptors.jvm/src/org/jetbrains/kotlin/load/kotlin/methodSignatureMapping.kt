@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import org.jetbrains.kotlin.resolve.jvm.JvmPrimitiveType
+import org.jetbrains.kotlin.types.IntersectionTypeConstructor
 import org.jetbrains.kotlin.types.KotlinType
 
 fun FunctionDescriptor.computeJvmDescriptor(withReturnType: Boolean = true, withName: Boolean = true): String = buildString {
@@ -154,8 +155,10 @@ private object JvmTypeFactoryImpl : JvmTypeFactory<JvmType> {
 }
 
 internal object TypeMappingConfigurationImpl : TypeMappingConfiguration<JvmType> {
-    override fun commonSupertype(types: Collection<KotlinType>): KotlinType {
-        throw AssertionError("There should be no intersection type in existing descriptors, but found: " + types.joinToString())
+    override fun commonSupertype(
+        intersectionType: IntersectionTypeConstructor
+    ): KotlinType {
+        throw AssertionError("There should be no intersection type in existing descriptors, but found: " + intersectionType.supertypes.joinToString())
     }
 
     override fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): JvmType? = null

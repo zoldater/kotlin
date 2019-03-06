@@ -37,7 +37,9 @@ private fun <T : Any> JvmTypeFactory<T>.boxTypeIfNeeded(possiblyPrimitiveType: T
     if (needBoxedType) boxType(possiblyPrimitiveType) else possiblyPrimitiveType
 
 interface TypeMappingConfiguration<out T : Any> {
-    fun commonSupertype(types: Collection<@JvmSuppressWildcards KotlinType>): KotlinType
+    fun commonSupertype(
+        intersectionType: IntersectionTypeConstructor
+    ): KotlinType
     fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): T?
     fun getPredefinedInternalNameForClass(classDescriptor: ClassDescriptor): String?
     fun processErrorType(kotlinType: KotlinType, descriptor: ClassDescriptor)
@@ -79,7 +81,7 @@ fun <T : Any> mapType(
 
     val constructor = kotlinType.constructor
     if (constructor is IntersectionTypeConstructor) {
-        val commonSupertype = typeMappingConfiguration.commonSupertype(constructor.supertypes)
+        val commonSupertype = typeMappingConfiguration.commonSupertype(constructor)
         // interface In<in E>
         // open class A : In<A>
         // open class B : In<B>

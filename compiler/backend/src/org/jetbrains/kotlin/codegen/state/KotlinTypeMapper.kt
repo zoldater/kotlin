@@ -88,8 +88,10 @@ class KotlinTypeMapper @JvmOverloads constructor(
     private val isReleaseCoroutines = languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
 
     private val typeMappingConfiguration = object : TypeMappingConfiguration<Type> {
-        override fun commonSupertype(types: Collection<KotlinType>): KotlinType {
-            return CommonSupertypes.commonSupertype(types)
+        override fun commonSupertype(
+            intersectionType: IntersectionTypeConstructor
+        ): KotlinType {
+            return CommonSupertypes.commonSupertype(intersectionType.supertypes)
         }
 
         override fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): Type? {
@@ -1227,8 +1229,10 @@ class KotlinTypeMapper @JvmOverloads constructor(
     companion object {
 
         private val staticTypeMappingConfiguration = object : TypeMappingConfiguration<Type> {
-            override fun commonSupertype(types: Collection<KotlinType>): KotlinType {
-                return CommonSupertypes.commonSupertype(types)
+            override fun commonSupertype(
+                intersectionType: IntersectionTypeConstructor
+            ): KotlinType {
+                return CommonSupertypes.commonSupertype(intersectionType.supertypes)
             }
 
             override fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): Type? {
