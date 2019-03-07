@@ -136,7 +136,6 @@ internal class ProjectResolutionFacade(
             projectContext,
             modulesToCreateResolversFor,
             modulesContentFactory,
-            modulePlatforms = { module -> module.platform },
             moduleLanguageSettingsProvider = IDELanguageSettingsProvider,
             resolverForModuleFactoryByPlatform = { modulePlatform ->
                 val platform = modulePlatform ?: settings.platform

@@ -45,7 +45,6 @@ fun createResolveSessionForFiles(
         "test",
         projectContext, listOf(testModule),
         { ModuleContent(it, syntheticFiles, GlobalSearchScope.allScope(project)) },
-        modulePlatforms = { DefaultBuiltInPlatforms.jvmPlatform },
         moduleLanguageSettingsProvider = LanguageSettingsProvider.Default,
         resolverForModuleFactoryByPlatform = { JvmResolverForModuleFactory },
         platformParameters = { _ ->

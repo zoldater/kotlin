@@ -83,7 +83,6 @@ object CommonResolverForModuleFactory : ResolverForModuleFactory() {
             ProjectContext(project, "metadata serializer"),
             listOf(moduleInfo),
             modulesContent = { ModuleContent(it, files, GlobalSearchScope.allScope(project)) },
-            modulePlatforms = { DefaultBuiltInPlatforms.commonPlatform },
             moduleLanguageSettingsProvider = object : LanguageSettingsProvider {
                 override fun getLanguageVersionSettings(
                     moduleInfo: ModuleInfo,

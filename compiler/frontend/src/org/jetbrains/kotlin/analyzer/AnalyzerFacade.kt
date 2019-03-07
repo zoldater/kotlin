@@ -89,7 +89,6 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     private val projectContext: ProjectContext,
     modules: Collection<M>,
     private val modulesContent: (M) -> ModuleContent<M>,
-    private val modulePlatforms: (M) -> TargetPlatform?,
     private val moduleLanguageSettingsProvider: LanguageSettingsProvider,
     private val resolverForModuleFactoryByPlatform: (TargetPlatform?) -> ResolverForModuleFactory,
     private val platformParameters: (TargetPlatform) -> PlatformAnalysisParameters,
@@ -260,7 +259,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
             module.name,
             projectContext.storageManager,
             builtIns,
-            modulePlatforms(module),
+            module.platform,
             module.capabilities,
             module.stableName
         )
