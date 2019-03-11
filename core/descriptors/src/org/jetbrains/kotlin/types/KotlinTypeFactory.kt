@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import java.lang.IllegalStateException
 
 object KotlinTypeFactory {
+    @JvmStatic
     private fun computeMemberScope(constructor: TypeConstructor, arguments: List<TypeProjection>): MemberScope {
         val descriptor = constructor.declarationDescriptor
         return when (descriptor) {
