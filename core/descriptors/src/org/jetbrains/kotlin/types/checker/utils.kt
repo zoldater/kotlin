@@ -65,11 +65,15 @@ fun findCorrespondingSupertype(
             }
 
             val substitutedConstructor = substituted.constructor
-            if (!typeCheckingProcedureCallbacks.assertEqualTypeConstructors(substitutedConstructor, supertypeConstructor)) {
-                throw AssertionError("Type constructors should be equals!\n" +
-                                     "substitutedSuperType: ${substitutedConstructor.debugInfo()}, \n\n" +
-                                     "supertype: ${supertypeConstructor.debugInfo()} \n" +
-                                     typeCheckingProcedureCallbacks.assertEqualTypeConstructors(substitutedConstructor, supertypeConstructor))
+            if (substitutedConstructor !== constructor) {
+                if (!typeCheckingProcedureCallbacks.assertEqualTypeConstructors(substitutedConstructor, supertypeConstructor)) {
+                    throw AssertionError(
+                        "Type constructors should be equals!\n" +
+                                "substitutedSuperType: ${substitutedConstructor.debugInfo()}, \n\n" +
+                                "supertype: ${supertypeConstructor.debugInfo()} \n" +
+                                typeCheckingProcedureCallbacks.assertEqualTypeConstructors(substitutedConstructor, supertypeConstructor)
+                    )
+                }
             }
 
             return TypeUtils.makeNullableAsSpecified(substituted, isAnyMarkedNullable)
