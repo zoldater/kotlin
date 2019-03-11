@@ -182,6 +182,10 @@ public class TypeCheckingProcedure {
     }
 
     public boolean isSubtypeOf(@NotNull KotlinType subtype, @NotNull KotlinType supertype) {
+        if (subtype == supertype) {
+            return true;
+        }
+
         if (TypeCapabilitiesKt.sameTypeConstructors(subtype, supertype)) {
             return !subtype.isMarkedNullable() || supertype.isMarkedNullable();
         }
