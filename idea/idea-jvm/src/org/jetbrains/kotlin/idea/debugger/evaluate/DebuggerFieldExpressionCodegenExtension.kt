@@ -21,7 +21,7 @@ class DebuggerFieldExpressionCodegenExtension : ExpressionCodegenExtension {
         val propertyDescriptor = resolvedCall.resultingDescriptor as? PropertyDescriptor ?: return null
 
         if (propertyDescriptor is DebuggerFieldPropertyDescriptor) {
-            return StackValue.StackValueWithSimpleReceiver.field(
+            return StackValue.field(
                 c.typeMapper.mapType(propertyDescriptor.type),
                 propertyDescriptor.ownerType(c.codegen.state),
                 propertyDescriptor.fieldName,
