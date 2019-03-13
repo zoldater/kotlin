@@ -159,14 +159,13 @@ object CommonResolverForModuleFactory : ResolverForModuleFactory() {
         metadataPartProvider: MetadataPartProvider,
         languageVersionSettings: LanguageVersionSettings
     ): StorageComponentContainer = createContainer("ResolveCommonCode", CommonPlatformCompilerServices) {
-        configureModule(moduleContext, CommonPlatform, CommonPlatformCompilerServices, bindingTrace)
+        configureModule(moduleContext, CommonPlatform, CommonPlatformCompilerServices, bindingTrace, languageVersionSettings)
 
         useInstance(moduleContentScope)
         useInstance(LookupTracker.DO_NOTHING)
         useInstance(ExpectActualTracker.DoNothing)
         useImpl<ResolveSession>()
         useImpl<LazyTopDownAnalyzer>()
-        useInstance(languageVersionSettings)
         useImpl<AnnotationResolverImpl>()
         useImpl<CompilerDeserializationConfiguration>()
         useInstance(metadataPartProvider)
