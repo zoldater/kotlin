@@ -38,8 +38,8 @@ class CoercionValue(
         // val a = AsAny(1)
         //
         // Here we should coerce `Int` (1) to `Any` and remember that resulting type is inline class type `AsAny` (not `Any`)
-        StackValue.coerce(value.type, value.kotlinType, castType, underlyingKotlinType ?: castKotlinType, v)
-        StackValue.coerce(castType, castKotlinType, type, kotlinType, v)
+        coerce(value.type, value.kotlinType, castType, underlyingKotlinType ?: castKotlinType, v)
+        coerce(castType, castKotlinType, type, kotlinType, v)
     }
 
     override fun storeSelector(topOfStackType: Type, topOfStackKotlinType: KotlinType?, v: InstructionAdapter) {
