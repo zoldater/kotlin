@@ -592,7 +592,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         KtExpression condition = expression.getCondition();
         StackValue conditionValue;
 
-        StackValueWithLeaveTask leaveTask = null;
+        StackValue.StackValueWithLeaveTask leaveTask = null;
         if (body instanceof KtBlockExpression) {
             // If body's a block, it can contain variable declarations which may be used in the condition of a do-while loop.
             // We handle this case separately because otherwise such variable will be out of the frame map after the block ends
@@ -1215,7 +1215,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         throw new IllegalStateException("Can't get outer value in " + this + " for " + d);
     }
 
-    private StackValueWithLeaveTask generateBlock(
+    private StackValue.StackValueWithLeaveTask generateBlock(
             @NotNull List<KtExpression> statements,
             boolean isStatement,
             @Nullable Label labelBeforeLastExpression,
@@ -1267,7 +1267,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
 
         assert blockResult != null : "Block result should be initialized in the loop or the condition above";
 
-        return new StackValueWithLeaveTask(blockResult, value -> {
+        return new StackValue.StackValueWithLeaveTask(blockResult, value -> {
             if (labelBlockEnd == null) {
                 v.mark(blockEnd);
             }
