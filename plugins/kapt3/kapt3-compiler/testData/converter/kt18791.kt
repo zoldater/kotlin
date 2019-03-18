@@ -44,6 +44,13 @@ public class B {
     public final static String a9 = "A";
 }
 
+//FILE: app/OnClick.java
+package app;
+
+public @interface OnClick {
+  int[] value() default { -1 };
+}
+
 //FILE: test.kt
 package app
 
@@ -110,6 +117,12 @@ class MyActivity {
 
     @Bind(B.id.textView)
     fun plainIntConstant() {}
+
+    @OnClick(B.id.textView)
+    fun plainIntConstant2() {}
+
+    @OnClick(B.id.textView, R.layout.mainActivity)
+    fun plainIntConstantVararg() {}
 
     const val propA = B.id.textView
     val propB = B.id.textView
