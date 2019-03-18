@@ -14111,6 +14111,11 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
             public void testNumbersInSimpleConstraints() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/numbers/numbersInSimpleConstraints.kt");
             }
+
+            @TestMetadata("simple.kt")
+            public void testSimple() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/numbers/simple.kt");
+            }
         }
 
         @TestMetadata("compiler/testData/diagnostics/tests/objects")

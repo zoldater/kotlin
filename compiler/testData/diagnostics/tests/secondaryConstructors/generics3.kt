@@ -1,4 +1,6 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
+// !WITH_NEW_INFERENCE
+
 open class B<X, Y : X> {
     constructor(x: X, y: Y)
     constructor(x: X, s: String)
