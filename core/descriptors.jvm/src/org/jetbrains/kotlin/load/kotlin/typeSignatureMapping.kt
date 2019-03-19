@@ -207,25 +207,12 @@ fun hasVoidReturnType(descriptor: CallableDescriptor): Boolean {
             && descriptor !is PropertyGetterDescriptor
 }
 
-private fun continuationInternalName(releaseCoroutines: Boolean): String {
-    val fqName =
-        if (releaseCoroutines) DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE
-        else DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL
-    return JvmClassName.byClassId(ClassId.topLevel(fqName)).internalName
-}
-
 private fun <T : Any> mapBuiltInType(
     type: KotlinType,
     typeFactory: JvmTypeFactory<T>,
     mode: TypeMappingMode
 ): T? {
     val descriptor = type.constructor.declarationDescriptor as? ClassDescriptor ?: return null
-
-    if (descriptor === FAKE_CONTINUATION_CLASS_DESCRIPTOR_EXPERIMENTAL) {
-        return typeFactory.createObjectType(continuationInternalName(false))
-    } else if (descriptor == FAKE_CONTINUATION_CLASS_DESCRIPTOR_RELEASE) {
-        return typeFactory.createObjectType(continuationInternalName(true))
-    }
 
     val primitiveType = KotlinBuiltIns.getPrimitiveType(descriptor)
     if (primitiveType != null) {

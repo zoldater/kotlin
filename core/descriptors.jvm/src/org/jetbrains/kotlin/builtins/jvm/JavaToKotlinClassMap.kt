@@ -14,6 +14,8 @@ import org.jetbrains.kotlin.builtins.functions.FunctionInvokeDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.name.*
 import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.resolve.DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL
+import org.jetbrains.kotlin.resolve.DescriptorUtils.CONTINUATION_INTERFACE_FQ_NAME_RELEASE
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 import org.jetbrains.kotlin.resolve.jvm.JvmPrimitiveType
@@ -106,6 +108,9 @@ object JavaToKotlinClassMap : PlatformToKotlinClassMap {
         }
 
         addKotlinToJava(FQ_NAMES.nothing.toSafe(), classId(Void::class.java))
+
+        addKotlinToJava(CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL, ClassId.topLevel(CONTINUATION_INTERFACE_FQ_NAME_EXPERIMENTAL))
+        addKotlinToJava(CONTINUATION_INTERFACE_FQ_NAME_RELEASE, ClassId.topLevel(CONTINUATION_INTERFACE_FQ_NAME_RELEASE))
     }
 
     /**
