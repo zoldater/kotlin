@@ -8,23 +8,24 @@ package org.jetbrains.kotlin.backend.jvm.intrinsics
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.ir.types.toKotlinType
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
-import org.jetbrains.kotlin.types.Variance
 
 class IsArrayOf : IntrinsicMethod() {
-    override fun toCallable(expression: IrMemberAccessExpression, signature: JvmMethodSignature, context: JvmBackendContext): IrIntrinsicFunction {
+    override fun toCallable(
+        expression: IrMemberAccessExpression,
+        signature: JvmMethodSignature,
+        context: JvmBackendContext
+    ): IrIntrinsicFunction {
         val typeMapper = context.state.typeMapper
 
-        val descriptor = expression.descriptor
-        val builtIns = descriptor.module.builtIns
-        assert(descriptor.typeParameters.size == 1) {
-            "Expected only one type parameter for Any?.isArrayOf(), got: ${descriptor.typeParameters}"
+        assert(expression.typeArgumentsCount == 1) {
+            "Expected only one type parameter for Any?.isArrayOf(), got: ${expression.typeArgumentsCount}"
         }
-        /*TODO original?*/
-        val elementType = expression.getTypeArgument(descriptor.original.typeParameters.first().index)!!
-        val arrayKtType = builtIns.getArrayType(Variance.INVARIANT, elementType.toKotlinType())
-        val arrayType = typeMapper.mapType(arrayKtType)
+
+        val elementType = expression.getTypeArgument(0)!!
+        val typeWith = context.irBuiltIns.arrayClass.typeWith(elementType)
+        val arrayType = typeMapper.mapType(typeWith.toKotlinType())
 
         return IrIntrinsicFunction.create(expression, signature, context) {
             it.instanceOf(arrayType)
