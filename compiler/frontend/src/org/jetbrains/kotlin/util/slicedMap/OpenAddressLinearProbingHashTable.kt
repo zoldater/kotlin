@@ -143,7 +143,7 @@ internal class OpenAddressLinearProbingHashTable<K : Any, V : Any> : AbstractMut
 
     companion object {
         // Change to "true" to be able to see the contents of the map in debugger views
-        private const val DEBUG = false
+        private const val DEBUG = true
     }
 }
 
