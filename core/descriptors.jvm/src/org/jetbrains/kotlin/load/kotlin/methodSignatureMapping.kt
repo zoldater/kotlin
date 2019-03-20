@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import org.jetbrains.kotlin.resolve.jvm.JvmPrimitiveType
 import org.jetbrains.kotlin.types.IntersectionTypeConstructor
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 
 fun FunctionDescriptor.computeJvmDescriptor(withReturnType: Boolean = true, withName: Boolean = true): String = buildString {
     if (withName) {
@@ -161,7 +162,7 @@ internal object TypeMappingConfigurationImpl : TypeMappingConfiguration<JvmType>
         throw AssertionError("There should be no intersection type in existing descriptors, but found: " + intersectionType.supertypes.joinToString())
     }
 
-    override fun processErrorType(kotlinType: KotlinType, descriptor: ClassDescriptor) {
+    override fun processErrorType(kotlinType: KotlinTypeMarker) {
         // DO nothing
     }
 }

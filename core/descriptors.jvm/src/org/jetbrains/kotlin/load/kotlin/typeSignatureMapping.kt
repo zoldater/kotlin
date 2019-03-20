@@ -12,13 +12,16 @@ import org.jetbrains.kotlin.load.java.typeEnhancement.hasEnhancedNullability
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
-import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import org.jetbrains.kotlin.resolve.jvm.JvmPrimitiveType
 import org.jetbrains.kotlin.resolve.substitutedUnderlyingType
 import org.jetbrains.kotlin.resolve.unsubstitutedUnderlyingType
 import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.types.model.KotlinTypeMarker
+import org.jetbrains.kotlin.types.model.SimpleTypeMarker
+import org.jetbrains.kotlin.types.model.TypeSystemContext
+import org.jetbrains.kotlin.types.model.TypeVariance
 import org.jetbrains.kotlin.types.typeUtil.makeNullable
 import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
 import org.jetbrains.kotlin.types.typeUtil.representativeUpperBound
@@ -33,55 +36,112 @@ interface JvmTypeFactory<T : Any> {
     val javaLangClassType: T
 }
 
+interface BuiltInChecker<T : KotlinTypeMarker> {
+    fun getPrimitiveType(type: T): PrimitiveType?
+    fun getPrimitiveArrayType(type: T): PrimitiveType?
+    fun isUnderKotlinPackage(type: T): Boolean
+    fun hasEnhancedNullability(type: T): Boolean
+    fun isArray(type: T): Boolean
+    fun isSuspendFunctionType(type: T): Boolean
+    fun mapBuiltIn(type: T): ClassId?
+    fun isKClass(type: T): Boolean
+
+    object KotlinTypeBuiltInChecker : BuiltInChecker<KotlinType> {
+        override fun getPrimitiveType(type: KotlinType): PrimitiveType? {
+            return KotlinBuiltIns.getPrimitiveType(type.constructor.declarationDescriptor!!)
+        }
+
+        override fun getPrimitiveArrayType(type: KotlinType): PrimitiveType? {
+            return KotlinBuiltIns.getPrimitiveArrayType(type.constructor.declarationDescriptor!!)
+        }
+
+        override fun isUnderKotlinPackage(type: KotlinType): Boolean {
+            return KotlinBuiltIns.isUnderKotlinPackage(type.constructor.declarationDescriptor!!)
+        }
+
+        override fun hasEnhancedNullability(type: KotlinType): Boolean {
+            return type.hasEnhancedNullability()
+        }
+
+        override fun isArray(type: KotlinType): Boolean {
+            return KotlinBuiltIns.isArray(type)
+        }
+
+        override fun isSuspendFunctionType(type: KotlinType): Boolean {
+            return type.isSuspendFunctionType
+        }
+
+        override fun mapBuiltIn(type: KotlinType): ClassId? {
+            return JavaToKotlinClassMap.mapKotlinToJava(type.constructor.declarationDescriptor!!.fqNameUnsafe)
+        }
+
+        override fun isKClass(type: KotlinType): Boolean {
+            return KotlinBuiltIns.isKClass(type.constructor.declarationDescriptor as ClassDescriptor)
+        }
+    }
+}
+
 private fun <T : Any> JvmTypeFactory<T>.boxTypeIfNeeded(possiblyPrimitiveType: T, needBoxedType: Boolean) =
     if (needBoxedType) boxType(possiblyPrimitiveType) else possiblyPrimitiveType
 
 interface TypeMappingConfiguration<out T : Any> {
     fun commonSupertype(
         intersectionType: IntersectionTypeConstructor
-    ): KotlinType
+    ): KotlinTypeMarker
+
     fun getPredefinedTypeForClass(classDescriptor: ClassDescriptor): T? = null
     fun getPredefinedInternalNameForClass(classDescriptor: ClassDescriptor): String? = null
-    fun processErrorType(kotlinType: KotlinType, descriptor: ClassDescriptor)
+    fun processErrorType(kotlinType: KotlinTypeMarker)
     // returns null when type doesn't need to be preprocessed
-    fun preprocessType(kotlinType: KotlinType): KotlinType? = null
+    fun preprocessType(kotlinType: KotlinTypeMarker): KotlinTypeMarker? = null
 
     fun releaseCoroutines(): Boolean = true
 }
 
 const val NON_EXISTENT_CLASS_NAME = "error/NonExistentClass"
 
-fun <T : Any> mapType(
-    kotlinType: KotlinType,
+fun <T : Any> TypeSystemContext.mapType(
+    kotlinType: KotlinTypeMarker,
     factory: JvmTypeFactory<T>,
+    builtInChecker: BuiltInChecker<KotlinTypeMarker>,
     mode: TypeMappingMode,
     typeMappingConfiguration: TypeMappingConfiguration<T>,
     descriptorTypeWriter: JvmDescriptorTypeWriter<T>?,
-    writeGenericType: (KotlinType, T, TypeMappingMode) -> Unit = DO_NOTHING_3,
+    writeGenericType: (KotlinTypeMarker, T, TypeMappingMode) -> Unit = DO_NOTHING_3,
     isIrBackend: Boolean
 ): T {
     typeMappingConfiguration.preprocessType(kotlinType)?.let { newType ->
-        return mapType(newType, factory, mode, typeMappingConfiguration, descriptorTypeWriter, writeGenericType, isIrBackend)
-    }
-
-    if (kotlinType.isSuspendFunctionType) {
         return mapType(
-            transformSuspendFunctionToRuntimeFunctionType(kotlinType, typeMappingConfiguration.releaseCoroutines()),
-            factory, mode, typeMappingConfiguration, descriptorTypeWriter,
+            newType,
+            factory,
+            builtInChecker,
+            mode,
+            typeMappingConfiguration,
+            descriptorTypeWriter,
             writeGenericType,
             isIrBackend
         )
     }
 
-    mapBuiltInType(kotlinType, factory, mode)?.let { builtInType ->
+    if (builtInChecker.isSuspendFunctionType(kotlinType)) {
+        return mapType(
+            transformSuspendFunctionToRuntimeFunctionType(kotlinType, typeMappingConfiguration.releaseCoroutines()),
+            factory, builtInChecker, mode, typeMappingConfiguration, descriptorTypeWriter,
+            writeGenericType,
+            isIrBackend
+        )
+    }
+
+    mapBuiltInType(kotlinType, factory, builtInChecker, mode)?.let { builtInType ->
         val jvmType = factory.boxTypeIfNeeded(builtInType, mode.needPrimitiveBoxing)
         writeGenericType(kotlinType, jvmType, mode)
         return jvmType
     }
 
-    val constructor = kotlinType.constructor
-    if (constructor is IntersectionTypeConstructor) {
-        val commonSupertype = typeMappingConfiguration.commonSupertype(constructor)
+    val constructor = kotlinType.typeConstructor()
+
+    if (constructor.isIntersection()) {
+        val commonSupertype = typeMappingConfiguration.commonSupertype(constructor as IntersectionTypeConstructor) as KotlinType
         // interface In<in E>
         // open class A : In<A>
         // open class B : In<B>
@@ -90,31 +150,31 @@ fun <T : Any> mapType(
         // It's not very important because such types anyway are prohibited in declarations
         return mapType(
             commonSupertype.replaceArgumentsWithStarProjections(),
-            factory, mode, typeMappingConfiguration, descriptorTypeWriter, writeGenericType, isIrBackend
+            factory, builtInChecker, mode, typeMappingConfiguration, descriptorTypeWriter, writeGenericType, isIrBackend
         )
     }
 
-    val descriptor =
-        constructor.declarationDescriptor
-            ?: throw UnsupportedOperationException("no descriptor for type constructor of $kotlinType")
+//    val descriptor =
+//        constructor.declarationDescriptor
+//            ?: throw UnsupportedOperationException("no descriptor for type constructor of $kotlinType")
 
     when {
-        ErrorUtils.isError(descriptor) -> {
+        kotlinType.isError() -> {
             val jvmType = factory.createObjectType(NON_EXISTENT_CLASS_NAME)
-            typeMappingConfiguration.processErrorType(kotlinType, descriptor as ClassDescriptor)
+            typeMappingConfiguration.processErrorType(kotlinType)
             descriptorTypeWriter?.writeClass(jvmType)
             return jvmType
         }
 
-        descriptor is ClassDescriptor && KotlinBuiltIns.isArray(kotlinType) -> {
-            if (kotlinType.arguments.size != 1) {
+        constructor.isClassTypeConstructor() && kotlinType is SimpleTypeMarker && builtInChecker.isArray(kotlinType) -> {
+            if (kotlinType.argumentsCount() != 1) {
                 throw UnsupportedOperationException("arrays must have one type argument")
             }
-            val memberProjection = kotlinType.arguments[0]
-            val memberType = memberProjection.type
+            val memberProjection = kotlinType.asArgumentList()[0]
+            val memberType = memberProjection.getType()
 
             val arrayElementType: T
-            if (memberProjection.projectionKind === Variance.IN_VARIANCE) {
+            if (memberProjection.getVariance() === TypeVariance.IN) {
                 arrayElementType = factory.createObjectType("java/lang/Object")
                 descriptorTypeWriter?.apply {
                     writeArrayType()
@@ -126,8 +186,8 @@ fun <T : Any> mapType(
 
                 arrayElementType =
                     mapType(
-                        memberType, factory,
-                        mode.toGenericArgumentMode(memberProjection.projectionKind),
+                        memberType, factory, builtInChecker,
+                        mode.toGenericArgumentMode(memberProjection.getVariance()),
                         typeMappingConfiguration, descriptorTypeWriter, writeGenericType,
                         isIrBackend
                     )
@@ -138,14 +198,15 @@ fun <T : Any> mapType(
             return factory.createFromString("[" + factory.toString(arrayElementType))
         }
 
-        descriptor is ClassDescriptor -> {
+        constructor.isClassTypeConstructor() && kotlinType is SimpleTypeMarker -> {
             // NB if inline class is recursive, it's ok to map it as wrapped
-            if (descriptor.isInline && !mode.needInlineClassWrapping) {
+            if (kotlinType.isInlineClass() && !mode.needInlineClassWrapping) {
                 val expandedType = computeExpandedTypeForInlineClass(kotlinType)
                 if (expandedType != null) {
                     return mapType(
                         expandedType,
                         factory,
+                        builtInChecker,
                         mode.wrapInlineClassesMode(),
                         typeMappingConfiguration,
                         descriptorTypeWriter,
@@ -156,7 +217,7 @@ fun <T : Any> mapType(
             }
 
             val jvmType =
-                if (mode.isForAnnotationParameter && KotlinBuiltIns.isKClass(descriptor)) {
+                if (mode.isForAnnotationParameter && builtInChecker.isKClass(kotlinType)) {
                     factory.javaLangClassType
                 } else {
                     typeMappingConfiguration.getPredefinedTypeForClass(descriptor.original)
@@ -207,27 +268,28 @@ fun hasVoidReturnType(descriptor: CallableDescriptor): Boolean {
             && descriptor !is PropertyGetterDescriptor
 }
 
-private fun <T : Any> mapBuiltInType(
-    type: KotlinType,
+private fun <T : Any> TypeSystemContext.mapBuiltInType(
+    type: KotlinTypeMarker,
     typeFactory: JvmTypeFactory<T>,
+    builtInChecker: BuiltInChecker<KotlinTypeMarker>,
     mode: TypeMappingMode
 ): T? {
-    val descriptor = type.constructor.declarationDescriptor as? ClassDescriptor ?: return null
+    if (type !is SimpleTypeMarker || !type.isClassType()) return null
 
-    val primitiveType = KotlinBuiltIns.getPrimitiveType(descriptor)
+    val primitiveType = builtInChecker.getPrimitiveType(type)
     if (primitiveType != null) {
         val jvmType = typeFactory.createFromString(JvmPrimitiveType.get(primitiveType).desc)
-        val isNullableInJava = TypeUtils.isNullableType(type) || type.hasEnhancedNullability()
+        val isNullableInJava = type.isNullableType() || builtInChecker.hasEnhancedNullability(type)
         return typeFactory.boxTypeIfNeeded(jvmType, isNullableInJava)
     }
 
-    val arrayElementType = KotlinBuiltIns.getPrimitiveArrayType(descriptor)
+    val arrayElementType = builtInChecker.getPrimitiveArrayType(type)
     if (arrayElementType != null) {
         return typeFactory.createFromString("[" + JvmPrimitiveType.get(arrayElementType).desc)
     }
 
-    if (KotlinBuiltIns.isUnderKotlinPackage(descriptor)) {
-        val classId = JavaToKotlinClassMap.mapKotlinToJava(descriptor.fqNameUnsafe)
+    if (builtInChecker.isUnderKotlinPackage(type)) {
+        val classId = builtInChecker.mapBuiltIn(type)
         if (classId != null) {
             if (!mode.kotlinCollectionsToJavaCollections &&
                 JavaToKotlinClassMap.mutabilityMappings.any { it.javaClass == classId }
@@ -250,8 +312,10 @@ internal fun computeUnderlyingType(inlineClassType: KotlinType): KotlinType? {
         inlineClassType.substitutedUnderlyingType()
 }
 
-internal fun computeExpandedTypeForInlineClass(inlineClassType: KotlinType): KotlinType? =
-    computeExpandedTypeInner(inlineClassType, hashSetOf())
+internal fun computeExpandedTypeForInlineClass(inlineClassType: KotlinTypeMarker): KotlinTypeMarker? {
+    require(inlineClassType is KotlinType)
+    return computeExpandedTypeInner(inlineClassType, hashSetOf())
+}
 
 internal fun computeExpandedTypeInner(kotlinType: KotlinType, visitedClassifiers: HashSet<ClassifierDescriptor>): KotlinType? {
     val classifier = kotlinType.constructor.declarationDescriptor

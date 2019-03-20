@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns.FQ_NAMES
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.resolve.calls.inference.CapturedType
+import org.jetbrains.kotlin.resolve.isInlineClass
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.types.model.CaptureStatus
@@ -94,6 +95,17 @@ interface ClassicTypeSystemContext : TypeSystemContext {
     override fun SimpleTypeMarker.isMarkedNullable(): Boolean {
         require(this is SimpleType, this::errorMessage)
         return this.isMarkedNullable
+    }
+
+    override fun SimpleTypeMarker.isInline(): Boolean {
+        require(this is SimpleType, this::errorMessage)
+        return constructor.declarationDescriptor?.isInlineClass() ?: false
+    }
+
+    override fun SimpleTypeMarker.isErrorClass(): Boolean {
+        require(this is SimpleType, this::errorMessage)
+        val descriptor = constructor.declarationDescriptor
+        return ErrorUtils.isError(descriptor)
     }
 
     override fun SimpleTypeMarker.typeConstructor(): TypeConstructorMarker {
@@ -227,6 +239,11 @@ interface ClassicTypeSystemContext : TypeSystemContext {
     override fun KotlinTypeMarker.isNotNullNothing(): Boolean {
         require(this is KotlinType, this::errorMessage)
         return typeConstructor().isNothingConstructor() && !TypeUtils.isNullableType(this)
+    }
+
+    override fun KotlinTypeMarker.isNullableType(): Boolean {
+        require(this is KotlinType, this::errorMessage)
+        return TypeUtils.isNullableType(this)
     }
 }
 

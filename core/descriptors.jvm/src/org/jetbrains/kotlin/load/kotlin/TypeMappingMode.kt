@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.load.kotlin
 import org.jetbrains.kotlin.resolve.isInlineClassType
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.Variance
+import org.jetbrains.kotlin.types.model.TypeVariance
 
 class TypeMappingMode private constructor(
     val needPrimitiveBoxing: Boolean = true,
@@ -153,10 +154,10 @@ class TypeMappingMode private constructor(
         )
     }
 
-    fun toGenericArgumentMode(effectiveVariance: Variance): TypeMappingMode =
+    fun toGenericArgumentMode(effectiveVariance: TypeVariance): TypeMappingMode =
         when (effectiveVariance) {
-            Variance.IN_VARIANCE -> genericContravariantArgumentMode ?: this
-            Variance.INVARIANT -> genericInvariantArgumentMode ?: this
+            TypeVariance.IN -> genericContravariantArgumentMode ?: this
+            TypeVariance.INV -> genericInvariantArgumentMode ?: this
             else -> genericArgumentMode ?: this
         }
 

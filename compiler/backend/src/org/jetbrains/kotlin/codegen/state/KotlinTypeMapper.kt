@@ -69,6 +69,8 @@ import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedCallableMemberDescriptor
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.*
+import org.jetbrains.kotlin.types.model.KotlinTypeMarker
+import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.org.objectweb.asm.Opcodes.*
 import org.jetbrains.org.objectweb.asm.Type
@@ -102,9 +104,10 @@ class KotlinTypeMapper @JvmOverloads constructor(
             return getPredefinedTypeForClass(classDescriptor)?.internalName
         }
 
-        override fun processErrorType(kotlinType: KotlinType, descriptor: ClassDescriptor) {
+        override fun processErrorType(kotlinType: KotlinTypeMarker) {
             if (classBuilderMode.generateBodies) {
-                throw IllegalStateException(generateErrorMessageForErrorType(kotlinType, descriptor))
+                require(kotlinType is KotlinType)
+                throw IllegalStateException(generateErrorMessageForErrorType(kotlinType, kotlinType.constructor.declarationDescriptor!!))
             }
         }
 
@@ -112,7 +115,8 @@ class KotlinTypeMapper @JvmOverloads constructor(
             return isReleaseCoroutines
         }
 
-        override fun preprocessType(kotlinType: KotlinType): KotlinType? {
+        override fun preprocessType(kotlinType: KotlinTypeMarker): KotlinTypeMarker? {
+            require(kotlinType is KotlinType)
             return typePreprocessor?.invoke(kotlinType)
         }
     }

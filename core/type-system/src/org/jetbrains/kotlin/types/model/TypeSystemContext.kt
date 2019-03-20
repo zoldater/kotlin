@@ -55,6 +55,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
 
     fun SimpleTypeMarker.asDefinitelyNotNullType(): DefinitelyNotNullTypeMarker?
     fun SimpleTypeMarker.isMarkedNullable(): Boolean
+    fun SimpleTypeMarker.isInline(): Boolean
     fun SimpleTypeMarker.withNullability(nullable: Boolean): SimpleTypeMarker
     fun SimpleTypeMarker.typeConstructor(): TypeConstructorMarker
 
@@ -105,6 +106,9 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
 
     fun SimpleTypeMarker.isClassType(): Boolean = typeConstructor().isClassTypeConstructor()
 
+    fun SimpleTypeMarker.isInlineClass(): Boolean
+    fun SimpleTypeMarker.isErrorClass(): Boolean
+
     fun TypeConstructorMarker.isCommonFinalClassConstructor(): Boolean
 
     fun captureFromArguments(
@@ -145,6 +149,8 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
      * Such types can contains error types in our arguments, but type constructor isn't errorTypeConstructor
      */
     fun SimpleTypeMarker.isSingleClassifierType(): Boolean
+
+    fun KotlinTypeMarker.isNullableType(): Boolean
 }
 
 enum class CaptureStatus {

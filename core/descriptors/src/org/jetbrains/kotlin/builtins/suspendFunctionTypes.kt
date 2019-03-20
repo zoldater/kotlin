@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
@@ -54,9 +55,9 @@ val FAKE_CONTINUATION_CLASS_DESCRIPTOR_RELEASE =
         createTypeConstructor()
     }
 
-fun transformSuspendFunctionToRuntimeFunctionType(suspendFunType: KotlinType, isReleaseCoroutines: Boolean): SimpleType {
-    assert(suspendFunType.isSuspendFunctionType) {
-        "This type should be suspend function type: $suspendFunType"
+fun transformSuspendFunctionToRuntimeFunctionType(suspendFunType: KotlinTypeMarker, isReleaseCoroutines: Boolean): SimpleType {
+    if (!(suspendFunType is KotlinType && suspendFunType.isSuspendFunctionType)) {
+        throw AssertionError("This type should be suspend function type: $suspendFunType")
     }
 
     return createFunctionType(
