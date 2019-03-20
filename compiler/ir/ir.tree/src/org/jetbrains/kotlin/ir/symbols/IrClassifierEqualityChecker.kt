@@ -20,16 +20,6 @@ object FqNameEqualityChecker : IrClassifierEqualityChecker {
         return checkViaDeclarations(left.owner, right.owner)
     }
 
-    private val IrDeclarationWithName.fqName
-        get(): FqName? {
-            val parentFqName = when (val parent = parent) {
-                is IrPackageFragment -> parent.fqName
-                is IrDeclarationWithName -> parent.fqName
-                else -> return null
-            }
-            return parentFqName?.child(name)
-        }
-
     private fun checkViaDeclarations(c1: IrSymbolOwner, c2: IrSymbolOwner): Boolean {
         if (c1 is IrClass && c2 is IrClass) {
             return c1.fqName == c2.fqName
@@ -40,3 +30,13 @@ object FqNameEqualityChecker : IrClassifierEqualityChecker {
 
     private fun checkViaDescriptors(c1: ClassifierDescriptor, c2: ClassifierDescriptor) = c1.typeConstructor == c2.typeConstructor
 }
+
+val IrDeclarationWithName.fqName
+    get(): FqName? {
+        val parentFqName = when (val parent = parent) {
+            is IrPackageFragment -> parent.fqName
+            is IrDeclarationWithName -> parent.fqName
+            else -> return null
+        }
+        return parentFqName?.child(name)
+    }
