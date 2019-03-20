@@ -46,7 +46,7 @@ interface TypeMappingConfiguration<out T : Any> {
 
     fun releaseCoroutines(): Boolean = true
 }
-
+K
 const val NON_EXISTENT_CLASS_NAME = "error/NonExistentClass"
 
 fun <T : Any> mapType(
