@@ -49,7 +49,7 @@ fun AbstractMultiModuleTest.setupMppProjectFromDirStructure(testRoot: File) {
                         )
                         platform.isJvm() -> module.addLibrary(ForTestCompileRuntime.runtimeJarForTests())
                         platform.isJs() -> module.addLibrary(ForTestCompileRuntime.stdlibJsForTests(), kind = JSLibraryKind)
-                        else -> error("Unknown platforms $this")
+                        else -> error("Unknown platform $this")
                     }
                 }
                 is FullJdkDependency -> {
@@ -195,7 +195,7 @@ private val TargetPlatform.presentableName: String
         isCommon() -> "Common"
         isJvm() -> "JVM"
         isJs() -> "JS"
-        else -> error("Unknown platforms $this")
+        else -> error("Unknown platform $this")
     }
 
 private data class RootInfo(

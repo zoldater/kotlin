@@ -16,10 +16,15 @@ import org.jetbrains.kotlin.resolve.TargetPlatform
 object JvmIdePlatformKind : IdePlatformKind<JvmIdePlatformKind>() {
 
     override fun platformByCompilerArguments(arguments: CommonCompilerArguments): TargetPlatform? {
-        return if (arguments is K2JVMCompilerArguments) {
-            val jvmTarget = arguments.jvmTarget?.let { JvmTarget.fromString(it) } ?: JvmTarget.DEFAULT
-            DefaultBuiltInPlatforms.jvmPlatformByTargetVersion(jvmTarget)
-        } else null
+        if (arguments !is K2JVMCompilerArguments) return null
+
+        val jvmTargetDescription = arguments.jvmTarget
+            ?: return DefaultBuiltInPlatforms.jvmPlatform
+
+        val jvmTarget = JvmTarget.values().firstOrNull { it.description >= jvmTargetDescription }
+            ?: return DefaultBuiltInPlatforms.jvmPlatform
+
+        return DefaultBuiltInPlatforms.jvmPlatformByTargetVersion(jvmTarget)
     }
 
     override fun createArguments(): CommonCompilerArguments {

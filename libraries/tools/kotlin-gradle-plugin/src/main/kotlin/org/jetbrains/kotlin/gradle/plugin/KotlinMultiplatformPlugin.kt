@@ -100,7 +100,7 @@ open class KotlinPlatformImplementationPluginBase(platformName: String) : Kotlin
         commonProjects.add(commonProject)
 
         commonProject.whenEvaluated {
-            if (!commonProject.pluginManager.hasPlugin("kotlin-platforms-common")) {
+            if (!commonProject.pluginManager.hasPlugin("kotlin-platform-common")) {
                 throw GradleException(
                     "Platform project $platformProject has an " +
                             "'$EXPECTED_BY_CONFIG_NAME'${if (implementConfigurationIsUsed) "/'$IMPLEMENT_CONFIG_NAME'" else ""} " +

@@ -44,9 +44,9 @@ fun TargetPlatform.createArguments(init: (CommonCompilerArguments).() -> Unit = 
     return when (val singlePlatform = singleOrNull()) {
         null -> K2MetadataCompilerArguments().apply { init() }
         is JvmPlatform -> K2JVMCompilerArguments().apply {
+            init()
             // TODO(dsavvinov): review this
             jvmTarget = (singlePlatform as? JdkPlatform)?.targetVersion?.description ?: JvmTarget.DEFAULT.description
-            init()
         }
         is JsPlatform -> K2JSCompilerArguments().apply { init() }
         is KonanPlatform -> FakeK2NativeCompilerArguments().apply { init() }
@@ -113,7 +113,7 @@ private fun readV1Config(element: Element): KotlinFacetSettings {
 }
 
 fun Element.getFacetPlatformByConfigurationElement(): TargetPlatform {
-    val platformName = getAttributeValue("platforms")
+    val platformName = getAttributeValue("platform")
     return IdePlatformKind.All_PLATFORMS
         .firstOrNull { it.oldFashionedDescription == platformName }
         .orDefault()
@@ -282,7 +282,7 @@ private fun KotlinFacetSettings.writeLatestConfig(element: Element) {
     val filter = SkipDefaultsSerializationFilter()
 
     platform?.let {
-        element.setAttribute("platforms", it.oldFashionedDescription)
+        element.setAttribute("platform", it.oldFashionedDescription)
     }
     if (!useProjectSettings) {
         element.setAttribute("useProjectSettings", useProjectSettings.toString())

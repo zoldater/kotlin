@@ -41,7 +41,7 @@ public class PathManager {
     }
 
     public String getPlatformToolsFolderInAndroidSdk() {
-        return getAndroidSdkRoot() + "/platforms-tools";
+        return getAndroidSdkRoot() + "/platform-tools";
     }
 
     public String getToolsFolderInAndroidSdk() {

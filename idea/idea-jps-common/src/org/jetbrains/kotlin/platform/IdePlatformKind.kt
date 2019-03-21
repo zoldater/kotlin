@@ -71,4 +71,4 @@ abstract class IdePlatformKind<Kind : IdePlatformKind<Kind>> {
 }
 
 val TargetPlatform.idePlatformKind: IdePlatformKind<*>
-        get() = IdePlatformKind.IDE_PLATFORMS_BY_COMPILER_PLATFORMS[this] ?: error("Unknown platforms $this")
+        get() = IdePlatformKind.IDE_PLATFORMS_BY_COMPILER_PLATFORMS[this] ?: error("Unknown platform $this")

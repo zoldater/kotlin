@@ -114,7 +114,7 @@ class KotlinFacetEditorGeneralTab(
                         add(useProjectSettingsCheckBox, BorderLayout.WEST)
                         add(projectSettingsLink, BorderLayout.EAST)
                     })
-                    .addLabeledComponent("&Target platforms: ", targetPlatformComboBox)
+                    .addLabeledComponent("&Target platform: ", targetPlatformComboBox)
                     .addComponent(compilerConfigurable.createComponent()!!.apply {
                         border = null
                     })

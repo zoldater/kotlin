@@ -28,7 +28,7 @@ val KONAN_COMMON_LIBS_PATH: Path
     get() = Paths.get(KLIB_DIR_NAME, "common")
 
 val KONAN_ALL_PLATFORM_LIBS_PATH: Path
-    get() = Paths.get(KLIB_DIR_NAME, "platforms")
+    get() = Paths.get(KLIB_DIR_NAME, "platform")
 
 fun konanCommonLibraryPath(libraryName: String): Path = KONAN_COMMON_LIBS_PATH.resolve(libraryName)
 

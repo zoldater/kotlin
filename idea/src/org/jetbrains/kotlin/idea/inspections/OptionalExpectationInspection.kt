@@ -53,7 +53,7 @@ class OptionalExpectationInspection : AbstractKotlinInspection() {
                 val actualModule = (actualModuleDescriptor.getCapability(ModuleInfo.Capability) as? ModuleSourceInfo)?.module ?: continue
                 holder.registerProblem(
                     classOrObject.nameIdentifier ?: classOrObject,
-                    "Optionally expected annotation has no actual annotation in module $displayedName for platforms ${platform.oldFashionedDescription}",
+                    "Optionally expected annotation has no actual annotation in module $displayedName for platform ${platform.oldFashionedDescription}",
                     // NB: some highlighting is not suggested for this inspection
                     ProblemHighlightType.INFORMATION,
                     IntentionWrapper(CreateActualClassFix(classOrObject, actualModule, platform), classOrObject.containingFile)

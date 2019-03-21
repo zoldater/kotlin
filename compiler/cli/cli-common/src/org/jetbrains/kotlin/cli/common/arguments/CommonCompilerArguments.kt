@@ -102,7 +102,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     @Argument(value = "-Xplugin", valueDescription = "<path>", description = "Load plugins from the given classpath")
     var pluginClasspaths: Array<String>? by FreezableVar(null)
 
-    @Argument(value = "-Xmulti-platforms", description = "Enable experimental language support for multi-platforms projects")
+    @Argument(value = "-Xmulti-platform", description = "Enable experimental language support for multi-platform projects")
     var multiPlatform: Boolean by FreezableVar(false)
 
     @Argument(value = "-Xno-check-actual", description = "Do not check presence of 'actual' modifier in multi-platforms projects")
@@ -185,7 +185,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     @Argument(
         value = "-Xcommon-sources",
         valueDescription = "<path>",
-        description = "Sources of the common module that need to be compiled together with this module in the multi-platforms mode.\n" +
+        description = "Sources of the common module that need to be compiled together with this module in the multi-platform mode.\n" +
                 "Should be a subset of sources passed as free arguments"
     )
     var commonSources: Array<String>? by FreezableVar(null)

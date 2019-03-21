@@ -591,7 +591,7 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
                 nameSuffix == "JVM" -> DefaultBuiltInPlatforms.jvmPlatform // TODO(dsavvinov): determine JvmTarget precisely
                 nameSuffix == "JS" -> DefaultBuiltInPlatforms.jsPlatform
                 nameSuffix == "NATIVE" -> DefaultBuiltInPlatforms.konanPlatform
-                else -> throw IllegalStateException("Can't determine platforms by name $nameSuffix")
+                else -> throw IllegalStateException("Can't determine platform by name $nameSuffix")
             }
         return ModuleDescriptorImpl(Name.special("<$moduleName>"), storageManager, JvmBuiltIns(storageManager), platform)
     }

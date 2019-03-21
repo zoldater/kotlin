@@ -16,18 +16,23 @@ data class TargetPlatform(val componentPlatforms: Set<SimplePlatform>) : Collect
 inline fun <reified T : SimplePlatform> TargetPlatform.subplatformOfType(): T? = componentPlatforms.filterIsInstance<T>().singleOrNull()
 fun <T> TargetPlatform.subplatformOfType(klass: Class<T>): T? = componentPlatforms.filterIsInstance(klass).singleOrNull()
 
+
 /**
- * Returns human-readable description, mapping multiplatform to 'Common (experimental)'
+ * Returns human-readable description, mapping multiplatform to 'Common (experimental)',
+ * as well as maintaining some quirks of the previous representation.
+ * It is needed mainly for backwards compatibility, because some subsystem actually
+ * managed to rely on the format of that string (yes, facets, I'm looking at you).
  *
- * Do not use it unless it is important for some kind of backward compatibility, prefer
- * 'presentableDescription' instead, which provides more informative description for
- * multiplatform.
+ * New clients are encouraged to use [presentableDescription] description instead, as it
+ * also provides better description for multiplatforms.
  */
 val TargetPlatform.oldFashionedDescription: String
     get() = when (val singlePlatform = singleOrNull()) {
-        is JdkPlatform -> singlePlatform.platformName + " " + singlePlatform.targetVersion
-        null -> "Common (experimental)"
-        else -> singlePlatform.platformName
+        is JdkPlatform -> "JVM " + singlePlatform.targetVersion.description
+        is JvmPlatform -> "JVM "
+        is JsPlatform -> "JavaScript "
+        is KonanPlatform -> "Kotlin/Native "
+        null -> "Common (experimental) "
     }
 
 /**

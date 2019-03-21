@@ -10,6 +10,7 @@ package org.jetbrains.kotlin.caches.resolve
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.analyzer.*
 import org.jetbrains.kotlin.analyzer.common.CommonAnalysisParameters
+import org.jetbrains.kotlin.analyzer.common.CommonPlatformCompilerServices
 import org.jetbrains.kotlin.caches.project.LibraryModuleInfo
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.container.*
@@ -29,6 +30,7 @@ import org.jetbrains.kotlin.load.java.lazy.ModuleClassResolver
 import org.jetbrains.kotlin.load.java.lazy.ModuleClassResolverImpl
 import org.jetbrains.kotlin.load.kotlin.PackagePartProvider
 import org.jetbrains.kotlin.load.kotlin.VirtualFileFinderFactory
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
@@ -196,6 +198,11 @@ class CompositeResolverForModuleFactory(
 }
 
 
+// XXX: This class is a very-very dirty abuse of PlatformExtenionsClashResovlers, which effectively turns ExpectedActualChecker off.
+// It is needed because ExpectedActualChecker is injected by all platformConfigurators, but in IDE we actually have a
+// PlatformExpectedAnnotator instead, so unless we somehow disable ExpectedActualChecker, we'll get duplicate diagnostics.
+// TODO(dsavvinov): remove this hack either by refactoring ExpectedActualChecker (and removing the need in duplicate PlatformExpectedAnnotator),
+//  or by refactoring containers (thus allowing more flexibility in configuration)
 class HackExpectedActualChecker : PlatformExtensionsClashResolver<ExpectedActualDeclarationChecker>(ExpectedActualDeclarationChecker::class.java) {
     override fun resolveExtensionsClash(extensions: List<ExpectedActualDeclarationChecker>): ExpectedActualDeclarationChecker {
         return DontCheckAnything
@@ -216,15 +223,29 @@ class CompositeCompilerServices(val services: List<PlatformDependentCompilerServ
             mutableListOf<ImportPath>()
                 .apply { service.computePlatformSpecificDefaultImports(storageManager, this) }
                 .toSet()
-        }.reduce { first, second -> first.intersect(second) }
+        }.safeIntersect()
 
         result.addAll(intersectionOfDefaultImports)
     }
+
+    override val defaultLowPriorityImports: List<ImportPath> = services.map { it.defaultLowPriorityImports.toSet() }.safeIntersect()
+
+    override val excludedImports: List<FqName> = services.map { it.excludedImports.toSet() }.safeUnion()
+
+    private fun <T> List<Set<T>>.safeUnion(): List<T> =
+        if (isEmpty()) emptyList() else reduce { first, second -> first.union(second) }.toList()
+
+    private fun <T> List<Set<T>>.safeIntersect(): List<T> =
+        if (isEmpty()) emptyList() else reduce { first, second -> first.intersect(second) }.toList()
 }
 
 class CompositePlatformConigurator(private val componentConfigurators: List<PlatformConfigurator>) : PlatformConfigurator {
+    // TODO(dsavvinov): this is actually a hack. Review callers of that method, think about how to refactor it
+    // Unfortunately, clients of that container will inject additional services into them,
+    // without knowing about composite platform (see LocalClassifierAnalyzer), so we can't just use [createContainerForCompositePlatform]
+    // here. Hopefully, platformSpecific container won't at least make things worse.
     override val platformSpecificContainer: StorageComponentContainer
-        get() = TODO("Shouldn't be called")
+        get() = CommonPlatformCompilerServices.platformConfigurator.platformSpecificContainer
 
     override fun configureModuleComponents(container: StorageComponentContainer) {
         componentConfigurators.forEach { it.configureModuleComponents(container) }

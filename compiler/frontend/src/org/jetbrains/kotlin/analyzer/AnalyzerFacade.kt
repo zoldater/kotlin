@@ -257,7 +257,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
             module.name,
             projectContext.storageManager,
             builtIns,
-            module.platform ?: TODO("No platforms"),
+            module.platform ?: TODO("No platform"),
             module.capabilities,
             module.stableName
         )

@@ -54,7 +54,7 @@ abstract class IdePlatformKindTooling {
             for (kind in allPlatformKinds) {
                 if (kind !in groupedTooling) {
                     throw IllegalStateException(
-                        "Tooling support for the platforms '$kind' is missing. " +
+                        "Tooling support for the platform '$kind' is missing. " +
                                 "Implement 'IdePlatformKindTooling' for it."
                     )
                 }
@@ -68,7 +68,7 @@ abstract class IdePlatformKindTooling {
         }
 
         fun getTooling(kind: IdePlatformKind<*>): IdePlatformKindTooling {
-            return TOOLING_SUPPORT_BY_KIND[kind] ?: error("Unknown platforms $kind")
+            return TOOLING_SUPPORT_BY_KIND[kind] ?: error("Unknown platform $kind")
         }
 
         /**
@@ -79,7 +79,7 @@ abstract class IdePlatformKindTooling {
         }
 
         fun getTooling(platformId: KotlinPlatform): IdePlatformKindTooling {
-            return getToolingIfAny(platformId) ?: error("Unknown Gradle platforms $platformId")
+            return getToolingIfAny(platformId) ?: error("Unknown Gradle platform $platformId")
         }
     }
 }

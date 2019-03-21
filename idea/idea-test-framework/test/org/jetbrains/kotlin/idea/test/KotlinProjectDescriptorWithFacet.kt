@@ -35,7 +35,7 @@ class KotlinProjectDescriptorWithFacet(
             settings.languageLevel = languageVersion
             if (multiPlatform) {
                 settings.compilerSettings = CompilerSettings().apply {
-                    additionalArguments += " -Xmulti-platforms"
+                    additionalArguments += " -Xmulti-platform"
                 }
             }
         }

@@ -136,7 +136,7 @@ private class CreationPlace(
             appendln("Provided module info: $moduleInfo")
         }
         if (platform != null) {
-            appendln("Provided platforms: $platform")
+            appendln("Provided platform: $platform")
         }
     }
 }
@@ -192,7 +192,7 @@ private fun StringBuilder.appendElement(element: PsiElement) {
 
     val moduleInfo = moduleInfoResult?.result
     if (moduleInfo != null) {
-        info("moduleInfo.platforms", moduleInfo.platform?.toString())
+        info("moduleInfo.platform", moduleInfo.platform?.toString())
     }
 
     val virtualFile = element.containingFile?.virtualFile

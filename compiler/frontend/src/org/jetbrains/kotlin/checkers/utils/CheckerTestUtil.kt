@@ -72,7 +72,7 @@ object CheckerTestUtil {
         val sortedBindings = implementingModulesBindings.sortedBy { it.first.oldFashionedDescription }
 
         for ((platform, second) in sortedBindings) {
-            assert(!platform.isCommon()) { "Implementing module must have a specific platforms: $platform" }
+            assert(!platform.isCommon()) { "Implementing module must have a specific platform: $platform" }
 
             result.addAll(
                 getDiagnosticsIncludingSyntaxErrors(
