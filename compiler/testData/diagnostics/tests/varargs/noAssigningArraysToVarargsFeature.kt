@@ -12,7 +12,7 @@
 
 annotation class Ann(vararg val s: String)
 
-@Ann(s = <!NI;TYPE_MISMATCH, OI;TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH!>arrayOf()<!>)
+@Ann(s = <!NI;TYPE_MISMATCH, OI;TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH!><!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>arrayOf<!>()<!>)
 fun test1() {}
 
 @Ann(s = <!TYPE_MISMATCH!>intArrayOf()<!>)
