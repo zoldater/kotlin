@@ -219,6 +219,6 @@ fun createContainerToResolveCommonCode(
 fun StorageComponentContainer.configureCommonSpecificComponents(
     metadataPartProvider: MetadataPartProvider
 ) {
-    useInstance(metadataPartProvider)
+//    useInstance(metadataPartProvider)
     useImpl<MetadataPackageFragmentProvider>()
 }
