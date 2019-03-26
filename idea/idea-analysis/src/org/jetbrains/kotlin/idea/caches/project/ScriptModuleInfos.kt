@@ -18,8 +18,10 @@ import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
 import org.jetbrains.kotlin.idea.core.script.dependencies.ScriptRelatedModulesProvider
 import org.jetbrains.kotlin.idea.stubindex.KotlinSourceFilterScope
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.DefaultBuiltInPlatforms
 import org.jetbrains.kotlin.resolve.PlatformDependentCompilerServices
 import org.jetbrains.kotlin.resolve.TargetPlatform
+import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatformCompilerServices
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import java.io.File
 import kotlin.script.experimental.dependencies.ScriptDependencies
@@ -59,11 +61,11 @@ data class ScriptModuleInfo(
         }
     }
 
-    override val platform: TargetPlatform?
-        get() = null
+    override val platform: TargetPlatform
+        get() = DefaultBuiltInPlatforms.jvmPlatform // TODO(dsavvinov): choose proper target version
 
-    override val compilerServices: PlatformDependentCompilerServices?
-        get() = null
+    override val compilerServices: PlatformDependentCompilerServices
+        get() = JvmPlatformCompilerServices
 }
 
 fun findJdk(dependencies: ScriptDependencies?, project: Project): Sdk? {
@@ -99,11 +101,11 @@ sealed class ScriptDependenciesInfo(val project: Project) : IdeaModuleInfo, Bina
     override val sourcesModuleInfo: SourceForBinaryModuleInfo?
         get() = ScriptDependenciesSourceInfo.ForProject(project)
 
-    override val platform: TargetPlatform?
-        get() = null
+    override val platform: TargetPlatform
+        get() = DefaultBuiltInPlatforms.jvmPlatform // TODO(dsavvinov): choose proper TargetVersion
 
-    override val compilerServices: PlatformDependentCompilerServices?
-        get() = null
+    override val compilerServices: PlatformDependentCompilerServices
+        get() = JvmPlatformCompilerServices
 
     class ForFile(
         project: Project,
@@ -148,11 +150,11 @@ sealed class ScriptDependenciesSourceInfo(val project: Project) : IdeaModuleInfo
 
     override fun equals(other: Any?): Boolean = other is ScriptDependenciesSourceInfo && this.project == other.project
 
-    override val platform: TargetPlatform?
-        get() = null
+    override val platform: TargetPlatform
+        get() = DefaultBuiltInPlatforms.jvmPlatform // TODO(dsavvinov): choose proper TargetVersion
 
-    override val compilerServices: PlatformDependentCompilerServices?
-        get() = null
+    override val compilerServices: PlatformDependentCompilerServices
+        get() = JvmPlatformCompilerServices
 
     class ForProject(project: Project) : ScriptDependenciesSourceInfo(project)
 }
