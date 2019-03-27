@@ -216,7 +216,7 @@ class ResolverForProjectImpl<M : ModuleInfo>(
     }
 
     private fun doGetDescriptorForModule(module: M): ModuleDescriptorImpl {
-        val moduleFromThisResolver = module.takeIf { it in allModules }
+        val moduleFromThisResolver = module.takeIf { it in modulesFromThisResolver }
                 ?: return delegateResolver.descriptorForModule(module) as ModuleDescriptorImpl
         return projectContext.storageManager.compute {
             var moduleData = descriptorByModule.getOrPut(moduleFromThisResolver) {
