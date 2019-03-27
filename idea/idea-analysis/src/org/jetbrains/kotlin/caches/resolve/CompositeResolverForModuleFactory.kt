@@ -48,8 +48,6 @@ import org.jetbrains.kotlin.serialization.js.createKotlinJavascriptPackageFragme
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.utils.KotlinJavascriptMetadataUtils
 
-class ParametersForPlatforms()
-
 class CompositeResolverForModuleFactory(
     private val commonAnalysisParameters: CommonAnalysisParameters,
     private val jvmAnalysisParameters: JvmPlatformParameters,
