@@ -14,13 +14,13 @@ fun <R> fun1ValueArgument(p: () -> R) {
 }
 
 fun <R> fun3(p: () -> R) {
-    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>inlineFun<!> {
+    inlineFun {
         <!RETURN_NOT_ALLOWED!>return<!>;
     }
 }
 
 fun <R> fun3ValueArgument(p: () -> R) {
-    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>inlineFun<!> ({
+    inlineFun ({
                    <!RETURN_NOT_ALLOWED!>return<!>;
                })
 }

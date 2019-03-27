@@ -35,6 +35,7 @@ class ResultTypeResolver(
     }
 
     fun findResultType(c: Context, variableWithConstraints: VariableWithConstraints, direction: ResolveDirection): UnwrappedType {
+        if (variableWithConstraints.containsConstraintsWithErrorType) return ErrorUtils.createErrorType("TODO")
         findResultTypeOrNull(c, variableWithConstraints, direction)?.let { return it }
 
         // no proper constraints

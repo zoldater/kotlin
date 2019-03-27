@@ -42,10 +42,10 @@ fun foo(x: FinalClass?, y: Any) {
         // OK (equals from FinalClass)
         y -> <!DEBUG_INFO_SMARTCAST!>y<!>.use()
     }
-    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>when (y) {
+    when (y) {
         // ERROR (equals from Any)
         x -> y.<!UNRESOLVED_REFERENCE!>use<!>()
-    }<!>
+    }
 }
 
 open class OpenClass {

@@ -96,6 +96,7 @@ interface VariableWithConstraints {
     val typeVariable: NewTypeVariable
     val constraints: List<Constraint>
     val hasNotOnlyUpperBoundConstraints: Boolean
+    val containsConstraintsWithErrorType: Boolean
 }
 
 class InitialConstraint(

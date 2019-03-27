@@ -56,8 +56,8 @@ fun test3(z: Z) {
 
 //'in' operation
 fun test4(collection: Collection<A<*>>) {
-    <!NI;IMPLICIT_NOTHING_AS_TYPE_PARAMETER, NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>id<!>(<!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER, OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>newA<!>() in collection)
-    <!NI;UNREACHABLE_CODE!>id(newA<Int>() in collection)<!>
+    id(<!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER, OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>newA<!>() in collection)
+    id(newA<Int>() in collection)
 }
 
 //boolean operations

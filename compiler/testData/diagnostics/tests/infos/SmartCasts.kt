@@ -1,4 +1,5 @@
 // !WITH_NEW_INFERENCE
+
 open class A() {
   fun foo() {}
 }
@@ -93,14 +94,14 @@ fun f13(a : A?) {
   }
 
   a?.foo()
-  <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>if (!(a is B)) {
+  if (!(a is B)) {
     a?.foo()
     <!UNRESOLVED_REFERENCE!>c<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>bar<!>()
   }
   else {
     <!DEBUG_INFO_SMARTCAST!>a<!>.foo()
     <!UNRESOLVED_REFERENCE!>c<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>bar<!>()
-  }<!>
+  }
 
   a?.foo()
   if (a is B && <!DEBUG_INFO_SMARTCAST!>a<!>.foo() == Unit) {
@@ -195,9 +196,9 @@ fun mergeSmartCasts(a: Any?) {
   if (a is Int || a is String) {
     a.<!UNRESOLVED_REFERENCE!>compareTo<!>("")
   }
-  <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>when (a) {
+  when (a) {
     is String, is Any -> a.<!UNRESOLVED_REFERENCE!>compareTo<!>("")
-  }<!>
+  }
   if (a is String && <!USELESS_IS_CHECK!>a is Any<!>) {
     val <!UNUSED_VARIABLE!>i<!>: Int = <!DEBUG_INFO_SMARTCAST!>a<!>.compareTo("")
   }

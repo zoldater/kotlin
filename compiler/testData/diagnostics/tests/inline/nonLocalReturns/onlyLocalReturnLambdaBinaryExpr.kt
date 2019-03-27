@@ -14,7 +14,7 @@ fun <R> fun1(p: () -> R) {
 }
 
 fun <R> fun3(p: () -> R) {
-    Z() <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>inlineFun<!> {
+    Z() inlineFun {
         <!RETURN_NOT_ALLOWED!>return<!>;
     }
 }

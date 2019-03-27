@@ -1,5 +1,3 @@
-// !WITH_NEW_INFERENCE
-
 package unresolved
 
 class Pair<A, B>(val a: A, val b: B)
@@ -19,10 +17,10 @@ fun testUnresolved() {
     foo1(<!UNRESOLVED_REFERENCE!>i<!>)
     s.<!UNRESOLVED_REFERENCE!>foo<!>()
 
-    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>when(<!UNRESOLVED_REFERENCE!>a<!>) {
+    when(<!UNRESOLVED_REFERENCE!>a<!>) {
         is Int -> <!UNRESOLVED_REFERENCE!>a<!>
         is String -> <!UNRESOLVED_REFERENCE!>a<!>
-    }<!>
+    }
 
     for (j in <!UNRESOLVED_REFERENCE!>collection<!>) {
        var i: Int = <!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>j<!>

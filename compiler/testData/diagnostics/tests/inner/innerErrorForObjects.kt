@@ -2,7 +2,7 @@
 
 open class SomeClass<T>
 class TestSome<P> {
-    object Some : <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>SomeClass<<!UNRESOLVED_REFERENCE!>P<!>><!>() {
+    object Some : SomeClass<<!UNRESOLVED_REFERENCE!>P<!>>() {
     }
 }
 

@@ -1,4 +1,6 @@
 // !DIAGNOSTICS: -DEBUG_INFO_SMARTCAST
+// !WITH_NEW_INFERENCE
+
 package a
 
 import java.util.Date
@@ -17,7 +19,7 @@ fun foo() {
 
 fun bar(i: Int, a: <!UNRESOLVED_REFERENCE!>U<!>) {
     val r = if (true) i else <!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>a<!>
-    val <!UNUSED_VARIABLE!>b<!>: Any = r
+    val <!UNUSED_VARIABLE!>b<!>: Any = <!NI;DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>r<!>
 }
 
 //from standard library

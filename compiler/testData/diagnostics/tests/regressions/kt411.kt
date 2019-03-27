@@ -32,12 +32,12 @@ fun t2() : String {
 fun t3() : String {
     invoker(
     l@{
-        <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>if (true) {
+        if (true) {
             <!RETURN_NOT_ALLOWED!>return@t3<!> "1"
         }
         else {
             <!RETURN_NOT_ALLOWED!>return<!> <!CONSTANT_EXPECTED_TYPE_MISMATCH!>2<!>
-        }<!>
+        }
         <!UNREACHABLE_CODE!>return@l 0<!>
     }
     )

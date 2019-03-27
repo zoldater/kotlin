@@ -159,7 +159,6 @@ class ConstraintInjector(val constraintIncorporator: ConstraintIncorporator, val
             var targetType = type
             if (targetType.isError) {
                 c.addError(ConstrainingTypeIsError(typeVariable, targetType, position))
-                return
             }
 
             if (type.contains(this::isCapturedTypeFromSubtyping)) {

@@ -5,15 +5,13 @@
 
 package org.jetbrains.kotlin.resolve.calls.inference.model
 
-import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
 import org.jetbrains.kotlin.resolve.calls.inference.trimToSize
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallDiagnostic
 import org.jetbrains.kotlin.resolve.calls.tower.isSuccess
 import org.jetbrains.kotlin.types.TypeConstructor
+import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.isError
-import kotlin.collections.ArrayList
-import kotlin.collections.LinkedHashMap
 
 
 class MutableVariableWithConstraints(
@@ -39,13 +37,19 @@ class MutableVariableWithConstraints(
         hasNotOnlyUpperBoundConstraints = true
     }
 
+    override val containsConstraintsWithErrorType: Boolean
+        get() = mutableConstraints.any { TypeUtils.contains(it.type) { type -> type.isError } }
+
     // return new actual constraint, if this constraint is new
     fun addConstraint(constraint: Constraint): Constraint? {
-        if (!hasNotOnlyUpperBoundConstraints && constraint.position.from !is DeclaredUpperBoundConstraintPosition) {
-            setHasNotOnlyUpperBoundConstraints()
+        if (containsConstraintsWithErrorType) {
+            return null
         }
 
         val previousConstraintWithSameType = constraints.filter { it.typeHashCode == constraint.typeHashCode && it.type == constraint.type }
+        if (!hasNotOnlyUpperBoundConstraints && constraint.position.from !is DeclaredUpperBoundConstraintPosition) {
+            setHasNotOnlyUpperBoundConstraints()
+        }
 
         if (previousConstraintWithSameType.any { newConstraintIsUseless(it.kind, constraint.kind) })
             return null
