@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.types.checker.NewCapturedType
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.types.model.CaptureStatus
 import org.jetbrains.kotlin.types.typeUtil.contains
-import org.jetbrains.kotlin.types.typeUtil.isNothing
 import org.jetbrains.kotlin.types.typeUtil.isNullableAny
 import java.util.*
 
@@ -42,6 +41,8 @@ class ConstraintInjector(val constraintIncorporator: ConstraintIncorporator, val
 
         fun addInitialConstraint(initialConstraint: InitialConstraint)
         fun addError(error: KotlinCallDiagnostic)
+
+        fun updateNotIsUpperBound(typeVariable: NewTypeVariable)
     }
 
     fun addInitialSubtypeConstraint(c: Context, lowerType: UnwrappedType, upperType: UnwrappedType, position: ConstraintPosition) {
@@ -76,6 +77,9 @@ class ConstraintInjector(val constraintIncorporator: ConstraintIncorporator, val
 
         while (possibleNewConstraints.isNotEmpty()) {
             val (typeVariable, constraint) = possibleNewConstraints.pop()
+
+            constraintIncorporator.updateUpperBounds(typeCheckerContext, typeVariable, constraint)
+
             if (c.shouldWeSkipConstraint(typeVariable, constraint)) continue
 
             val constraints =
@@ -206,6 +210,10 @@ class ConstraintInjector(val constraintIncorporator: ConstraintIncorporator, val
         override fun getConstraintsForVariable(typeVariable: NewTypeVariable) =
             c.notFixedTypeVariables[typeVariable.freshTypeConstructor]?.constraints
                     ?: fixedTypeVariable(typeVariable)
+
+        override fun updateNotIsUpperBound(typeVariable: NewTypeVariable) {
+            c.updateNotIsUpperBound(typeVariable)
+        }
 
         fun fixedTypeVariable(variable: NewTypeVariable): Nothing {
             error(

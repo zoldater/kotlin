@@ -1,3 +1,5 @@
+// !WITH_NEW_INFERENCE
+
 abstract class Base {
     override fun equals(other: Any?) = other is Base
 }
@@ -40,10 +42,10 @@ fun foo(x: FinalClass?, y: Any) {
         // OK (equals from FinalClass)
         y -> <!DEBUG_INFO_SMARTCAST!>y<!>.use()
     }
-    when (y) {
+    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>when (y) {
         // ERROR (equals from Any)
         x -> y.<!UNRESOLVED_REFERENCE!>use<!>()
-    }
+    }<!>
 }
 
 open class OpenClass {

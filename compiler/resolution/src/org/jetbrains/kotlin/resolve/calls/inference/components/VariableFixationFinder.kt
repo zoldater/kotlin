@@ -51,6 +51,7 @@ class VariableFixationFinder(
 
     private enum class TypeVariableFixationReadiness {
         FORBIDDEN,
+        WITH_ONLY_DECLARED_UPPER_BOUNDS_CONSTRAINTS, // proper constraint from arguments -- not from upper bound for type parameters
         WITHOUT_PROPER_ARGUMENT_CONSTRAINT, // proper constraint from arguments -- not from upper bound for type parameters
         WITH_TRIVIAL_OR_NON_PROPER_CONSTRAINTS, // proper trivial constraint from arguments, Nothing <: T
         WITH_COMPLEX_DEPENDENCY, // if type variable T has constraint with non fixed type variable inside (non-top-level): T <: Foo<S>
@@ -64,10 +65,17 @@ class VariableFixationFinder(
     ): TypeVariableFixationReadiness = when {
         !notFixedTypeVariables.contains(variable) ||
                 dependencyProvider.isVariableRelatedToTopLevelType(variable) -> TypeVariableFixationReadiness.FORBIDDEN
-        !variableHasProperArgumentConstraints(variable) -> TypeVariableFixationReadiness.WITHOUT_PROPER_ARGUMENT_CONSTRAINT
+
+        !variableHasProperArgumentConstraints(variable) -> //TypeVariableFixationReadiness.WITHOUT_PROPER_ARGUMENT_CONSTRAINT
+            if (hasNotOnlyDeclaredConstraints(variable)) TypeVariableFixationReadiness.WITHOUT_PROPER_ARGUMENT_CONSTRAINT
+            else TypeVariableFixationReadiness.WITH_ONLY_DECLARED_UPPER_BOUNDS_CONSTRAINTS
+
         variableHasTrivialOrNonProperConstraints(variable) -> TypeVariableFixationReadiness.WITH_TRIVIAL_OR_NON_PROPER_CONSTRAINTS
+
         hasDependencyToOtherTypeVariables(variable) -> TypeVariableFixationReadiness.WITH_COMPLEX_DEPENDENCY
+
         dependencyProvider.isVariableRelatedToAnyOutputType(variable) -> TypeVariableFixationReadiness.RELATED_TO_ANY_OUTPUT_TYPE
+
         else -> TypeVariableFixationReadiness.READY_FOR_FIXATION
     }
 
@@ -86,7 +94,7 @@ class VariableFixationFinder(
         val candidateReadiness = getTypeVariableReadiness(candidate, dependencyProvider)
         return when (candidateReadiness) {
             TypeVariableFixationReadiness.FORBIDDEN -> null
-            TypeVariableFixationReadiness.WITHOUT_PROPER_ARGUMENT_CONSTRAINT -> VariableForFixation(candidate, false)
+            TypeVariableFixationReadiness.WITH_ONLY_DECLARED_UPPER_BOUNDS_CONSTRAINTS -> VariableForFixation(candidate, false)
             TypeVariableFixationReadiness.WITH_TRIVIAL_OR_NON_PROPER_CONSTRAINTS ->
                 VariableForFixation(candidate, hasProperConstraint = true, hasOnlyTrivialProperConstraint = true)
 
@@ -112,6 +120,9 @@ class VariableFixationFinder(
 
     private fun Context.variableHasProperArgumentConstraints(variable: TypeConstructor): Boolean =
         notFixedTypeVariables[variable]?.constraints?.any { isProperArgumentConstraint(it) } ?: false
+
+    private fun Context.hasNotOnlyDeclaredConstraints(variable: TypeConstructor): Boolean =
+        notFixedTypeVariables[variable]?.hasNotOnlyUpperBoundConstraints ?: false
 
     private fun Context.isProperArgumentConstraint(c: Constraint) =
         isProperType(c.type) && c.position.initialConstraint.position !is DeclaredUpperBoundConstraintPosition

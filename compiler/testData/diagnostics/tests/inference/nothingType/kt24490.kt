@@ -8,6 +8,6 @@ fun dontRun(body: () -> Unit) = Unit
 
 class Case1 {
     fun test() {
-        dontRun { val x = bar(bar { -> bar { -> 2} }) }
+        dontRun { <!UNREACHABLE_CODE!>val x = <!IMPLICIT_NOTHING_AS_TYPE_PARAMETER!>bar<!>(<!><!IMPLICIT_NOTHING_AS_TYPE_PARAMETER, IMPLICIT_NOTHING_AS_TYPE_PARAMETER!>bar<!> <!TYPE_MISMATCH, TYPE_MISMATCH, TYPE_MISMATCH!>{ -> <!IMPLICIT_NOTHING_AS_TYPE_PARAMETER, IMPLICIT_NOTHING_AS_TYPE_PARAMETER!>bar<!> <!TYPE_MISMATCH, TYPE_MISMATCH, TYPE_MISMATCH!>{ -> 2}<!> }<!><!UNREACHABLE_CODE!>)<!> }
     }
 }

@@ -1,6 +1,8 @@
+// !WITH_NEW_INFERENCE
+
 open class SomeClass<T>
 class TestSome<P> {
-    companion object : SomeClass<<!UNRESOLVED_REFERENCE!>P<!>>() {
+    companion object : <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>SomeClass<<!UNRESOLVED_REFERENCE!>P<!>><!>() {
     }
 }
 

@@ -11,7 +11,7 @@ fun a(): Unit = run {
 
 fun b(): Unit = run {
     // Ok, expected type is applied
-    <!NI;IMPLICIT_NOTHING_AS_TYPE_PARAMETER!>materialize<!>()
+    <!NI;IMPLICIT_NOTHING_AS_TYPE_PARAMETER, NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>materialize<!>()
 }
 
 fun c(): Unit = run {

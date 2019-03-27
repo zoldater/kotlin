@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import org.jetbrains.kotlin.utils.keysToMap
 
 class KotlinConstraintSystemCompleter(
     private val resultTypeResolver: ResultTypeResolver,
@@ -71,7 +72,7 @@ class KotlinConstraintSystemCompleter(
             val postponedKtPrimitives = getOrderedNotAnalyzedPostponedArguments(topLevelAtoms)
             val variableForFixation =
                 variableFixationFinder.findFirstVariableForFixation(
-                    c, allTypeVariables, postponedKtPrimitives, completionMode, topLevelType
+                    c, allTypeVariables.keys.toList(), postponedKtPrimitives, completionMode, topLevelType
                 ) ?: break
 
             if (shouldForceCallableReferenceOrLambdaResolution(completionMode, variableForFixation)) {
@@ -85,7 +86,8 @@ class KotlinConstraintSystemCompleter(
                 fixVariable(c, topLevelType, variableWithConstraints, postponedKtPrimitives)
 
                 if (!variableForFixation.hasProperConstraint) {
-                    c.addError(NotEnoughInformationForTypeParameter(variableWithConstraints.typeVariable))
+                    val atom = allTypeVariables[variableForFixation.variable]
+                    c.addError(NotEnoughInformationForTypeParameter(variableWithConstraints.typeVariable, atom))
                 }
                 continue
             }
@@ -157,19 +159,22 @@ class KotlinConstraintSystemCompleter(
         c: Context,
         collectVariablesFromContext: Boolean,
         topLevelAtoms: List<ResolvedAtom>
-    ): List<TypeConstructor> {
-        if (collectVariablesFromContext) return c.notFixedTypeVariables.keys.toList()
+    ): Map<TypeConstructor, ResolvedAtom?> {
+        if (collectVariablesFromContext) return c.notFixedTypeVariables.keys.keysToMap { null }
 
-        fun ResolvedAtom.process(to: LinkedHashSet<TypeConstructor>) {
+        fun ResolvedAtom.process(to: LinkedHashMap<TypeConstructor, ResolvedAtom?>) {
             val typeVariables = when (this) {
                 is ResolvedCallAtom -> substitutor.freshVariables
                 is ResolvedCallableReferenceAtom -> candidate?.freshSubstitutor?.freshVariables.orEmpty()
                 is ResolvedLambdaAtom -> listOfNotNull(typeVariableForLambdaReturnType)
                 else -> emptyList()
             }
-            typeVariables.mapNotNullTo(to) {
-                val typeConstructor = it.freshTypeConstructor
-                typeConstructor.takeIf { c.notFixedTypeVariables.containsKey(typeConstructor) }
+            for (typeVariable in typeVariables) {
+                val typeConstructor = typeVariable.freshTypeConstructor
+                if (c.notFixedTypeVariables.containsKey(typeConstructor)) {
+                    to[typeConstructor] = this
+                }
+
             }
 
             if (analyzed) {
@@ -178,17 +183,17 @@ class KotlinConstraintSystemCompleter(
         }
 
         // Note that it's important to use Set here, because several atoms can share the same type variable
-        val result = linkedSetOf<TypeConstructor>()
+        val result = linkedMapOf<TypeConstructor, ResolvedAtom?>()
         for (primitive in topLevelAtoms) {
             primitive.process(result)
         }
 
         assert(result.size == c.notFixedTypeVariables.size) {
-            val notFoundTypeVariables = c.notFixedTypeVariables.keys.toMutableSet().removeAll(result)
+            val notFoundTypeVariables = c.notFixedTypeVariables.keys.toMutableSet().removeAll(result.keys)
             "Not all type variables found: $notFoundTypeVariables"
         }
 
-        return result.toList()
+        return result
     }
 
 

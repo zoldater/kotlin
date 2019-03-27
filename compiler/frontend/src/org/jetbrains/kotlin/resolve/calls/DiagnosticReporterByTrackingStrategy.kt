@@ -234,6 +234,18 @@ class DiagnosticReporterByTrackingStrategy(
                     )
                 }
             }
+
+            NotEnoughInformationForTypeParameter::class.java -> {
+                val error = diagnostic as NotEnoughInformationForTypeParameter
+                val call = error.atom?.atom?.safeAs<PSIKotlinCall>()?.psiCall ?: call
+                val expression = call.calleeExpression ?: return
+                val typeVariable = error.typeVariable
+                val typeVariableName: String = when (typeVariable) {
+                    is TypeVariableFromCallableDescriptor -> typeVariable.originalTypeParameter.name.asString()
+                    is TypeVariableForLambdaReturnType -> "return type of lambda"
+                }
+                trace.report(NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER.on(expression, typeVariableName))
+            }
         }
     }
 

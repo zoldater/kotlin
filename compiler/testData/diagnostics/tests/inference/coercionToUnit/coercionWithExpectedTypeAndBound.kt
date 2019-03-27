@@ -7,7 +7,7 @@ fun a(): Unit = run {
 }
 
 fun b(): Unit = run {
-    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>run<!> {
+    run {
         <!NI;IMPLICIT_NOTHING_AS_TYPE_PARAMETER, NI;IMPLICIT_NOTHING_AS_TYPE_PARAMETER, OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>materializeNumber<!>()
     }
 }

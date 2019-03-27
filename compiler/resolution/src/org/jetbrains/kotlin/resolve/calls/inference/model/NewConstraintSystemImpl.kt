@@ -296,4 +296,9 @@ class NewConstraintSystemImpl(
 
         return constraints.any { (it.kind == ConstraintKind.UPPER || it.kind == ConstraintKind.EQUALITY) && it.type.isUnit() }
     }
+
+    override fun updateNotIsUpperBound(typeVariable: NewTypeVariable) {
+        checkState(State.BUILDING, State.TRANSACTION, State.COMPLETION)
+        notFixedTypeVariables[typeVariable.defaultType.constructor]?.setHasNotOnlyUpperBoundConstraints()
+    }
 }

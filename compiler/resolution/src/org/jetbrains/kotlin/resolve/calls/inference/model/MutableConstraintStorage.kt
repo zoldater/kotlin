@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.resolve.calls.model.KotlinCallDiagnostic
 import org.jetbrains.kotlin.resolve.calls.tower.isSuccess
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.UnwrappedType
+import org.jetbrains.kotlin.types.isError
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
 
@@ -27,17 +28,27 @@ class MutableVariableWithConstraints(
             return simplifiedConstraints!!
         }
 
+    override var hasNotOnlyUpperBoundConstraints: Boolean = false
+        private set
+
     private val mutableConstraints = ArrayList(constraints)
 
     private var simplifiedConstraints: List<Constraint>? = null
 
+    fun setHasNotOnlyUpperBoundConstraints() {
+        hasNotOnlyUpperBoundConstraints = true
+    }
+
     // return new actual constraint, if this constraint is new
     fun addConstraint(constraint: Constraint): Constraint? {
+        if (!hasNotOnlyUpperBoundConstraints && constraint.position.from !is DeclaredUpperBoundConstraintPosition) {
+            setHasNotOnlyUpperBoundConstraints()
+        }
+
         val previousConstraintWithSameType = constraints.filter { it.typeHashCode == constraint.typeHashCode && it.type == constraint.type }
 
-        if (previousConstraintWithSameType.any { newConstraintIsUseless(it.kind, constraint.kind) }) {
+        if (previousConstraintWithSameType.any { newConstraintIsUseless(it.kind, constraint.kind) })
             return null
-        }
 
         val actualConstraint = if (previousConstraintWithSameType.isNotEmpty()) {
             // i.e. previous is LOWER and new is UPPER or opposite situation

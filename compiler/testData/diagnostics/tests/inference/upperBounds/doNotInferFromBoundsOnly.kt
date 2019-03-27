@@ -22,7 +22,7 @@ fun test2() {
 fun <T: A, R: T> emptyStrangeMap(): Map<T, R> = throw Exception()
 
 fun test3() {
-    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER, NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER, OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>emptyStrangeMap<!>()
+    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER, OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>emptyStrangeMap<!>()
 }
 
 //--------------
@@ -38,7 +38,7 @@ fun test4() {
 fun <T: A, R> emptyStrangeMap2(t: T): Map<T, R> where R: T = throw Exception("$t")
 
 fun test5(a: A) {
-    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>emptyStrangeMap2<!>(a)
+    emptyStrangeMap2(a)
 }
 
 //--------------

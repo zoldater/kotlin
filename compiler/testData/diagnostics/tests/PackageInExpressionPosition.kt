@@ -1,3 +1,5 @@
+// !WITH_NEW_INFERENCE
+
 package foo
 
 class X {}
@@ -15,9 +17,9 @@ val f = { <!NO_COMPANION_OBJECT!>System<!> }
 fun main() {
     <!EXPRESSION_EXPECTED_PACKAGE_FOUND!>java<!> = null
     <!NO_COMPANION_OBJECT!>System<!> = null
-    <!NO_COMPANION_OBJECT!>System<!>!!
+    <!NO_COMPANION_OBJECT!>System<!><!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>!!<!>
     java.lang.<!NO_COMPANION_OBJECT!>System<!> = null
-    java.lang.<!NO_COMPANION_OBJECT!>System<!>!!
+    java.lang.<!NO_COMPANION_OBJECT!>System<!><!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>!!<!>
     <!NO_COMPANION_OBJECT!>System<!> is Int
     <!INVISIBLE_MEMBER!>System<!>()
     (<!NO_COMPANION_OBJECT!>System<!>)

@@ -5,10 +5,7 @@
 
 package org.jetbrains.kotlin.resolve.calls.inference.components
 
-import org.jetbrains.kotlin.resolve.calls.inference.model.Constraint
-import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintKind
-import org.jetbrains.kotlin.resolve.calls.inference.model.NewTypeVariable
-import org.jetbrains.kotlin.resolve.calls.inference.model.VariableWithConstraints
+import org.jetbrains.kotlin.resolve.calls.inference.model.*
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.NewCapturedType
 import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
@@ -33,6 +30,42 @@ class ConstraintIncorporator(
         fun getConstraintsForVariable(typeVariable: NewTypeVariable): Collection<Constraint>
 
         fun addNewIncorporatedConstraint(lowerType: UnwrappedType, upperType: UnwrappedType)
+
+        fun updateNotIsUpperBound(typeVariable: NewTypeVariable)
+    }
+
+    private val Constraint.fromUpperBound: Boolean get() = position.from is DeclaredUpperBoundConstraintPosition
+
+    fun updateUpperBounds(c: Context, typeVariable: NewTypeVariable, constraint: Constraint) {
+        // we shouldn't incorporate recursive constraint -- It is too dangerous
+        if (constraint.type.contains { it.constructor == typeVariable.freshTypeConstructor }) return
+
+        if (!constraint.fromUpperBound) {
+            c.updateNotIsUpperBound(typeVariable)
+        }
+
+        if (constraint.kind != ConstraintKind.LOWER) {
+            c.getConstraintsForVariable(typeVariable).forEach {
+                if (it.kind != ConstraintKind.UPPER) {
+                    val constraintTypeVariable = c.getTypeVariable(it.type.constructor) ?: return@forEach
+                    if (!it.fromUpperBound) {
+                        c.updateNotIsUpperBound(constraintTypeVariable)
+                    }
+                }
+            }
+        }
+
+        // constraint.type <: \alpha
+        if (constraint.kind != ConstraintKind.UPPER) {
+            c.getConstraintsForVariable(typeVariable).forEach {
+                if (it.kind != ConstraintKind.LOWER) {
+                    val constraintTypeVariable = c.getTypeVariable(it.type.constructor) ?: return@forEach
+                    if (!it.fromUpperBound) {
+                        c.updateNotIsUpperBound(constraintTypeVariable)
+                    }
+                }
+            }
+        }
     }
 
     // \alpha is typeVariable, \beta -- other type variable registered in ConstraintStorage

@@ -1,3 +1,4 @@
+// !WITH_NEW_INFERENCE
 //kt-411 Wrong type expected when returning from a function literal
 
 package kt411
@@ -31,12 +32,12 @@ fun t2() : String {
 fun t3() : String {
     invoker(
     l@{
-        if (true) {
+        <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>if (true) {
             <!RETURN_NOT_ALLOWED!>return@t3<!> "1"
         }
         else {
             <!RETURN_NOT_ALLOWED!>return<!> <!CONSTANT_EXPECTED_TYPE_MISMATCH!>2<!>
-        }
+        }<!>
         <!UNREACHABLE_CODE!>return@l 0<!>
     }
     )
