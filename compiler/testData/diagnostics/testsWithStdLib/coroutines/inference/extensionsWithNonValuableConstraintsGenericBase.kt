@@ -29,7 +29,7 @@ val test1 = generate {
 }
 
 val test2 = <!OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>generate<!> {
-    starBase()
+    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>starBase<!>()
 }
 
 val test3 = <!OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>generate<!> {
@@ -48,5 +48,5 @@ val test5 = generateSpecific {
 }
 
 val test6 = <!OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>generateSpecific<!> {
-    stringBase()
+    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>stringBase<!>()
 }

@@ -30,7 +30,7 @@ val test1 = generate {
 }
 
 val test2 = <!OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>generate<!> {
-    baseExtension()
+    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>baseExtension<!>()
 }
 
 val test3 = generate {
@@ -39,7 +39,7 @@ val test3 = generate {
 }
 
 val test4 = <!OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>generate<!> {
-    outNullableAnyExtension()
+    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>outNullableAnyExtension<!>()
 }
 
 val test5 = <!OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>generate<!> {
@@ -58,5 +58,5 @@ val test7 = <!OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>generate<!> {
 }
 
 val test8 = generate {
-    safeExtension()
+    <!NI;NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>safeExtension<!>()
 }

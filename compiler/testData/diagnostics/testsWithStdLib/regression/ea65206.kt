@@ -1,3 +1,5 @@
+// NI_EXPECTED_FILE
+
 class A {
     val x = arrayListOf<(A<<!SYNTAX!><!>>) -> Unit>()
 
