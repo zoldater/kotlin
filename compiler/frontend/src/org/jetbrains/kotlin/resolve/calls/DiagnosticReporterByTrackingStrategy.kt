@@ -238,7 +238,11 @@ class DiagnosticReporterByTrackingStrategy(
             NotEnoughInformationForTypeParameter::class.java -> {
                 val error = diagnostic as NotEnoughInformationForTypeParameter
                 val call = error.atom?.atom?.safeAs<PSIKotlinCall>()?.psiCall ?: call
-                val expression = call.calleeExpression ?: return
+                val callExpression = call.callElement
+                val expression = call.calleeExpression?.takeIf { it in callExpression.children }
+                    ?: callExpression.safeAs<KtDestructuringDeclarationEntry>()
+                        ?.let { it.parent.safeAs<KtDestructuringDeclaration>()?.initializer }
+                    ?: callExpression
                 val typeVariable = error.typeVariable
                 val typeVariableName: String = when (typeVariable) {
                     is TypeVariableFromCallableDescriptor -> typeVariable.originalTypeParameter.name.asString()
