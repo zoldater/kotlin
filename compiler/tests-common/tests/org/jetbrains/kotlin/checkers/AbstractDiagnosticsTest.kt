@@ -173,7 +173,7 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
                 else modules.entries.filter { (testModule) -> module in testModule?.getDependencies().orEmpty() }
             val implementingModulesBindings = implementingModules.mapNotNull { (testModule, moduleDescriptor) ->
                 val platform = moduleDescriptor.platform
-                if (platform != null && platform.isCommon()) platform to moduleBindings[testModule]!!
+                if (platform != null && !platform.isCommon()) platform to moduleBindings[testModule]!!
                 else null
             }
             val moduleDescriptor = modules[module]!!
@@ -287,7 +287,7 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
             }
         }
 
-        return result ?: JvmTarget.JVM_1_6
+        return result ?: JvmTarget.DEFAULT
     }
 
     private fun checkDynamicCallDescriptors(expectedFile: File, testFiles: List<TestFile>) {

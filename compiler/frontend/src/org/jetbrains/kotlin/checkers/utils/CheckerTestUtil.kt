@@ -81,7 +81,7 @@ object CheckerTestUtil {
                     root,
                     markDynamicCalls,
                     dynamicCallDescriptors,
-                    platform.oldFashionedDescription,
+                    platform.single().platformName,
                     withNewInference,
                     languageVersionSettings,
                     dataFlowValueFactory,
