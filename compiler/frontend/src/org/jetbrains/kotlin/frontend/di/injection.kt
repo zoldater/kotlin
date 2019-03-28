@@ -207,7 +207,8 @@ fun createContainerToResolveCommonCode(
 
     configureStandardResolveComponents()
 
-    configureCommonSpecificComponents(metadataPartProvider)
+    configureCommonSpecificComponents()
+    useInstance(metadataPartProvider)
 
     val metadataFinderFactory = ServiceManager.getService(moduleContext.project, MetadataFinderFactory::class.java)
         ?: error("No MetadataFinderFactory in project")
@@ -216,9 +217,6 @@ fun createContainerToResolveCommonCode(
     targetEnvironment.configure(this)
 }
 
-fun StorageComponentContainer.configureCommonSpecificComponents(
-    metadataPartProvider: MetadataPartProvider
-) {
-//    useInstance(metadataPartProvider)
+fun StorageComponentContainer.configureCommonSpecificComponents() {
     useImpl<MetadataPackageFragmentProvider>()
 }
