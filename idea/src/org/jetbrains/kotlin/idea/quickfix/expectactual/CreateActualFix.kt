@@ -42,7 +42,8 @@ sealed class CreateActualFix<D : KtNamedDeclaration>(
     generateIt: KtPsiFactory.(Project, D) -> D?
 ) : AbstractCreateDeclarationFix<D>(declaration, actualModule, generateIt) {
 
-    override fun getText() = "Create actual $elementType for module ${module.name} (${actualPlatform.oldFashionedDescription})"
+    override fun getText() =
+        "Create actual $elementType for module ${module.name} (${actualPlatform.singleOrNull()?.platformName ?: actualPlatform})"
 
     final override fun invoke(project: Project, editor: Editor?, file: KtFile) {
         val actualFile = getOrCreateImplementationFile() ?: return
