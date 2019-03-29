@@ -182,7 +182,7 @@ class CompositeResolverForModuleFactory(
 
         // Common-specific
         if (targetPlatform.isCommon()) {
-            configureCommonSpecificComponents(metadataPartProvider)
+            configureCommonSpecificComponents()
         }
 
         useClashResolver(HackExpectedActualChecker())
@@ -197,19 +197,13 @@ class CompositeResolverForModuleFactory(
 
 
 // XXX: This class is a very-very dirty abuse of PlatformExtenionsClashResovlers, which effectively turns ExpectedActualChecker off.
-// It is needed because ExpectedActualChecker is injected by all platformConfigurators, but in IDE we actually have a
+// It is needed because ExpectedActualChecker is injected by all platformConfigurators except common, but in IDE we actually have a
 // PlatformExpectedAnnotator instead, so unless we somehow disable ExpectedActualChecker, we'll get duplicate diagnostics.
 // TODO(dsavvinov): remove this hack either by refactoring ExpectedActualChecker (and removing the need in duplicate PlatformExpectedAnnotator),
 //  or by refactoring containers (thus allowing more flexibility in configuration)
 class HackExpectedActualChecker : PlatformExtensionsClashResolver<ExpectedActualDeclarationChecker>(ExpectedActualDeclarationChecker::class.java) {
     override fun resolveExtensionsClash(extensions: List<ExpectedActualDeclarationChecker>): ExpectedActualDeclarationChecker {
-        return DontCheckAnything
-    }
-
-    object DontCheckAnything : ExpectedActualDeclarationChecker() {
-        override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) {
-            return
-        }
+        return extensions.first()
     }
 }
 
