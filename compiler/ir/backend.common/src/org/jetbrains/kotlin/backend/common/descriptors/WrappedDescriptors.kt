@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DescriptorWithContainerSource
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
+import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.*
 import java.lang.UnsupportedOperationException
 
@@ -541,7 +542,15 @@ open class WrappedClassDescriptor(
 
     override fun getMemberScope(typeSubstitution: TypeSubstitution) = MemberScope.Empty
 
+    override fun getMemberScope(
+        typeArguments: MutableList<out TypeProjection>,
+        moduleDescriptor: ModuleDescriptor
+    ): MemberScope = MemberScope.Empty
+
+    override fun getMemberScope(typeSubstitution: TypeSubstitution, moduleDescriptor: ModuleDescriptor): MemberScope = MemberScope.Empty
+
     override fun getUnsubstitutedMemberScope() = MemberScope.Empty
+    override fun getUnsubstitutedMemberScope(moduleDescriptor: ModuleDescriptor) = MemberScope.Empty
 
     override fun getUnsubstitutedInnerClassesScope() = MemberScope.Empty
 
@@ -649,7 +658,15 @@ open class WrappedEnumEntryDescriptor(
 
     override fun getMemberScope(typeSubstitution: TypeSubstitution) = MemberScope.Empty
 
+    override fun getMemberScope(
+        typeArguments: MutableList<out TypeProjection>,
+        moduleDescriptor: ModuleDescriptor
+    ): MemberScope = MemberScope.Empty
+
+    override fun getMemberScope(typeSubstitution: TypeSubstitution, moduleDescriptor: ModuleDescriptor): MemberScope = MemberScope.Empty
+
     override fun getUnsubstitutedMemberScope() = MemberScope.Empty
+    override fun getUnsubstitutedMemberScope(moduleDescriptor: ModuleDescriptor) = MemberScope.Empty
 
     override fun getUnsubstitutedInnerClassesScope() = MemberScope.Empty
 
