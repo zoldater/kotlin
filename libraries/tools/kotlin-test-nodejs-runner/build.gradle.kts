@@ -68,6 +68,7 @@ tasks {
 }
 
 val jar = tasks.create<Jar>("jar") {
+    dependsOn("yarnBuild")
     from(projectDir.resolve("lib"))
 }
 
