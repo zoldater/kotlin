@@ -90,9 +90,7 @@ internal class KotlinJsCompilationTestsConfigurator(
             testJs.dependsOn(nodeModulesTask.getTaskOrProvider())
 
             testJs.onlyIf {
-                compileTestKotlin2Js.outputFile.exists() &&
-                    nodeModulesDir.resolve("kotlin-test.js").exists() &&
-                    nodeModulesDir.resolve("kotlin-test-nodejs-runner.js").exists()
+                compileTestKotlin2Js.outputFile.exists()
             }
 
             if (disambiguationClassifier != null) {
