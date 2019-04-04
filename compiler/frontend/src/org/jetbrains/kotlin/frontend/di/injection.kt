@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.resolve.checkers.ExperimentalUsageChecker
 import org.jetbrains.kotlin.resolve.lazy.*
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactory
 import org.jetbrains.kotlin.resolve.lazy.declarations.FileBasedDeclarationProviderFactory
+import org.jetbrains.kotlin.types.SubstitutingScopeProviderImpl
 import org.jetbrains.kotlin.types.expressions.DeclarationScopeProviderForLocalClassifierAnalyzer
 import org.jetbrains.kotlin.types.expressions.LocalClassDescriptorHolder
 import org.jetbrains.kotlin.types.expressions.LocalLazyDeclarationResolver
@@ -155,6 +156,8 @@ fun createContainerForLazyLocalClassifierAnalyzer(
 
     useInstance(languageVersionSettings)
     useInstance(statementFilter)
+
+    useImpl<SubstitutingScopeProviderImpl>()
 }
 
 fun createContainerForLazyResolve(
@@ -177,6 +180,8 @@ fun createContainerForLazyResolve(
 
     useImpl<ResolveSession>()
     useImpl<LazyTopDownAnalyzer>()
+
+    useImpl<SubstitutingScopeProviderImpl>()
 }
 
 fun createLazyResolveSession(moduleContext: ModuleContext, files: Collection<KtFile>): ResolveSession =
