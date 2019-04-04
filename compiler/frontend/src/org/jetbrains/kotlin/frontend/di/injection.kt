@@ -104,6 +104,7 @@ fun createContainerForBodyResolve(
     useImpl<AnnotationResolverImpl>()
 
     useImpl<BodyResolver>()
+    useImpl<SubstitutingScopeProviderImpl>()
 }
 
 fun createContainerForLazyBodyResolve(
@@ -156,6 +157,7 @@ fun createContainerForLazyLocalClassifierAnalyzer(
     useImpl<LocalLazyDeclarationResolver>()
 
     useInstance(languageVersionSettings)
+    useImpl<SubstitutingScopeProviderImpl>()
     useInstance(statementFilter)
 }
 
@@ -179,6 +181,7 @@ fun createContainerForLazyResolve(
 
     useImpl<ResolveSession>()
     useImpl<LazyTopDownAnalyzer>()
+    useImpl<SubstitutingScopeProviderImpl>()
 }
 
 fun createLazyResolveSession(moduleContext: ModuleContext, files: Collection<KtFile>): ResolveSession =
