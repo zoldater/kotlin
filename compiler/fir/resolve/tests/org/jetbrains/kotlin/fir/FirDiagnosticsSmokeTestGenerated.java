@@ -17930,6 +17930,11 @@ public class FirDiagnosticsSmokeTestGenerated extends AbstractFirDiagnosticsSmok
             runTest("compiler/testData/diagnostics/tests/samConversions/GenericSubstitutionKT.kt");
         }
 
+        @TestMetadata("kt25290.kt")
+        public void testKt25290() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/samConversions/kt25290.kt");
+        }
+
         @TestMetadata("OverloadPriority.kt")
         public void testOverloadPriority() throws Exception {
             runTest("compiler/testData/diagnostics/tests/samConversions/OverloadPriority.kt");
