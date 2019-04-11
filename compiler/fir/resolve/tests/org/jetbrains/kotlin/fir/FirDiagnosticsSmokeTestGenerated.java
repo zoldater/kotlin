@@ -8121,6 +8121,16 @@ public class FirDiagnosticsSmokeTestGenerated extends AbstractFirDiagnosticsSmok
             runTest("compiler/testData/diagnostics/tests/generics/recursive.kt");
         }
 
+        @TestMetadata("recursiveCapturedType.kt")
+        public void testRecursiveCapturedType() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/generics/recursiveCapturedType.kt");
+        }
+
+        @TestMetadata("recursiveCapturedType_2.kt")
+        public void testRecursiveCapturedType_2() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/generics/recursiveCapturedType_2.kt");
+        }
+
         @TestMetadata("RecursiveUpperBoundCheck.kt")
         public void testRecursiveUpperBoundCheck() throws Exception {
             runTest("compiler/testData/diagnostics/tests/generics/RecursiveUpperBoundCheck.kt");

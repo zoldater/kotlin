@@ -1,0 +1,26 @@
+package
+
+public val primaryConstructor: KtPrimaryConstructor
+public val secondaryConstructors: kotlin.collections.List<KtSecondaryConstructor>
+public fun test(): kotlin.Unit
+
+public abstract class KtConstructor</*0*/ T : KtConstructor<T>> {
+    public constructor KtConstructor</*0*/ T : KtConstructor<T>>()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public final class KtPrimaryConstructor : KtConstructor<KtPrimaryConstructor> {
+    public constructor KtPrimaryConstructor()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public final class KtSecondaryConstructor : KtConstructor<KtSecondaryConstructor> {
+    public constructor KtSecondaryConstructor()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

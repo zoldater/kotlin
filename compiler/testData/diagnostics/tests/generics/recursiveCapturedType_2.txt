@@ -1,0 +1,34 @@
+package
+
+public fun case_1(): kotlin.Unit
+public fun </*0*/ K> select(/*0*/ vararg x: K /*kotlin.Array<out K>*/): K
+
+public open class Case1_1 : InterfaceWithTypeParameter1<Case1_1> {
+    public constructor Case1_1()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun ip1test1(): Case1_1?
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public open class Case1_2 : InterfaceWithTypeParameter1<Case1_2> {
+    public constructor Case1_2()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun ip1test1(): Case1_2?
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public interface InterfaceWithTypeParameter1</*0*/ T> {
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open fun ip1test1(): T?
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public interface InterfaceWithTypeParameter2</*0*/ T> {
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open fun ip1test2(): T?
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

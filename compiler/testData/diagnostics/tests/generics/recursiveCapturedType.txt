@@ -1,0 +1,13 @@
+package
+
+public fun </*0*/ K> id(/*0*/ x: K): K
+public fun </*0*/ K> select(/*0*/ x: K, /*1*/ y: K): K
+public fun test(/*0*/ context: Inv<*>): kotlin.Unit
+
+public abstract class Inv</*0*/ C : Inv<C!>!> {
+    public constructor Inv</*0*/ C : Inv<C!>!>()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    @org.jetbrains.annotations.NotNull public open fun replace(): C
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

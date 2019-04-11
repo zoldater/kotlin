@@ -2696,6 +2696,11 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
             runTest("compiler/testData/diagnostics/testsWithStdLib/inference/kt4975.kt");
         }
 
+        @TestMetadata("recursiveCapturedType.kt")
+        public void testRecursiveCapturedType() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/inference/recursiveCapturedType.kt");
+        }
+
         @TestMetadata("compiler/testData/diagnostics/testsWithStdLib/inference/annotationsForResolve")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)

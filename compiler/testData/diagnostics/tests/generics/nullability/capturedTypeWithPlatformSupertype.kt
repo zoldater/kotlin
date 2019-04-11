@@ -1,3 +1,6 @@
+// !LANGUAGE: +NewInference
+// !WITH_NEW_INFERENCE
+
 // FILE: First.java
 
 public class First<T extends Sample> {

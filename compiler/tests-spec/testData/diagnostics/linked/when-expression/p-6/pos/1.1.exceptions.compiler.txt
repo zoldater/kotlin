@@ -1,0 +1,2 @@
+CASES:
+java.lang.IllegalArgumentException: Argument for @NotNull parameter 'type' of org/jetbrains/kotlin/types/CommonSupertypes.depth must not be null
