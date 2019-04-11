@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.resolve.calls.model
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.jetbrains.kotlin.resolve.scopes.receivers.prepareReceiverRegardingCaptureTypes
+import org.jetbrains.kotlin.types.UnwrappedType
 
 
 class FakeKotlinCallArgumentForCallableReference(
@@ -42,7 +43,12 @@ class ReceiverExpressionKotlinCallArgument private constructor(
         operator fun invoke(
             receiver: ReceiverValueWithSmartCastInfo,
             isSafeCall: Boolean = false,
-            isForImplicitInvoke: Boolean = false
-        ) = ReceiverExpressionKotlinCallArgument(receiver.prepareReceiverRegardingCaptureTypes(), isSafeCall, isForImplicitInvoke)
+            isForImplicitInvoke: Boolean = false,
+            approximateIfNecessary: (UnwrappedType?) -> UnwrappedType? = { it }
+        ) = ReceiverExpressionKotlinCallArgument(
+            receiver.prepareReceiverRegardingCaptureTypes(approximateIfNecessary),
+            isSafeCall,
+            isForImplicitInvoke
+        )
     }
 }

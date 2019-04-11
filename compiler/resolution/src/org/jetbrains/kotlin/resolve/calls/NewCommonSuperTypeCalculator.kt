@@ -39,6 +39,12 @@ object NewCommonSuperTypeCalculator {
     }
 
     private fun TypeSystemCommonSuperTypesContext.commonSuperType(types: List<KotlinTypeMarker>, depth: Int): KotlinTypeMarker {
+        if (depth <= -4) {
+            if (types.any { it.toString().contains("ResolutionContext")}) {
+//                throw RuntimeException("depth: $depth\n${types.joinToString("\n")}")
+                val x = 1
+            }
+        }
         if (types.isEmpty()) throw IllegalStateException("Empty collection for input")
 
         types.singleOrNull()?.let { return it }
@@ -212,11 +218,20 @@ object NewCommonSuperTypeCalculator {
                 if (thereIsStar || typeProjections.isEmpty()) {
                     createStarProjection(parameter)
                 } else {
-                    calculateArgument(parameter, typeProjections, depth)
-                }
+                    val argument = calculateArgument(parameter, typeProjections, depth)
+                    val argumentConstructor = argument.getType().typeConstructor()
+                    if (argument.getVariance() == TypeVariance.OUT && argument.getType().typeConstructor() == constructor) {
 
+//                        if (argumentConstructor)
+                        argument
+//                        createStarProjection(parameter)
+                    } else {
+                        argument
+                    }
+                }
             arguments.add(argument)
         }
+
         return createSimpleType(constructor, arguments, nullable = false)
     }
 

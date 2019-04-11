@@ -56,6 +56,7 @@ private fun checkExpressionArgument(
 
     // todo run this approximation only once for call
     val argumentType = captureFromTypeParameterUpperBoundIfNeeded(expressionArgument.receiver.stableType, expectedType)
+    val supertypes = expressionArgument.receiver.stableType.supertypes()
 
     fun unstableSmartCastOrSubtypeError(
         unstableType: UnwrappedType?, actualExpectedType: UnwrappedType, position: ConstraintPosition

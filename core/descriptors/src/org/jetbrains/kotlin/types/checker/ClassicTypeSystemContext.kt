@@ -474,7 +474,6 @@ internal fun UnwrappedType.typeDepthInternal() =
     }
 
 internal fun SimpleType.typeDepthInternal(): Int {
-    return 10
     if (this is TypeUtils.SpecialType) return 0
     if (this is NewCapturedType) {
         val projection = constructor.projection
@@ -486,7 +485,9 @@ internal fun SimpleType.typeDepthInternal(): Int {
         if (it.isStarProjection) 1 else it.type.unwrap().typeDepthInternal()
     }.max() ?: 0
 
-    return maxInArguments + 1
+    val result = maxInArguments + 1
+
+    return result
 }
 
 

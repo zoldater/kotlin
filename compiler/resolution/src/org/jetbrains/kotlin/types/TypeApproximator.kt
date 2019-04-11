@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.resolve.calls.NewCommonSuperTypeCalculator
 import org.jetbrains.kotlin.resolve.calls.components.ClassicTypeSystemContextForCS
 import org.jetbrains.kotlin.resolve.calls.inference.model.TypeVariableTypeConstructor
-import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
 import org.jetbrains.kotlin.types.TypeApproximatorConfiguration.IntersectionStrategy.*
 import org.jetbrains.kotlin.types.checker.NewCapturedType
 import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
@@ -286,7 +285,10 @@ abstract class AbstractTypeApproximator(val ctx: TypeSystemInferenceExtensionCon
                 return null
             }
         }
-        val baseResult = if (toSuper) approximateToSuperType(baseSuperType, conf, depth) ?: baseSuperType else approximateToSubType(
+        val baseResult = if (toSuper) {
+            val actualDepth = if (type.typeConstructorProjection().isStarProjection()) 1 else depth
+            approximateToSuperType(baseSuperType, conf, actualDepth) ?: baseSuperType
+        } else approximateToSubType(
             baseSubType,
             conf,
             depth
@@ -463,7 +465,20 @@ abstract class AbstractTypeApproximator(val ctx: TypeSystemInferenceExtensionCon
                      * Note that for case Inv<C> we will chose Inv<in Int>, because it is more informative then Inv<out Any?>.
                      * May be we should do the same for deeper types, but not now.
                      */
-                    if (argumentType.typeConstructor() is NewCapturedTypeConstructor) {
+                    val constructor = argumentType.typeConstructor()
+                    if (constructor is NewCapturedTypeConstructor) {
+                        if (constructor.projection.isStarProjection) {
+                            newArguments[index] = if (argumentType is FlexibleTypeMarker && depth < 2) {
+                                val approximatedArgumentType = approximateToSuperType(argumentType, conf, 1) ?: argumentType
+                                createTypeArgument(approximatedArgumentType, TypeVariance.OUT)
+                            } else {
+                                val approximatedArgumentType = approximateToSuperType(argumentType, conf, 1) ?: argumentType
+                                createTypeArgument(approximatedArgumentType, TypeVariance.OUT)
+//                                createStarProjection(parameter)
+                            }
+                            continue@loop
+                        }
+
                         val subType = approximateToSubType(argumentType, conf, depth) ?: continue@loop
                         if (!subType.isTrivialSub()) {
                             newArguments[index] = createTypeArgument(subType, TypeVariance.IN)

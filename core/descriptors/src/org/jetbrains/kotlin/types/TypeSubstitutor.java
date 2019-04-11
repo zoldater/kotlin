@@ -98,7 +98,8 @@ public class TypeSubstitutor {
         }
 
         try {
-            return unsafeSubstitute(new TypeProjectionImpl(howThisTypeIsUsed, type), 0).getType();
+            KotlinType result = unsafeSubstitute(new TypeProjectionImpl(howThisTypeIsUsed, type), 0).getType();
+            return result;
         } catch (SubstitutionException e) {
             return ErrorUtils.createErrorType(e.getMessage());
         }

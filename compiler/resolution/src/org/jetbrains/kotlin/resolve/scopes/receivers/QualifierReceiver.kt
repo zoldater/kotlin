@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.resolve.scopes.receivers
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.checker.prepareArgumentTypeRegardingCaptureTypes
 
 // this receiver used only for resolution. see subtypes
@@ -44,8 +45,8 @@ interface QualifierReceiver : Receiver, DetailedReceiver {
         get() = classValueReceiver?.let { ReceiverValueWithSmartCastInfo(it, emptySet(), true) }
 }
 
-fun ReceiverValueWithSmartCastInfo.prepareReceiverRegardingCaptureTypes(): ReceiverValueWithSmartCastInfo {
-    val preparedBaseType = prepareArgumentTypeRegardingCaptureTypes(receiverValue.type.unwrap())
+fun ReceiverValueWithSmartCastInfo.prepareReceiverRegardingCaptureTypes(approximateIfNecessary: (UnwrappedType?) -> UnwrappedType? = { it }): ReceiverValueWithSmartCastInfo {
+    val preparedBaseType = approximateIfNecessary(prepareArgumentTypeRegardingCaptureTypes(receiverValue.type.unwrap()))
     if (preparedBaseType == null && possibleTypes.isEmpty()) return this
 
     val newPossibleTypes = possibleTypes.mapTo(HashSet<KotlinType>()) { prepareArgumentTypeRegardingCaptureTypes(it.unwrap()) ?: it }

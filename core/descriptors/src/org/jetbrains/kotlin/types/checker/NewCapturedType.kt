@@ -27,11 +27,20 @@ import org.jetbrains.kotlin.types.model.CaptureStatus
 import org.jetbrains.kotlin.types.model.CapturedTypeMarker
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.builtIns
+import org.jetbrains.kotlin.types.typeUtil.makeNullable
 import org.jetbrains.kotlin.utils.DO_NOTHING_2
 
 // if input type is capturedType, then we approximate it to UpperBound
 // null means that type should be leaved as is
 fun prepareArgumentTypeRegardingCaptureTypes(argumentType: UnwrappedType): UnwrappedType? {
+//    if (argumentType is FlexibleType) {
+//        val lowerBound = prepareArgumentTypeRegardingCaptureTypes(argumentType.lowerBound) ?: return null
+//        val upperBound = prepareArgumentTypeRegardingCaptureTypes(argumentType.upperBound) ?: return null
+//        require(lowerBound is SimpleType)
+//        require(upperBound is SimpleType)
+//        return FlexibleTypeImpl(lowerBound, upperBound)
+//    }
+
     val simpleType = NewKotlinTypeChecker.transformToNewType(argumentType.lowerIfFlexible())
     if (simpleType.constructor is IntersectionTypeConstructor) {
         var changed = false
@@ -47,7 +56,14 @@ fun prepareArgumentTypeRegardingCaptureTypes(argumentType: UnwrappedType): Unwra
             intersectTypes(it).makeNullableAsSpecified(simpleType.isMarkedNullable)
         } ?: argumentType.builtIns.nullableAnyType
     }
-    return captureFromExpression(simpleType)
+    val capturedType = captureFromExpression(simpleType) ?: return null
+    return if (argumentType is FlexibleType) {
+        require(capturedType is SimpleType)
+        FlexibleTypeImpl(capturedType, capturedType.makeNullable().asSimpleType())
+    } else {
+        capturedType
+    }
+    return capturedType
 }
 
 fun captureFromExpression(type: UnwrappedType): UnwrappedType? = when (type) {

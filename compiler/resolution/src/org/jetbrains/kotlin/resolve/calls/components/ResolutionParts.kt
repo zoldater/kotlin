@@ -21,11 +21,11 @@ import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind.*
 import org.jetbrains.kotlin.resolve.calls.tower.InfixCallNoInfixModifier
 import org.jetbrains.kotlin.resolve.calls.tower.InvokeConventionCallNoOperatorModifier
 import org.jetbrains.kotlin.resolve.calls.tower.VisibilityError
-import org.jetbrains.kotlin.types.ErrorUtils
-import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.contains
-import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.checker.anySuperTypeConstructor
+import org.jetbrains.kotlin.types.checker.captureFromExpression
+import org.jetbrains.kotlin.types.checker.prepareArgumentTypeRegardingCaptureTypes
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal object CheckInstantiationOfAbstractClass : ResolutionPart() {
@@ -287,7 +287,9 @@ private fun KotlinResolutionCandidate.prepareExpectedType(
         callComponents.languageVersionSettings
     )
     val resultType = knownTypeParametersResultingSubstitutor?.substitute(argumentType) ?: argumentType
-    return resolvedCall.substitutor.substituteKeepAnnotations(resultType)
+
+    val realResultType = captureFromExpression(resultType)?.let { TypeApproximator(callComponents.builtIns).approximateToSuperType(it, TypeApproximatorConfiguration.CapturedAndIntegerLiteralsTypesApproximation) } ?: resultType
+    return resolvedCall.substitutor.substituteKeepAnnotations(realResultType)
 }
 
 private fun KotlinResolutionCandidate.getExpectedTypeWithSAMConversion(
@@ -340,8 +342,12 @@ internal object CheckReceivers : ResolutionPart() {
 
     override fun KotlinResolutionCandidate.process(workIndex: Int) {
         if (workIndex == 0) {
+            val resolvedCallReceiver = resolvedCall.dispatchReceiverArgument
+            val candidateReceiver = candidateDescriptor.dispatchReceiverParameter
             checkReceiver(resolvedCall.dispatchReceiverArgument, candidateDescriptor.dispatchReceiverParameter)
         } else {
+            val resolvedCallReceiver = resolvedCall.extensionReceiverArgument
+            val candidateReceiver = candidateDescriptor.extensionReceiverParameter
             checkReceiver(resolvedCall.extensionReceiverArgument, candidateDescriptor.extensionReceiverParameter)
         }
     }

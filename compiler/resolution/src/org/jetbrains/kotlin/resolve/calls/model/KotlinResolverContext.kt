@@ -30,9 +30,7 @@ import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.calls.tower.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.hasDynamicExtensionAnnotation
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
-import org.jetbrains.kotlin.types.ErrorUtils
-import org.jetbrains.kotlin.types.TypeSubstitutor
-import org.jetbrains.kotlin.types.isDynamic
+import org.jetbrains.kotlin.types.*
 
 
 class KotlinCallComponents(
@@ -55,6 +53,7 @@ class SimpleCandidateFactory(
     val inferenceSession: InferenceSession = resolutionCallbacks.inferenceSession
 
     val baseSystem: ConstraintStorage
+    private val approximator = TypeApproximator(callComponents.builtIns)
 
     init {
         val baseSystem = NewConstraintSystemImpl(callComponents.constraintInjector, callComponents.builtIns)
@@ -73,10 +72,13 @@ class SimpleCandidateFactory(
     // todo: try something else, because current method is ugly and unstable
     private fun createReceiverArgument(
         explicitReceiver: ReceiverKotlinCallArgument?,
-        fromResolution: ReceiverValueWithSmartCastInfo?
+        fromResolution: ReceiverValueWithSmartCastInfo?,
+        approximateIfNecessary: (UnwrappedType?) -> UnwrappedType? = { it }
     ): SimpleKotlinCallArgument? =
         explicitReceiver as? SimpleKotlinCallArgument ?: // qualifier receiver cannot be safe
-        fromResolution?.let { ReceiverExpressionKotlinCallArgument(it, isSafeCall = false) } // todo smartcast implicit this
+        fromResolution?.let {
+            ReceiverExpressionKotlinCallArgument(it, isSafeCall = false, approximateIfNecessary = approximateIfNecessary)
+        } // todo smartcast implicit this
 
     private fun KotlinCall.getExplicitDispatchReceiver(explicitReceiverKind: ExplicitReceiverKind) = when (explicitReceiverKind) {
         ExplicitReceiverKind.DISPATCH_RECEIVER -> explicitReceiver
@@ -109,7 +111,13 @@ class SimpleCandidateFactory(
         val dispatchArgumentReceiver = createReceiverArgument(
             kotlinCall.getExplicitDispatchReceiver(explicitReceiverKind),
             towerCandidate.dispatchReceiver
-        )
+        ) {
+            val result = if (it != null)
+                approximator.approximateToSuperType(it, TypeApproximatorConfiguration.CapturedAndIntegerLiteralsTypesApproximation)
+            else
+                it
+            result
+        }
         val extensionArgumentReceiver =
             createReceiverArgument(kotlinCall.getExplicitExtensionReceiver(explicitReceiverKind), extensionReceiver)
 
