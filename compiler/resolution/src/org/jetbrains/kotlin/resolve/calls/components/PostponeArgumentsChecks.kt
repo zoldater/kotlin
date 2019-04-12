@@ -61,14 +61,47 @@ private fun preprocessLambdaArgument(
         return LambdaWithTypeVariableAsExpectedTypeAtom(argument, expectedType)
     }
 
-    val resolvedArgument = extractLambdaInfoFromFunctionalType(expectedType, argument) ?: extraLambdaInfo(expectedType, argument, csBuilder)
+    fun extract() = extraLambdaInfo(expectedType, argument, csBuilder)
 
-    if (expectedType != null) {
-        val lambdaType = createFunctionType(
-            csBuilder.builtIns, Annotations.EMPTY, resolvedArgument.receiver,
-            resolvedArgument.parameters, null, resolvedArgument.returnType, resolvedArgument.isSuspend
-        )
-        csBuilder.addSubtypeConstraint(lambdaType, expectedType, ArgumentConstraintPosition(argument))
+    fun ResolvedLambdaAtom.lambdaType() = createFunctionType(
+        csBuilder.builtIns, Annotations.EMPTY, receiver,
+        parameters, null, returnType, isSuspend
+    )
+
+    if (expectedType == null) {
+        return extract()
+    }
+
+    fun processLambdaWithSignatureResolve(): ResolvedLambdaAtom {
+        val resolvedArgument = extract()
+        csBuilder.addSubtypeConstraint(resolvedArgument.lambdaType(), expectedType, ArgumentConstraintPosition(argument))
+        return resolvedArgument
+    }
+
+    // Here we are trying to extract lambda info from fixed type
+    val resolvedArgument = extractLambdaInfoFromFunctionalType(expectedType, argument)
+        ?: return processLambdaWithSignatureResolve()
+
+    /*
+     * If lambda info from expected type doesn't match, we extract lambda info from resolving of lambda body
+     * It helps with conversions from usual lambda to lambda with receiver
+     *
+     * Assume we have expression
+     *  val x: A.() -> Unit = id { a: A -> Unit }
+     *
+     * Here we have lambda type from method `extractLambdaInfoFromFunctionalType` is `A.(A) -> Unit`
+     * It does not math expected type `A.() -> Unit`, so constraint system has contradiction
+     *
+     * When we see that, we infer type of lambda using only it's signature, so it infers to `(A) -> Unit`, that
+     *   matches to expected type, and everything is OK
+     */
+    val success = csBuilder.runTransaction {
+        addSubtypeConstraint(resolvedArgument.lambdaType(), expectedType, ArgumentConstraintPosition(argument))
+        !hasContradiction
+    }
+
+    if (!success) {
+        return processLambdaWithSignatureResolve()
     }
 
     return resolvedArgument
