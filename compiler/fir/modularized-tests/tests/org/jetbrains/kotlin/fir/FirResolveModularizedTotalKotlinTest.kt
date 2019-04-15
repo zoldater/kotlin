@@ -178,7 +178,7 @@ class FirResolveModularizedTotalKotlinTest : KtUsefulTestCase() {
 
     private fun runTestOnce(pass: Int) {
         if (DUMP_FIR) dump = MultiModuleHtmlFirDump(File(FIR_HTML_DUMP_PATH))
-        val testDataPath = "/Users/jetbrains/jps"
+        val testDataPath = "C:/jps_script"
         val root = File(testDataPath)
 
         println("BASE PATH: ${root.absolutePath}")
