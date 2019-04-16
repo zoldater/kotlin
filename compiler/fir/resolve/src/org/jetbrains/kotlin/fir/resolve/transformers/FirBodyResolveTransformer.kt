@@ -393,12 +393,41 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
             result.currentApplicability
         )
 
+        if (nameReference is FirResolvedCallableReference) {
+            val symbol = nameReference.coneSymbol
+            if (symbol is FirFunctionSymbol) {
+                val callableId = symbol.callableId
+                if (callableId.className == null && callableId.packageName.startsWith(observedPackage)) {
+                    totalObserved++
+                    val resolvedName = callableId.callableName.asString()
+                    //if (resolvedName in observedNames) {
+                        val previous = observedNameTotal[resolvedName] ?: 0
+                        observedNameTotal[resolvedName] = previous + 1
+                    //}
+                }
+            }
+        }
+
         val resultExpression = functionCall.transformCalleeReference(StoreNameReference, nameReference) as FirFunctionCall
         val typeRef = typeFromCallee(functionCall)
         if (typeRef.type is ConeKotlinErrorType) {
             functionCall.resultType = typeRef
         }
         return resultExpression
+    }
+
+    companion object {
+        val observedNames = listOf("let", "with", "also", "apply", "run", "map", "filter")
+
+        val observedPackage = Name.identifier("kotlin")
+
+        var totalObserved = 0
+
+        val observedNameTotal = mutableMapOf<String, Int>()
+
+        var totalError = 0
+
+        var errorNameTotal = mutableMapOf<String, Int>()
     }
 
     data class LambdaResolution(val expectedReturnTypeRef: FirResolvedTypeRef?)
@@ -513,12 +542,28 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
         candidates: Collection<Candidate>,
         applicability: CandidateApplicability
     ): FirNamedReference {
+        fun countCandidate(candidate: Candidate) {
+            val symbol = candidate.symbol
+            if (symbol is FirFunctionSymbol) {
+                val callableId = symbol.callableId
+                if (callableId.className == null && callableId.packageName.startsWith(observedPackage)) {
+                    totalError++
+                    val resolvedName = callableId.callableName.asString()
+                    //if (resolvedName in observedNames) {
+                    val previous = errorNameTotal[resolvedName] ?: 0
+                    errorNameTotal[resolvedName] = previous + 1
+                    //}
+                }
+            }
+        }
+
         val name = namedReference.name
         return when {
             candidates.isEmpty() -> FirErrorNamedReference(
                 namedReference.session, namedReference.psi, "Unresolved name: $name"
             )
             applicability < CandidateApplicability.SYNTHETIC_RESOLVED -> {
+                candidates.forEach(::countCandidate)
                 FirErrorNamedReference(
                     namedReference.session,
                     namedReference.psi,
@@ -530,10 +575,13 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
                 namedReference.session, namedReference.psi,
                 name, candidates.single()
             )
-            else -> FirErrorNamedReference(
-                namedReference.session, namedReference.psi, "Ambiguity: $name, ${candidates.map { describeSymbol(it.symbol) }}",
-                namedReference.name
-            )
+            else -> {
+                candidates.forEach(::countCandidate)
+                FirErrorNamedReference(
+                    namedReference.session, namedReference.psi, "Ambiguity: $name, ${candidates.map { describeSymbol(it.symbol) }}",
+                    namedReference.name
+                )
+            }
         }
     }
 
