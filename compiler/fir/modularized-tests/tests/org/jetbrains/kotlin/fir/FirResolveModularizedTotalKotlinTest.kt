@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.dump.MultiModuleHtmlFirDump
 import org.jetbrains.kotlin.fir.resolve.FirProvider
 import org.jetbrains.kotlin.fir.resolve.impl.FirProviderImpl
+import org.jetbrains.kotlin.fir.resolve.transformers.FirBodyResolveTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.FirTotalResolveTransformer
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.test.ConfigurationKind
@@ -114,6 +115,20 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
             .unregisterExtension(JavaElementFinder::class.java)
 
         runAnalysis(moduleData, environment)
+
+        fun MutableMap<String, Int>.dump(particip: String) {
+            this.entries.sortedByDescending { (_, total) -> total }.forEach { (name, total) ->
+                if (total < 500) return
+                println("    $name $particip: $total")
+            }
+        }
+
+        println("=============================================")
+        println("Total kotlin top-level observed: ${FirBodyResolveTransformer.totalObserved}")
+        FirBodyResolveTransformer.observedNameTotal.dump("observed")
+        println("Total kotlin top-level ERROR: ${FirBodyResolveTransformer.totalError}")
+        FirBodyResolveTransformer.errorNameTotal.dump("ERROR")
+        println("=============================================")
 
         Disposer.dispose(disposable)
         if (bench.hasFiles && FAIL_FAST) return ProcessorAction.STOP
