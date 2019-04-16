@@ -124,6 +124,8 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         }
 
         println("=============================================")
+        println("Overload conflict resolve time (cumulative): ${FirBodyResolveTransformer.overloadConflictResolvedTime / 1000000} ms")
+        println("Applicability checking time (cumulative): ${FirBodyResolveTransformer.getApplicabilityTime / 1000000} ms")
         println("Total kotlin top-level observed: ${FirBodyResolveTransformer.totalObserved}")
         FirBodyResolveTransformer.observedNameTotal.dump("observed")
         println("Total kotlin top-level ERROR: ${FirBodyResolveTransformer.totalError}")

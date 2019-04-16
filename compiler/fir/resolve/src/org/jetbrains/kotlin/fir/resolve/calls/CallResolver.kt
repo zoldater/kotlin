@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.scope
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
+import org.jetbrains.kotlin.fir.resolve.transformers.FirBodyResolveTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculator
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculatorWithJump
 import org.jetbrains.kotlin.fir.resolve.transformers.firUnsafe
@@ -38,6 +39,7 @@ import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.createCoroutineUnintercepted
+import kotlin.system.measureNanoTime
 
 class CallInfo(
     val callKind: CallKind,
@@ -742,7 +744,10 @@ class CandidateCollector(val callInfo: CallInfo, val components: InferenceCompon
     }
 
     fun consumeCandidate(group: Int, candidate: Candidate) {
-        val applicability = getApplicability(group, candidate)
+        lateinit var applicability: CandidateApplicability
+        FirBodyResolveTransformer.getApplicabilityTime += measureNanoTime {
+            applicability = getApplicability(group, candidate)
+        }
 
         if (applicability > currentApplicability) {
             groupNumbers.clear()
