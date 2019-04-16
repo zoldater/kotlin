@@ -152,6 +152,9 @@ class FirResolveModularizedTotalKotlinTest : KtUsefulTestCase() {
         FirBodyResolveTransformer.observedNameTotal.dump("observed")
         println("Total kotlin top-level ERROR: ${FirBodyResolveTransformer.totalError}")
         FirBodyResolveTransformer.errorNameTotal.dump("ERROR")
+        for ((name, time) in FirBodyResolveTransformer.observedNameResolveTime) {
+            println("Total time resolving $name: ${time / 1000000} ms")
+        }
         println("=============================================")
 
         Disposer.dispose(disposable)
