@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.fir.scopes.impl.FirLocalScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirTopLevelDeclaredMemberScope
 import org.jetbrains.kotlin.fir.scopes.impl.withReplacedConeType
 import org.jetbrains.kotlin.fir.symbols.*
+import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.*
 import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
@@ -624,7 +625,11 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
     }
 
     companion object {
-        val observedNames = listOf("let", "with", "also", "apply", "run", "map", "filter")
+        val observedNames = setOf(
+            "contains", "plus", "map", "forEach", "component1", "component2", "filter", "any", "firstOrNull", "iterator"
+        )
+
+        val observedNameResolveTime = mutableMapOf<String, Long>()
 
         val observedPackage = Name.identifier("kotlin")
 
@@ -741,22 +746,40 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
     }
 
     override fun transformFunctionCall(functionCall: FirFunctionCall, data: Any?): CompositeTransformResult<FirStatement> {
-        if (functionCall.calleeReference is FirResolvedCallableReference && functionCall.resultType is FirImplicitTypeRef) {
+        val calleeReference = functionCall.calleeReference
+        if (calleeReference is FirResolvedCallableReference && functionCall.resultType is FirImplicitTypeRef) {
             storeTypeFromCallee(functionCall)
         }
-        if (functionCall.calleeReference !is FirSimpleNamedReference) return functionCall.compose()
+        if (calleeReference !is FirSimpleNamedReference) return functionCall.compose()
         val expectedTypeRef = data as FirTypeRef?
-        val completeInference =
-            try {
-                val resultExpression = resolveCallAndSelectCandidate(functionCall, expectedTypeRef)
-                completeTypeInference(resultExpression, expectedTypeRef)
-            } catch (e: Throwable) {
-                throw RuntimeException("While resolving call ${functionCall.render()}", e)
+        val name = calleeReference.name.asString()
+        if (name in observedNames) {
+            lateinit var completeInference: FirFunctionCall
+            val time = measureNanoTime {
+                completeInference = try {
+                    val resultExpression = resolveCallAndSelectCandidate(functionCall, expectedTypeRef)
+                    completeTypeInference(resultExpression, expectedTypeRef)
+                } catch (e: Throwable) {
+                    throw RuntimeException("While resolving call ${functionCall.render()}", e)
+                }
             }
+            val previous = observedNameResolveTime[name] ?: 0L
+            observedNameResolveTime[name] = previous + time
+
+            return completeInference.compose()
+
+        } else {
+            val completeInference =
+                try {
+                    val resultExpression = resolveCallAndSelectCandidate(functionCall, expectedTypeRef)
+                    completeTypeInference(resultExpression, expectedTypeRef)
+                } catch (e: Throwable) {
+                    throw RuntimeException("While resolving call ${functionCall.render()}", e)
+                }
 
 
-        return completeInference.compose()
-
+            return completeInference.compose()
+        }
     }
 
     private fun describeSymbol(symbol: ConeSymbol): String {
