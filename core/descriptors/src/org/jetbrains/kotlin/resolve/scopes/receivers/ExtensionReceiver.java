@@ -21,6 +21,18 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.descriptors.CallableDescriptor;
 import org.jetbrains.kotlin.types.KotlinType;
 
+import java.util.Objects;
+
+/**
+ * [ExtensionReceiver] is a receiver for pure `this` call inside lambda with receiver
+ *
+ * x.run {
+ *     this // ExtensionReceiver
+ *     this as String // ExtensionReceiver
+ *     this.toString() // ImplicitClassReceiver
+ *     toString() // ImplicitClassReceiver
+ * }
+ */
 public class ExtensionReceiver extends AbstractReceiverValue implements ImplicitReceiver {
 
     private final CallableDescriptor descriptor;
@@ -49,5 +61,18 @@ public class ExtensionReceiver extends AbstractReceiverValue implements Implicit
     @Override
     public String toString() {
         return getType() + ": Ext {" + descriptor + "}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ExtensionReceiver receiver = (ExtensionReceiver) o;
+        return descriptor.equals(receiver.descriptor);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(descriptor);
     }
 }
