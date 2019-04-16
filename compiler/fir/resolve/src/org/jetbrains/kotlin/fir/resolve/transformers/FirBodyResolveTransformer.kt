@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.resolve.calls.inference.components.KotlinConstraintS
 import org.jetbrains.kotlin.resolve.calls.results.TypeSpecificityComparator
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.utils.addIfNotNull
+import kotlin.system.measureNanoTime
 
 open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOnly: Boolean) : FirTransformer<Any?>() {
 
@@ -355,8 +356,11 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
         val consumer = createFunctionConsumer(session, name, info, inferenceComponents)
         val result = resolver.runTowerResolver(consumer, implicitReceiverStack.asReversed())
         val bestCandidates = result.bestCandidates()
-        val reducedCandidates = ConeOverloadConflictResolver(TypeSpecificityComparator.NONE, inferenceComponents)
-            .chooseMaximallySpecificCandidates(bestCandidates, discriminateGenerics = false)
+        lateinit var reducedCandidates: Set<Candidate>
+        overloadConflictResolvedTime += measureNanoTime {
+            reducedCandidates = ConeOverloadConflictResolver(TypeSpecificityComparator.NONE, inferenceComponents)
+                .chooseMaximallySpecificCandidates(bestCandidates, discriminateGenerics = false)
+        }
 
 
 //        fun isInvoke()
@@ -428,6 +432,9 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
         var totalError = 0
 
         var errorNameTotal = mutableMapOf<String, Int>()
+
+        var overloadConflictResolvedTime = 0L
+        var getApplicabilityTime = 0L
     }
 
     data class LambdaResolution(val expectedReturnTypeRef: FirResolvedTypeRef?)
