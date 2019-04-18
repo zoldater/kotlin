@@ -32,7 +32,7 @@ import kotlin.coroutines.Continuation
 import org.jetbrains.org.objectweb.asm.Type as AsmType
 import com.sun.jdi.Type as JdiType
 
-class VariableFinder(private val context: ExecutionContext) {
+class VariableFinder(val context: ExecutionContext) {
     private val frameProxy = context.frameProxy
 
     companion object {
@@ -122,7 +122,14 @@ class VariableFinder(private val context: ExecutionContext) {
         }
     }
 
-    private val evaluatorValueConverter = EvaluatorValueConverter(context)
+    val evaluatorValueConverter = EvaluatorValueConverter(context)
+
+    val refWrappers: List<RefWrapper>
+        get() = mutableRefWrappers
+
+    private val mutableRefWrappers = mutableListOf<RefWrapper>()
+
+    class RefWrapper(val localVariableName: String, val wrapper: Value?)
 
     sealed class VariableKind(val asmType: AsmType) {
         abstract fun capturedNameMatches(name: String): Boolean
@@ -322,8 +329,10 @@ class VariableFinder(private val context: ExecutionContext) {
     ): Result? {
         val inlineDepth = getInlineDepth(variables)
 
+        val actualPredicate: (String) -> Boolean
+
         if (inlineDepth > 0) {
-            val inlineAwareNamePredicate = fun(name: String): Boolean {
+            actualPredicate = fun(name: String): Boolean {
                 var endIndex = name.length
                 var depth = 0
 
@@ -337,21 +346,27 @@ class VariableFinder(private val context: ExecutionContext) {
                     endIndex -= suffixLen
                 }
 
-                return namePredicate(name.take(endIndex))
+                return namePredicate(name.take(endIndex)) && getInlineDepth(name) == inlineDepth
             }
-
-            variables.namedEntitySequence()
-                .filter { inlineAwareNamePredicate(it.name) && getInlineDepth(it.name) == inlineDepth && kind.typeMatches(it.type) }
-                .mapNotNull { it.unwrapAndCheck(kind) }
-                .firstOrNull()
-                ?.let { return it }
+        } else {
+            actualPredicate = namePredicate
         }
 
-        variables.namedEntitySequence()
-            .filter { namePredicate(it.name) && kind.typeMatches(it.type) }
-            .mapNotNull { it.unwrapAndCheck(kind) }
-            .firstOrNull()
-            ?.let { return it }
+        for (item in variables.namedEntitySequence()) {
+            if (!actualPredicate(item.name) || !kind.typeMatches(item.type)) {
+                continue
+            }
+
+            val rawValue = item.value()
+            val result = evaluatorValueConverter.coerce(getUnwrapDelegate(kind, rawValue), kind.asmType) ?: continue
+
+            if (!rawValue.isRefType && result.value.isRefType) {
+                // Local variable was wrapped into a Ref instance
+                mutableRefWrappers += RefWrapper(item.name, result.value)
+            }
+
+            return result
+        }
 
         return null
     }
@@ -426,7 +441,7 @@ class VariableFinder(private val context: ExecutionContext) {
     }
 
     private fun findCapturedVariable(kind: VariableKind, parentFactory: () -> Value?): Result? {
-        val parent = getUnwrapDelegate(kind, parentFactory)
+        val parent = getUnwrapDelegate(kind, parentFactory())
         return findCapturedVariable(kind, parent)
     }
 
@@ -464,8 +479,7 @@ class VariableFinder(private val context: ExecutionContext) {
         return null
     }
 
-    private fun getUnwrapDelegate(kind: VariableKind, valueFactory: () -> Value?): Value? {
-        val rawValue = valueFactory()
+    private fun getUnwrapDelegate(kind: VariableKind, rawValue: Value?): Value? {
         if (kind !is VariableKind.Ordinary || !kind.isDelegated) {
             return rawValue
         }
@@ -492,8 +506,8 @@ class VariableFinder(private val context: ExecutionContext) {
         return evaluatorValueConverter.typeMatches(asmType, actualType)
     }
 
-    private fun NamedEntity.unwrapAndCheck(kind: VariableKind): Result? {
-        return evaluatorValueConverter.coerce(getUnwrapDelegate(kind, value), kind.asmType)
+    private fun NamedEntity.unwrapAndCheck(kind: VariableKind, value: () -> Value? = this.value): Result? {
+        return evaluatorValueConverter.coerce(getUnwrapDelegate(kind, value()), kind.asmType)
     }
 
     private fun List<Field>.namedEntitySequence(owner: ObjectReference): Sequence<NamedEntity> {

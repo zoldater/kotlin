@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.idea.debugger.evaluate.compilation
 
 import com.intellij.debugger.engine.evaluation.EvaluateExceptionUtil
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.CodeFragmentCodegenInfo
 import org.jetbrains.kotlin.codegen.getCallLabelForLambdaArgument
@@ -34,6 +35,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ImplicitClassReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ImplicitReceiver
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.expressions.BasicExpressionTypingVisitor
 import org.jetbrains.kotlin.types.expressions.createFunctionType
 
 interface CodeFragmentParameter {
@@ -49,7 +51,8 @@ interface CodeFragmentParameter {
     class Smart(
         val dumb: Dumb,
         override val targetType: KotlinType,
-        override val targetDescriptor: DeclarationDescriptor
+        override val targetDescriptor: DeclarationDescriptor,
+        override val isLValue: Boolean = false
     ) : CodeFragmentParameter by dumb, CodeFragmentCodegenInfo.IParameter
 
     data class Dumb(
@@ -59,10 +62,7 @@ interface CodeFragmentParameter {
     ) : CodeFragmentParameter
 }
 
-class CodeFragmentParameterInfo(
-    val parameters: List<Smart>,
-    val crossingBounds: Set<Dumb>
-)
+class CodeFragmentParameterInfo(val parameters: List<Smart>, val crossingBounds: Set<Dumb>)
 
 /*
     The purpose of this class is to figure out what parameters the received code fragment captures.
@@ -163,7 +163,8 @@ class CodeFragmentParameterAnalyzer(
             private fun processDescriptor(descriptor: DeclarationDescriptor, expression: KtSimpleNameExpression) {
                 val parameter = processDebugLabel(descriptor)
                     ?: processCoroutineContextCall(descriptor)
-                    ?: processSimpleNameExpression(descriptor)
+                    ?: processSimpleNameExpression(descriptor, expression)
+
                 checkBounds(descriptor, expression, parameter)
             }
 
@@ -278,7 +279,7 @@ class CodeFragmentParameterAnalyzer(
         }
     }
 
-    private fun processSimpleNameExpression(target: DeclarationDescriptor): Smart? {
+    private fun processSimpleNameExpression(target: DeclarationDescriptor, expression: KtSimpleNameExpression): Smart? {
         if (target is ValueParameterDescriptor && target.isCrossinline) {
             throw EvaluateExceptionUtil.createEvaluateException("Evaluation of 'crossinline' lambdas is not supported")
         }
@@ -301,10 +302,13 @@ class CodeFragmentParameterAnalyzer(
                 }
             }
             is ValueDescriptor -> {
+                val parent = PsiTreeUtil.skipParentsOfType(expression, KtParenthesizedExpression::class.java)
+                val isLValue = BasicExpressionTypingVisitor.isLValue(expression, parent)
+
                 parameters.getOrPut(target) {
                     val type = target.type
                     val kind = if (target is LocalVariableDescriptor && target.isDelegated) Kind.DELEGATED else Kind.ORDINARY
-                    Smart(Dumb(kind, target.name.asString()), type, target)
+                    Smart(Dumb(kind, target.name.asString()), type, target, isLValue)
                 }
             }
             else -> null
