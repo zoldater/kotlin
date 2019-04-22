@@ -19,6 +19,7 @@ import com.intellij.xdebugger.frame.XNamedValue
 import com.sun.jdi.*
 import org.jetbrains.kotlin.codegen.coroutines.CONTINUATION_VARIABLE_NAME
 import org.jetbrains.kotlin.idea.debugger.evaluate.ExecutionContext
+import org.jetbrains.kotlin.idea.debugger.evaluate.LOG
 import org.jetbrains.kotlin.idea.debugger.evaluate.variables.VariableFinder.Companion.SUSPEND_LAMBDA_CLASSES
 
 class KotlinCoroutinesAsyncStackTraceProvider : KotlinCoroutinesAsyncStackTraceProviderBase {
@@ -35,10 +36,21 @@ class KotlinCoroutinesAsyncStackTraceProvider : KotlinCoroutinesAsyncStackTraceP
     }
 
     override fun getAsyncStackTrace(stackFrame: JavaStackFrame, suspendContext: SuspendContextImpl): List<StackFrameItem>? {
-        return getAsyncStackTrace(stackFrame.stackFrameProxy, suspendContext)
+        return try {
+            getAsyncStackTraceSafe(stackFrame.stackFrameProxy, suspendContext)
+        } catch (e: ObjectCollectedException) {
+            null
+        } catch (e: IncompatibleThreadStateException) {
+            null
+        } catch (e: VMDisconnectedException) {
+            null
+        } catch (e: EvaluateException) {
+            LOG.debug("Cannot evaluate async stack trace", e)
+            null
+        }
     }
 
-    fun getAsyncStackTrace(frameProxy: StackFrameProxyImpl, suspendContext: SuspendContextImpl): List<StackFrameItem>? {
+    fun getAsyncStackTraceSafe(frameProxy: StackFrameProxyImpl, suspendContext: SuspendContextImpl): List<StackFrameItem>? {
         val location = frameProxy.location()
         if (!location.isInKotlinSources()) {
             return null
