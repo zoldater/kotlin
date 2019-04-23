@@ -45,7 +45,7 @@ private fun NodeList.toList(): List<Node> {
 
 private val Node.childNodesList get() = childNodes.toList()
 
-private const val FAIL_FAST = true
+private const val FAIL_FAST = false
 private const val DUMP_FIR = false
 
 private const val FIR_DUMP_PATH = "C:/fir_tmp/firDump"
