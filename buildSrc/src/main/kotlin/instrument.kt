@@ -29,6 +29,8 @@ import org.gradle.kotlin.dsl.*
 import java.io.File
 
 fun Project.configureFormInstrumentation() {
+    if (!kotlinBuildProperties.formInstrumentation) return
+
     plugins.matching { it::class.java.canonicalName.startsWith("org.jetbrains.kotlin.gradle.plugin") }.all {
         // When we change the output classes directory, Gradle will automatically configure
         // the test compile tasks to use the instrumented classes. Normally this is fine,

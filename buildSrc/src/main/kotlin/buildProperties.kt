@@ -32,6 +32,12 @@ class KotlinBuildProperties(
 
     val isJpsBuildEnabled: Boolean = getBoolean("jpsBuild")
 
+    val isForJpsDiff: Boolean = getBoolean("forJpsDiff")
+
+    val isTeamcity: Boolean = getBoolean("teamcity")
+
+    val isProguardEnabled: Boolean = getBoolean("kotlin.build.proguard")
+
     val isInIdeaSync: Boolean = run {
         // "idea.sync.active" was introduced in 2019.1
         System.getProperty("idea.sync.active")?.toBoolean() == true || let {
@@ -51,10 +57,31 @@ class KotlinBuildProperties(
         get() = isJpsBuildEnabled && isInIdeaSync
 
     val includeJava9: Boolean
-        get() = !isInJpsBuildIdeaSync
+        get() = !isInJpsBuildIdeaSync && !isForJpsDiff
 
     val useBootstrapStdlib: Boolean
-        get() = isInJpsBuildIdeaSync
+        get() = isInJpsBuildIdeaSync || isForJpsDiff
+
+    val shrinkCompiler: Boolean
+        get() = isProguardEnabled || isTeamcity
+
+    val shrinkReflect: Boolean
+        get() = !isForJpsDiff
+
+    val relocateReflect: Boolean
+        get() = !isForJpsDiff
+
+    val shrinkMainKts: Boolean
+        get() = isProguardEnabled || isTeamcity
+
+    val relocateMainKts: Boolean
+        get() = !isForJpsDiff
+
+    val javaInstrumentation: Boolean
+        get() = !isForJpsDiff
+
+    val formInstrumentation: Boolean
+        get() = !isForJpsDiff
 }
 
 private const val extensionName = "kotlinBuildFlags"

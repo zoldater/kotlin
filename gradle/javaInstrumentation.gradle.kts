@@ -17,6 +17,8 @@ logger.info("Setting java.awt.headless=true, old value was $headlessOldValue")
  *  Configures instrumentation for all JavaCompile tasks in project
  */
 fun Project.configureJavaInstrumentation() {
+    if (!kotlinBuildProperties.javaInstrumentation) return
+
     if (plugins.hasPlugin("org.gradle.java")) {
         val javaInstrumentator by configurations.creating
         dependencies {
@@ -34,6 +36,8 @@ fun Project.configureJavaInstrumentation() {
 }
 
 fun JavaCompile.instrumentClasses(instrumentatorClasspath: String) {
+    if (!kotlinBuildProperties.javaInstrumentation) return
+    
     ant.withGroovyBuilder {
         "taskdef"(
             "name" to "instrumentIdeaExtensions",

@@ -224,7 +224,7 @@ if (isTeamcityBuild || includeUltimate) {
 
 def flags = BuildPropertiesKt.getKotlinBuildPropertiesForSettings(settings)
 
-if (flags.inJpsBuildIdeaSync) {
+if (flags.useBootstrapStdlib) {
     include ":kotlin-stdlib:jps-build"
     project(":kotlin-stdlib:jps-build").projectDir = "$rootDir/libraries/stdlib/jps-build" as File
 } else {

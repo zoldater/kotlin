@@ -8,10 +8,8 @@ plugins {
     id("jps-compatible")
 }
 
-// You can run Gradle with "-Pkotlin.build.proguard=true" to enable ProGuard run on the jar (on TeamCity, ProGuard always runs)
-val shrink =
-    findProperty("kotlin.build.proguard")?.toString()?.toBoolean()
-        ?: hasProperty("teamcity")
+val shrink = kotlinBuildProperties.shrinkMainKts
+val relocate = kotlinBuildProperties.relocateMainKts
 
 val jarBaseName = property("archivesBaseName") as String
 
@@ -71,8 +69,10 @@ val packJar by task<ShadowJar> {
     from(mainSourceSet.output)
     from(fatJarContents)
 
-    packagesToRelocate.forEach {
-        relocate(it, "$mainKtsRelocatedDepsRootPackage.$it")
+    if (relocate) {
+        packagesToRelocate.forEach {
+            relocate(it, "$mainKtsRelocatedDepsRootPackage.$it")
+        }
     }
 }
 

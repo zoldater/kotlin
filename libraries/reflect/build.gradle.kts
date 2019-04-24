@@ -37,6 +37,8 @@ val core = "$rootDir/core"
 val relocatedCoreSrc = "$buildDir/core-relocated"
 val libsDir = property("libsDir")
 
+val shrink = kotlinBuildProperties.shrinkReflect
+val relocate = kotlinBuildProperties.relocateReflect
 
 val proguardDeps by configurations.creating
 val proguardAdditionalInJars by configurations.creating
@@ -110,22 +112,31 @@ class KotlinModuleShadowTransformer(private val logger: Logger) : Transformer {
 }
 
 val reflectShadowJar by task<ShadowJar> {
-    classifier = "shadow"
     version = null
     callGroovy("manifestAttributes", manifest, project, "Main" /*true*/)
 
-    exclude("**/*.proto")
-
-    transform(KotlinModuleShadowTransformer(logger))
-
     configurations = listOf(shadows)
-    relocate("org.jetbrains.kotlin", "kotlin.reflect.jvm.internal.impl")
-    relocate("javax.inject", "kotlin.reflect.jvm.internal.impl.javax.inject")
-    mergeServiceFiles()
+
+    if (relocate) {
+        exclude("**/*.proto")
+
+        transform(KotlinModuleShadowTransformer(logger))
+
+        relocate("org.jetbrains.kotlin", "kotlin.reflect.jvm.internal.impl")
+        relocate("javax.inject", "kotlin.reflect.jvm.internal.impl.javax.inject")
+        mergeServiceFiles()
+    }
+
+    if (shrink) {
+        classifier = "shadow"
+    } else {
+        // for shrinked jar it will be done in `shrinkedResult` task
+        callGroovy("manifestAttributes", manifest, project, "Main" /*true*/)
+    }
 }
 
 val stripMetadata by tasks.creating {
-    dependsOn("reflectShadowJar")
+    dependsOn(reflectShadowJar)
     val inputJar = reflectShadowJar.archivePath
     val outputJar = File("$libsDir/kotlin-reflect-stripped.jar")
     inputs.file(inputJar)
@@ -167,12 +178,14 @@ val relocateCoreSources by task<Copy> {
     into(relocatedCoreSrc)
     includeEmptyDirs = false
 
-    eachFile {
-        path = path.replace("org/jetbrains/kotlin", "kotlin/reflect/jvm/internal/impl")
-    }
+    if (relocate) {
+        eachFile {
+            path = path.replace("org/jetbrains/kotlin", "kotlin/reflect/jvm/internal/impl")
+        }
 
-    filter { line ->
-        line.replace("org.jetbrains.kotlin", "kotlin.reflect.jvm.internal.impl")
+        filter { line ->
+            line.replace("org.jetbrains.kotlin", "kotlin.reflect.jvm.internal.impl")
+        }
     }
 }
 
@@ -184,7 +197,7 @@ val sourcesJar = sourcesJar(sourceSet = null) {
     from("$core/reflection.jvm/src")
 }
 
-val result by task<Jar> {
+val shrinkedResult by task<Jar> {
     dependsOn(proguard)
     from(zipTree(file(proguardOutput)))
 //    from(zipTree(reflectShadowJar.archivePath)) {
@@ -193,15 +206,7 @@ val result by task<Jar> {
     callGroovy("manifestAttributes", manifest, project, "Main" /*true*/)
 }
 
-val modularJar by task<Jar> {
-    dependsOn(proguard)
-    classifier = "modular"
-    from(zipTree(file(proguardOutput)))
-    from(zipTree(reflectShadowJar.archivePath)) {
-        include("META-INF/versions/**")
-    }
-    callGroovy("manifestAttributes", manifest, project, "Main", true)
-}
+val result = if (shrink) shrinkedResult else reflectShadowJar
 
 val dexMethodCount by task<DexMethodCount> {
     dependsOn(result)
@@ -220,7 +225,22 @@ artifacts {
     add(mainJar.name, artifactJar)
     add("runtime", artifactJar)
     add("archives", artifactJar)
-    add("archives", modularJar)
+}
+
+if (project.kotlinBuildProperties.includeJava9) {
+    val modularJar by task<Jar> {
+        dependsOn(proguard)
+        classifier = "modular"
+        from(zipTree(file(proguardOutput)))
+        from(zipTree(reflectShadowJar.archivePath)) {
+            include("META-INF/versions/**")
+        }
+        callGroovy("manifestAttributes", manifest, project, "Main", true)
+    }
+
+    artifacts {
+        add("archives", modularJar)
+    }
 }
 
 javadocJar()

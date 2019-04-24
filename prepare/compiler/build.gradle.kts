@@ -13,9 +13,7 @@ plugins {
 }
 
 // You can run Gradle with "-Pkotlin.build.proguard=true" to enable ProGuard run on kotlin-compiler.jar (on TeamCity, ProGuard always runs)
-val shrink =
-    findProperty("kotlin.build.proguard")?.toString()?.toBoolean()
-    ?: hasProperty("teamcity")
+val shrink = project.kotlinBuildProperties.shrinkCompiler
 
 val fatJarContents by configurations.creating
 
