@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.frontend.di
 
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.RefineKotlinTypeCheckerImpl
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.container.useInstance
@@ -82,6 +83,8 @@ private fun StorageComponentContainer.configurePlatformIndependentComponents() {
     useImpl<CompilerDeserializationConfiguration>()
 
     useImpl<ClassicTypeSystemContextForCS>()
+
+    useImpl<RefineKotlinTypeCheckerImpl>()
 }
 
 /**
