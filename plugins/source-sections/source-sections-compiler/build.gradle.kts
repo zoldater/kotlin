@@ -24,7 +24,7 @@ dependencies {
     testCompile(commonDep("junit:junit"))
     testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
     testCompile(intellijDep()) { includeJars("idea", "idea_rt", "openapi", "log4j", "jdom", "jps-model") }
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
 }
 
 sourceSets {

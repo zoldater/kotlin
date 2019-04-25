@@ -44,7 +44,7 @@ dependencies {
     testCompile(commonDep("junit:junit"))
     testCompile(intellijDep()) { includeJars("asm-all", rootProject = rootProject) }
     testCompileOnly(project(":kotlin-reflect-api"))
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
 }
 
 

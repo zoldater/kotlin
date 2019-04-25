@@ -32,7 +32,7 @@ dependencies {
     testCompileOnly(intellijPluginDep("Groovy"))
     testCompileOnly(intellijDep())
 
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
     testRuntime(project(":idea:idea-jvm"))
     testRuntime(project(":idea:idea-android"))
     testRuntime(project(":plugins:kapt3-idea"))

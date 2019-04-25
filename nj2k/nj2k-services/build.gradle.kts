@@ -62,7 +62,7 @@ dependencies {
 
     testRuntime(commonDep("org.jetbrains", "markdown"))
     testRuntime(project(":plugins:kapt3-idea")) { isTransitive = false }
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
     testRuntime(project(":kotlin-preloader"))
 
     testCompile(project(":kotlin-sam-with-receiver-compiler-plugin")) { isTransitive = false }

@@ -34,7 +34,7 @@ dependencies {
 
     testRuntime(project(":kotlin-native:kotlin-native-library-reader")) { isTransitive = false }
     testRuntime(project(":kotlin-native:kotlin-native-utils")) { isTransitive = false }
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
     testRuntime(project(":idea:idea-android"))
     testRuntime(project(":idea:idea-gradle"))
     testRuntime(project(":plugins:kapt3-idea")) { isTransitive = false }

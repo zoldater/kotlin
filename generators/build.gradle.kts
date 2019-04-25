@@ -33,7 +33,7 @@ dependencies {
     testCompileOnly(project(":kotlin-reflect-api"))
     testCompile(builtinsSourceSet.output)
     testRuntime(intellijDep()) { includeJars("idea_rt") }
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
 
     if (Ide.IJ()) {
         testCompileOnly(jpsBuildTest())

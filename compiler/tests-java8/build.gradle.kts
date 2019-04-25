@@ -10,7 +10,7 @@ dependencies {
     testCompile(projectTests(":compiler:tests-common"))
     testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
     testCompile(projectTests(":generators:test-generator"))
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
     testRuntime(intellijDep())
 }
 

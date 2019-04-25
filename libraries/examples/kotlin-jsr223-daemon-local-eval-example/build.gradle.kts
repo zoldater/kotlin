@@ -21,7 +21,7 @@ dependencies {
     testCompile(projectRuntimeJar(":kotlin-compiler-embeddable"))
     testCompile(commonDep("junit:junit"))
     testCompile(project(":kotlin-test:kotlin-test-junit"))
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
     compilerClasspath(project(":kotlin-compiler-embeddable"))
     compilerClasspath(project(":kotlin-scripting-compiler-embeddable"))
     compilerClasspath(project(":kotlin-reflect"))

@@ -34,7 +34,7 @@ dependencies {
     testCompile(project(":idea:idea-gradle-native")) { isTransitive = false }
     testRuntime(project(":kotlin-native:kotlin-native-library-reader")) { isTransitive = false }
     testRuntime(project(":kotlin-native:kotlin-native-utils")) { isTransitive = false }
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
     testCompile(intellijPluginDep("android"))
     testCompile(intellijPluginDep("Groovy"))
     testCompile(intellijDep())

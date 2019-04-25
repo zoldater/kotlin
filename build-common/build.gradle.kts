@@ -24,7 +24,7 @@ dependencies {
     testCompile(kotlinStdlib())
     testCompileOnly(intellijDep()) { includeJars("openapi") }
 
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
 }
 
 sourceSets {

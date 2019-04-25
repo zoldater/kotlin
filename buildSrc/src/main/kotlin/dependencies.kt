@@ -82,6 +82,14 @@ fun Project.kotlinStdlib(suffix: String? = null): Any {
         dependencies.project(listOfNotNull(":kotlin-stdlib", suffix).joinToString("-"))
 }
 
+fun Project.kotlinReflect(): Any {
+    // KT-29548 `:kotlin-reflect` has some `compileOnly` dependencies that are later shadowed to `kotlin-reflect.jar`.
+    // As a result, IDEA projects that dependes on `:kotlin-reflect` doesn't depend's on that modules.
+    // As a workaround we are replacing this dependency to jar.
+    return if (kotlinBuildProperties.isInJpsBuildIdeaSync) files("${rootProject.extra["libsDir"]}/kotlin-reflect.jar")
+    else project(":kotlin-reflect")
+}
+
 fun Project.kotlinBuiltins(): Any =
     if (kotlinBuildProperties.useBootstrapStdlib) "org.jetbrains.kotlin:builtins:$bootstrapKotlinVersion"
     else dependencies.project(":core:builtins")

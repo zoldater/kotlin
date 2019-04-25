@@ -30,7 +30,7 @@ dependencies {
     testCompile(projectTests(":compiler:fir:resolve"))
 
     testCompileOnly(project(":kotlin-reflect-api"))
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
 
 }
 

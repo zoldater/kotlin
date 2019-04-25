@@ -122,7 +122,7 @@ dependencies {
     libraries(commonDep("io.javaslang", "javaslang"))
 
     libraries(kotlinStdlib("jdk8"))
-    libraries(project(":kotlin-reflect"))
+    libraries(kotlinReflect())
     libraries(project(":kotlin-compiler-client-embeddable"))
     libraries(project(":kotlin-daemon-client"))
     libraries(project(":kotlin-script-runtime"))

@@ -39,7 +39,7 @@ dependencies {
     }
     compileOnly("org.apache.ivy:ivy:2.4.0")
     runtime(project(":kotlin-compiler"))
-    runtime(project(":kotlin-reflect"))
+    runtime(kotlinReflect())
     fatJarContents("org.apache.ivy:ivy:2.4.0")
     fatJarContents(commonDep("org.jetbrains.kotlinx", "kotlinx-coroutines-core")) { isTransitive = false }
     proguardLibraryJars(files(firstFromJavaHomeThatExists("jre/lib/rt.jar", "../Classes/classes.jar"),

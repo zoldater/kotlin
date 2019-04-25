@@ -24,7 +24,7 @@ dependencies {
     testCompile(projectTests(":compiler:tests-common"))
     
     testCompileOnly(project(":kotlin-reflect-api"))
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
 
 
 }

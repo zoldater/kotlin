@@ -17,7 +17,7 @@ dependencies {
     compileOnly(project(":kotlin-reflect-api"))
     compileOnly(intellijCoreDep())
     runtime(projectRuntimeJar(":kotlin-compiler"))
-    runtime(project(":kotlin-reflect"))
+    runtime(kotlinReflect())
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(commonDep("junit"))
     testCompile(project(":compiler:daemon-common")) // TODO: fix import (workaround for jps build)

@@ -63,7 +63,7 @@ dependencies {
     runtime(projectRuntimeJar(":kotlin-compiler-runner"))
     runtime(projectRuntimeJar(":kotlin-scripting-compiler-embeddable"))
     runtime(projectRuntimeJar(":kotlin-scripting-compiler-impl-embeddable"))
-    runtime(project(":kotlin-reflect"))
+    runtime(kotlinReflect())
 
     jarContents(compileOnly(intellijDep()) {
         includeJars("asm-all", "serviceMessages", "gson", rootProject = rootProject)

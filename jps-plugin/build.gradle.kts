@@ -45,7 +45,7 @@ dependencies {
         testRuntime(project(it))
     }
     testRuntime(intellijDep())
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
     testRuntime(project(":kotlin-script-runtime"))
 }
 

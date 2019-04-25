@@ -44,7 +44,7 @@ dependencies {
     testCompile(intellijPluginDep("properties"))
     testCompileOnly(intellijPluginDep("android"))
 
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
     testRuntime(project(":plugins:android-extensions-ide"))
     testRuntime(project(":plugins:kapt3-idea"))
     testRuntime(project(":sam-with-receiver-ide-plugin"))

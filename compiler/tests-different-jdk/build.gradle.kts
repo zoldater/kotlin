@@ -11,7 +11,7 @@ dependencies {
     testCompile(projectTests(":compiler"))
     testCompile(projectTests(":compiler:tests-common"))
     testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
-    testRuntime(project(":kotlin-reflect"))
+    testRuntime(kotlinReflect())
     testRuntime(intellijDep())
     testRuntime(intellijDep())
     testJvm6ServerRuntime(projectTests(":compiler:tests-common-jvm6"))
