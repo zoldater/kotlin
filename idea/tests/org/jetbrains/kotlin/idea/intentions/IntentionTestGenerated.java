@@ -1810,6 +1810,11 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             runTest("idea/testData/intentions/addThrowsAnnotation/if.kt");
         }
 
+        @TestMetadata("if_ni.kt")
+        public void testIf_ni() throws Exception {
+            runTest("idea/testData/intentions/addThrowsAnnotation/if_ni.kt");
+        }
+
         @TestMetadata("inConstructor.kt")
         public void testInConstructor() throws Exception {
             runTest("idea/testData/intentions/addThrowsAnnotation/inConstructor.kt");
@@ -16148,6 +16153,11 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             runTest("idea/testData/intentions/samConversionToAnonymousObject/labeledReturn.kt");
         }
 
+        @TestMetadata("labeledReturn_ni.kt")
+        public void testLabeledReturn_ni() throws Exception {
+            runTest("idea/testData/intentions/samConversionToAnonymousObject/labeledReturn_ni.kt");
+        }
+
         @TestMetadata("notJavaInterface.kt")
         public void testNotJavaInterface() throws Exception {
             runTest("idea/testData/intentions/samConversionToAnonymousObject/notJavaInterface.kt");
@@ -16178,9 +16188,19 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             runTest("idea/testData/intentions/samConversionToAnonymousObject/simple3.kt");
         }
 
+        @TestMetadata("simple3_ni.kt")
+        public void testSimple3_ni() throws Exception {
+            runTest("idea/testData/intentions/samConversionToAnonymousObject/simple3_ni.kt");
+        }
+
         @TestMetadata("typeArgument.kt")
         public void testTypeArgument() throws Exception {
             runTest("idea/testData/intentions/samConversionToAnonymousObject/typeArgument.kt");
+        }
+
+        @TestMetadata("typeArgument_ni.kt")
+        public void testTypeArgument_ni() throws Exception {
+            runTest("idea/testData/intentions/samConversionToAnonymousObject/typeArgument_ni.kt");
         }
 
         @TestMetadata("usedSameFunction.kt")

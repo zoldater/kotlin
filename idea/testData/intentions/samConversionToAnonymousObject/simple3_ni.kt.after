@@ -1,10 +1,10 @@
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-// COMPILER_ARGUMENTS: -XXLanguage:-NewInference
+// COMPILER_ARGUMENTS: -XXLanguage:+NewInference
 // RUNTIME_WITH_FULL_JDK
 val s = object : Sam {
-    override fun test(d: LocalDate, t: LocalDateTime): List<String> {
+    override fun test(d: LocalDate, t: LocalDateTime): MutableList<String>? {
         val s = "$d$t"
         return listOf(s)
     }
