@@ -247,13 +247,11 @@ class ExpressionCodegen(
         visitStatementContainer(expression, data).coerce(expression.asmType)
 
     override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: BlockInfo): PromisedValue {
-        expression.markLineNumber(startOffset = true)
         mv.load(0, OBJECT_TYPE) // HACK
         return generateCall(expression, null, data)
     }
 
     override fun visitCall(expression: IrCall, data: BlockInfo): PromisedValue {
-        expression.markLineNumber(startOffset = true)
         if (expression.symbol.owner is IrConstructor) {
             throw AssertionError("IrCall with ConstructorDescriptor: ${expression.javaClass.simpleName}")
         }
@@ -366,6 +364,7 @@ class ExpressionCodegen(
             }
         }
 
+        expression.markLineNumber(true)
         callGenerator.genCall(
             callable,
             defaultMask.generateOnStackIfNeeded(callGenerator, callee is IrConstructor, this),
@@ -1121,7 +1120,9 @@ class ExpressionCodegen(
     }
 
     override fun markLineNumberAfterInlineIfNeeded() {
-        //TODO
+        // Inline function has its own line number which is in a separate instance of codegen,
+        // therefore we need to reset lastLineNumber to force a line number generation after visiting inline function.
+        lastLineNumber = -1
     }
 
     fun isFinallyMarkerRequired(): Boolean {
