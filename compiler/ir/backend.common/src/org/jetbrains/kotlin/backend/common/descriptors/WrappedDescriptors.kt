@@ -584,7 +584,7 @@ open class WrappedClassDescriptor(
 
 
     private val _defaultType: SimpleType by lazy {
-        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope) { unsubstitutedMemberScope }
+        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope) { _defaultType }
     }
 
     override fun getDefaultType(): SimpleType = _defaultType
@@ -695,7 +695,7 @@ open class WrappedEnumEntryDescriptor(
 
 
     private val _defaultType: SimpleType by lazy {
-        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope) { unsubstitutedMemberScope }
+        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope) { _defaultType }
     }
 
     override fun getDefaultType(): SimpleType = _defaultType
