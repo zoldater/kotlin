@@ -207,7 +207,7 @@ task("ideaUltimatePluginTest") {
     dependsOn("check")
 }
 
-projectTest {
+projectTest(parallel = true) {
     dependsOn(prepareResources)
     dependsOn(preparePluginXml)
     workingDir = rootDir
