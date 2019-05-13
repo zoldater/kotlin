@@ -44,6 +44,7 @@ import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.ContainerUtilRt
 import junit.framework.TestCase
+import org.jetbrains.kotlin.idea.codeInsight.gradle.ExternalSystemImportingTestCase
 import org.jetbrains.kotlin.idea.codeInsight.gradle.GradleImportingTestCase
 import org.jetbrains.kotlin.idea.configuration.*
 import org.jetbrains.kotlin.utils.PrintingLogger
@@ -56,11 +57,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.groovy.GroovyFileType
 import java.io.File
 import java.io.IOException
-import java.util.*
 
 abstract class AbstractGradleMultiplatformWizardTest : ProjectWizardTestCase<AbstractProjectWizard>() {
-
-    private val pluginVersion = "1.3.21"
 
     override fun createWizard(project: Project?, directory: File): AbstractProjectWizard {
         return NewProjectWizard(project, ModulesProvider.EMPTY_MODULES_PROVIDER, directory.path)
@@ -103,7 +101,7 @@ abstract class AbstractGradleMultiplatformWizardTest : ProjectWizardTestCase<Abs
                 val projectBuilder = myWizard.projectBuilder
                 UsefulTestCase.assertInstanceOf(projectBuilder, builder::class.java)
                 with(projectBuilder as KotlinGradleAbstractMultiplatformModuleBuilder) {
-                    explicitPluginVersion = pluginVersion
+                    explicitPluginVersion = ExternalSystemImportingTestCase.LATEST_STABLE_GRADLE_PLUGIN_VERSION
                 }
 
                 myProject.reconfigureGradleSettings {

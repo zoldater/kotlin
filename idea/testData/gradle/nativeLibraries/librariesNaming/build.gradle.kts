@@ -1,5 +1,12 @@
+
+buildscript {
+    extra["kotlinPluginVersion"] = "1.3.21"
+    apply(from = "setKotlinPluginVersion.gradle")
+    val kotlinPluginVersion = extra["kotlinPluginVersion"] as String
+}
+
 plugins {
-    kotlin("multiplatform") version "1.3.21"
+    kotlin("multiplatform") version kotlinPluginVersion
 }
 
 repositories {

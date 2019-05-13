@@ -11,17 +11,15 @@ package org.jetbrains.kotlin.idea.codeInsight.gradle
 
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.runners.Parameterized
-import java.util.*
 
 abstract class MultiplePluginVersionGradleImportingTestCase : GradleImportingTestCase() {
 
     @JvmField
     @Parameterized.Parameter(1)
-    var gradleKotlinPluginVersion: String = MINIMAL_SUPPORTED_VERSION
+    var gradleKotlinPluginVersion: String = GradleImportingTestCase.MINIMAL_SUPPORTED_VERSION
 
     companion object {
-        const val MINIMAL_SUPPORTED_VERSION = "minimal"// minimal supported version
-        private val KOTLIN_GRADLE_PLUGIN_VERSIONS = listOf(MINIMAL_SUPPORTED_VERSION, "1.3.20")
+        private val KOTLIN_GRADLE_PLUGIN_VERSIONS = listOf(MINIMAL_SUPPORTED_VERSION, LATEST_STABLE_GRADLE_PLUGIN_VERSION)
 
         @JvmStatic
         @Parameterized.Parameters(name = "{index}: Gradle-{0}, KotlinGradlePlugin-{1}")
@@ -42,21 +40,6 @@ abstract class MultiplePluginVersionGradleImportingTestCase : GradleImportingTes
         }
     }
 
-    override fun configureByFiles(): List<VirtualFile> {
-        val result = ArrayList(super.configureByFiles())
-        result.add(
-            createProjectSubFile(
-                "include.gradle", """
-String gradleKotlinPluginVersion(String defaultVersion) {
-    return ${if (gradleKotlinPluginVersion.isEmpty() || MINIMAL_SUPPORTED_VERSION == gradleKotlinPluginVersion) "defaultVersion;" else "\"$gradleKotlinPluginVersion\""}
-}
-ext {
-    gradleKotlinPluginVersion = this.&gradleKotlinPluginVersion
-}
-"""
-            )
-        )
-        return result
-    }
+    override fun configureByFiles(): List<VirtualFile> = super.configureByFiles(gradleKotlinPluginVersion)
 }
 

@@ -51,7 +51,7 @@ class GradleNativeLibrariesInIDENamingTest : GradleImportingTestCase() {
     override fun testDataDirName() = "nativeLibraries"
 
     private fun configureProject() {
-        configureByFiles()
+        configureByFiles(LATEST_STABLE_GRADLE_PLUGIN_VERSION)
 
         // include data dir with fake Kotlin/Native libraries
         val testSuiteDataDir = testDataDirectory().parentFile

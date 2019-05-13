@@ -10,6 +10,7 @@ import org.jetbrains.jps.model.java.JavaResourceRootType
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.idea.codeInsight.gradle.ExternalSystemImportingTestCase
+import org.jetbrains.kotlin.idea.codeInsight.gradle.GradleImportingTestCase
 import org.jetbrains.kotlin.idea.codeInsight.gradle.MultiplePluginVersionGradleImportingTestCase
 import org.jetbrains.kotlin.platform.impl.CommonIdePlatformKind
 import org.jetbrains.kotlin.platform.impl.JsIdePlatformKind
@@ -20,7 +21,7 @@ import org.junit.Before
 import org.junit.Test
 
 class NewMultiplatformProjectImportingTest : MultiplePluginVersionGradleImportingTestCase() {
-    private fun kotlinVersion() = if (gradleKotlinPluginVersion == MINIMAL_SUPPORTED_VERSION) "1.3.10" else gradleKotlinPluginVersion
+    private fun kotlinVersion() = if (gradleKotlinPluginVersion == GradleImportingTestCase.MINIMAL_SUPPORTED_VERSION) "1.3.10" else gradleKotlinPluginVersion
 
     @Before
     fun saveSdksBeforeTest() {
@@ -331,8 +332,8 @@ class NewMultiplatformProjectImportingTest : MultiplePluginVersionGradleImportin
                 sourceFolder("shared/src/androidTest/resources", JavaResourceRootType.TEST_RESOURCE)
             }
             var nativeVersion = when (gradleKotlinPluginVersion) {
-                MINIMAL_SUPPORTED_VERSION -> "1.3.10"
-                else -> "1.3.20"
+                GradleImportingTestCase.MINIMAL_SUPPORTED_VERSION -> "1.3.10"
+                else -> LATEST_STABLE_GRADLE_PLUGIN_VERSION
             }
             module("shared_iOSMain") {
                 libraryDependency("Kotlin/Native $nativeVersion - stdlib", DependencyScope.PROVIDED)

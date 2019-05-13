@@ -112,7 +112,7 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
         myProjectSettings = GradleProjectSettings().apply {
             this.isUseQualifiedModuleNames = false
         }
-        GradleSettings.getInstance(myProject).gradleVmOptions = "-Xmx128m -XX:MaxPermSize=64m"
+        GradleSettings.getInstance(myProject).gradleVmOptions = "-Xms128m -Xmx128m -XX:MaxPermSize=64m"
         System.setProperty(ExternalSystemExecutionSettings.REMOTE_PROCESS_IDLE_TTL_IN_MS_KEY, GRADLE_DAEMON_TTL_MS.toString())
         configureWrapper()
         sdkCreationChecker = KotlinSdkCreationChecker()
@@ -219,7 +219,9 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
         return File(baseDir, getTestName(true).substringBefore("_"))
     }
 
-    protected open fun configureByFiles(): List<VirtualFile> {
+    protected open fun configureByFiles(): List<VirtualFile> = configureByFiles(null)
+
+    protected fun configureByFiles(gradleVersion: String? = null): List<VirtualFile> {
         val rootDir = testDataDirectory()
         assert(rootDir.exists()) { "Directory ${rootDir.path} doesn't exist" }
 
@@ -231,7 +233,15 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
                 }
                 else -> null
             }
-        }.toList()
+        }.toMutableList().apply {
+            if (gradleVersion != null) {
+                val minimalVersion =
+                    if (gradleVersion.isEmpty() || Companion.MINIMAL_SUPPORTED_VERSION == gradleVersion) "0.0.0" else gradleVersion
+                createProjectSubFile(
+                    "setKotlinPluginVersion.gradle","ext[\"kotlinPluginVersion\"] = (VersionNumber.parse( ext[\"kotlinPluginVersion\"] ) > VersionNumber.parse( \"$minimalVersion\" )) ? ext[\"kotlinPluginVersion\"] : \"$minimalVersion\""
+                )
+            }
+        }
     }
 
     protected fun importProjectFromTestData(): List<VirtualFile> {
@@ -299,5 +309,7 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
         fun restoreLoggerFactory() {
             logSaver?.restore()
         }
+
+        const val MINIMAL_SUPPORTED_VERSION = "minimal"// constant indicating that the minimal supported gradle plugin versin should be used
     }
 }
