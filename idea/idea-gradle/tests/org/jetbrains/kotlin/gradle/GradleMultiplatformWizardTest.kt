@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.idea.configuration.KotlinGradleMobileSharedMultiplat
 import org.jetbrains.kotlin.idea.configuration.KotlinGradleSharedMultiplatformModuleBuilder
 import org.jetbrains.kotlin.idea.configuration.KotlinGradleWebMultiplatformModuleBuilder
 import org.jetbrains.kotlin.idea.test.KotlinSdkCreationChecker
-import org.jetbrains.kotlin.konan.target.HostManager
+import org.jetbrains.kotlin.konan.extracted.target.HostManager
 import org.jetbrains.kotlin.test.JUnit3WithIdeaConfigurationRunner
 import org.junit.runner.RunWith
 

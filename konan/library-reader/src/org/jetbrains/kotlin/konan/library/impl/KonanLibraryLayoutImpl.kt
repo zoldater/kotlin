@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.konan.library.KLIB_FILE_EXTENSION_WITH_DOT
 import org.jetbrains.kotlin.konan.library.KonanLibraryLayout
 import org.jetbrains.kotlin.konan.library.KonanLibrarySource.KonanLibraryDir
 import org.jetbrains.kotlin.konan.library.KonanLibrarySource.KonanLibraryFile
-import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.konan.extracted.target.KonanTarget
 import java.nio.file.FileSystem
 
 interface KonanLibraryLayoutImpl : KonanLibraryLayout {

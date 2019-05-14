@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.idea.configuration
 
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.kotlin.konan.target.presetName
+import org.jetbrains.kotlin.konan.extracted.target.presetName
 import java.io.BufferedWriter
 
 class KotlinGradleSharedMultiplatformModuleBuilder : KotlinGradleAbstractMultiplatformModuleBuilder() {

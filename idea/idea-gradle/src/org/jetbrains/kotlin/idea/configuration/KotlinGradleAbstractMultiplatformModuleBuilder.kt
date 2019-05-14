@@ -18,9 +18,9 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.util.rootManager
-import org.jetbrains.kotlin.konan.target.HostManager
-import org.jetbrains.kotlin.konan.target.KonanTarget
-import org.jetbrains.kotlin.konan.target.TargetSupportException
+import org.jetbrains.kotlin.konan.extracted.target.HostManager
+import org.jetbrains.kotlin.konan.extracted.target.KonanTarget
+import org.jetbrains.kotlin.konan.extracted.target.TargetSupportException
 import org.jetbrains.plugins.gradle.frameworkSupport.BuildScriptDataBuilder
 import org.jetbrains.plugins.gradle.service.project.wizard.GradleModuleBuilder
 import org.jetbrains.plugins.gradle.service.settings.GradleProjectSettingsControl

@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.konan.library.lite
 
-import org.jetbrains.kotlin.konan.KonanVersion
+import org.jetbrains.kotlin.konan.extracted.KonanVersion
 import java.io.File
 
 class LiteKonanDistribution(

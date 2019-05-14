@@ -3,10 +3,11 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.konan.target
+// TODO: Replace with HostManager from kotlin-native-shared
+package org.jetbrains.kotlin.konan.extracted.target
 
-import org.jetbrains.kotlin.konan.target.KonanTarget.*
-import org.jetbrains.kotlin.konan.util.Named
+import org.jetbrains.kotlin.konan.extracted.target.KonanTarget.*
+import org.jetbrains.kotlin.konan.extracted.util.Named
 
 enum class Family(
     val exeSuffix: String, val dynamicPrefix: String, val dynamicSuffix: String,

@@ -5,7 +5,8 @@
 
 package org.jetbrains.kotlin.konan.util
 
-import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.konan.extracted.target.KonanTarget
+import org.jetbrains.kotlin.konan.extracted.util.visibleName
 import java.util.*
 
 fun defaultTargetSubstitutions(target: KonanTarget) =

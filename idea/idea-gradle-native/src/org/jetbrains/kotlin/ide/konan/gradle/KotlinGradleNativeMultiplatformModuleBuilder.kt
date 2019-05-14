@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.ide.konan.gradle
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.configuration.KotlinGradleAbstractMultiplatformModuleBuilder
-import org.jetbrains.kotlin.konan.target.presetName
+import org.jetbrains.kotlin.konan.extracted.target.presetName
 import javax.swing.Icon
 
 class KotlinGradleNativeMultiplatformModuleBuilder : KotlinGradleAbstractMultiplatformModuleBuilder() {

@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.konan.library.lite
 
-import org.jetbrains.kotlin.konan.KonanVersion
+import org.jetbrains.kotlin.konan.extracted.KonanVersion
 import org.jetbrains.kotlin.konan.library.KONAN_STDLIB_NAME
 import org.jetbrains.kotlin.konan.library.konanCommonLibraryPath
 import java.io.File

@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.konan.library
 
 import org.jetbrains.kotlin.konan.file.File
-import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.konan.extracted.target.KonanTarget
 
 /**
  * This scheme describes the Kotlin/Native Library (KLIB) layout.

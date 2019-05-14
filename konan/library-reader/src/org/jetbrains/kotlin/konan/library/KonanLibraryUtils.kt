@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.konan.library.impl.KonanLibraryImpl
 import org.jetbrains.kotlin.konan.library.impl.zippedKonanLibraryChecks
 import org.jetbrains.kotlin.konan.library.resolver.KonanLibraryResolver
 import org.jetbrains.kotlin.konan.library.resolver.impl.KonanLibraryResolverImpl
-import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.konan.extracted.target.KonanTarget
 
 fun File.unpackZippedKonanLibraryTo(newDir: File) {
 
