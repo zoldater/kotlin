@@ -28,10 +28,7 @@ import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.incremental.js.IncrementalDataProvider
 import org.jetbrains.kotlin.incremental.js.IncrementalResultsConsumer
-import org.jetbrains.kotlin.ir.backend.js.KlibModuleRef
-import org.jetbrains.kotlin.ir.backend.js.compile
-import org.jetbrains.kotlin.ir.backend.js.generateKLib
-import org.jetbrains.kotlin.ir.backend.js.jsPhases
+import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.js.config.EcmaVersion
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import org.jetbrains.kotlin.js.config.JsConfig
@@ -44,7 +41,6 @@ import org.jetbrains.kotlin.utils.KotlinPaths
 import org.jetbrains.kotlin.utils.join
 import java.io.File
 import java.io.IOException
-import java.util.zip.ZipFile
 
 enum class ProduceKind {
     DEFAULT,  // Determine what to produce based on js-v1 options
@@ -59,68 +55,6 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
 
     override fun createArguments(): K2JSCompilerArguments {
         return K2JSCompilerArguments()
-    }
-
-    private fun extractKlibFromZip(library: String, messageCollector: MessageCollector): File? {
-        val zipLib = ZipFile(library)
-        val tempDir = createTempDir(File(library).name, "klibjar")
-        tempDir.deleteOnExit()
-        var extractedKlibDir: File? = null
-        for (entry in zipLib.entries()) {
-            if (!entry.isDirectory) {
-                zipLib.getInputStream(entry).use { input ->
-                    val outputEntryFile = File(tempDir, entry.name)
-                    outputEntryFile.parentFile.mkdirs()
-                    outputEntryFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            } else {
-                if (entry.name.endsWith("KLIB/")) {
-                    extractedKlibDir = File(tempDir, entry.name)
-                    messageCollector.report(INFO, "Klib $library is extracted into $extractedKlibDir")
-                }
-            }
-        }
-
-        return extractedKlibDir
-    }
-
-    private fun loadIrLibrary(library: String, messageCollector: MessageCollector): KlibModuleRef? {
-        val libraryFile = File(library)
-        var klibDir = when {
-            FileUtil.isJarOrZip(libraryFile) -> {
-                extractKlibFromZip(library, messageCollector) ?: return null
-            }
-            !libraryFile.isDirectory -> {
-                messageCollector.report(ERROR, "Klib $library must be a directory")
-                return null
-            }
-            else ->
-                libraryFile
-        }
-
-        var klibFiles = klibDir.listFiles()
-        if (klibFiles.isEmpty()) {
-            messageCollector.report(STRONG_WARNING, "Klib $library directory is empty")
-            return null
-        }
-
-        // Sometines gradle gives us a directory with klib directory inside
-        val klibDirInsideDir = klibFiles.find { it.name.endsWith("KLIB") }
-        if (klibDirInsideDir != null) {
-            klibDir = klibDirInsideDir
-            klibFiles = klibDir.listFiles()
-        }
-
-        val metadataFile = klibFiles.find { it.extension == "klm" }
-
-        if (metadataFile == null) {
-            messageCollector.report(STRONG_WARNING, "No metadata file (.klm) for klib: $klibDir")
-            return null
-        }
-
-        return KlibModuleRef(metadataFile.nameWithoutExtension, klibDir.absolutePath)
     }
 
     override fun doExecute(
@@ -144,7 +78,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
             arguments.pluginOptions,
             configuration
         )
-        if (pluginLoadResult != ExitCode.OK) return pluginLoadResult
+        if (pluginLoadResult != OK) return pluginLoadResult
 
         val libraries: List<String> = configureLibraries(arguments.libraries)
         val friendLibraries: List<String> = configureLibraries(arguments.friendModules)
@@ -208,7 +142,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
         val friendDependencies = mutableListOf<KlibModuleRef>()
 
         for (library in libraries) {
-            val irLib = loadIrLibrary(library, messageCollector) ?: continue
+            val irLib = loadKlib(library)
             if (irLib.moduleName !in loadedLibrariesNames) {
                 dependencies.add(irLib)
                 loadedLibrariesNames.add(irLib.moduleName)
@@ -223,6 +157,18 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
             messageCollector.report(ERROR, "Unknown produce kind: ${arguments.irProduceOnly}. Valid values are: js, klib")
         }
 
+        if (produceKind == ProduceKind.KLIB || (produceKind == ProduceKind.DEFAULT && arguments.metaInfo)) {
+            val outputKlibPath = File(outputFilePath).parent
+            generateKLib(
+                project = config.project,
+                files = sourcesFiles,
+                configuration = config.configuration,
+                allDependencies = dependencies,
+                friendDependencies = friendDependencies,
+                outputKlibPath = outputKlibPath
+            )
+        }
+
         if (produceKind == ProduceKind.JS || produceKind == ProduceKind.DEFAULT) {
             val phaseConfig = createPhaseConfig(jsPhases, arguments, messageCollector)
 
@@ -231,26 +177,12 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
                 sourcesFiles,
                 configuration,
                 phaseConfig,
-                immediateDependencies = dependencies,
                 allDependencies = dependencies,
                 friendDependencies = friendDependencies,
                 mainArguments = mainCallArguments
             )
 
             outputFile.writeText(compiledModule)
-        }
-
-        if (produceKind == ProduceKind.KLIB || (produceKind == ProduceKind.DEFAULT && arguments.metaInfo)) {
-            val outputKlibPath = "$outputFilePath.KLIB"
-            generateKLib(
-                project = config.project,
-                files = sourcesFiles,
-                configuration = config.configuration,
-                immediateDependencies = dependencies,
-                allDependencies = dependencies,
-                friendDependencies = friendDependencies,
-                outputKlibPath = outputKlibPath
-            )
         }
 
         return OK
