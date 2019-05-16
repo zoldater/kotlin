@@ -1,0 +1,23 @@
+This file presents modules dependency graph for the test (classes).
+Please, use monospaced font.
+
+
+               common-1-1                       common-1-2                    common-1-3
+                 /   \                              |                            /
+                /     \___________                  |                           /
+               /_______\__________\_________________|__________________________/
+              /         \          \                                          /
+             /           \          \                                        /
+        common-2-1    common-2-2     \        common-2-3                    /
+            |           /  \          \          /|                        /
+            |          /    \          \        / |                       /
+            |         /      \          \      /  |                      /
+            |        /        \          \    /   |                     /
+            |       /          \          \  /    |                    /
+            |  common-3-1       \          \/     |                   /
+            |     /              \         /\     |                  /
+            |    /                \_______/__\____|_________________/
+            |   /                  \     /    \   |   _____________/
+            |  /                    \   /      \  |  /
+            | /                      \ /        \ | /
+            jvm                      js         native

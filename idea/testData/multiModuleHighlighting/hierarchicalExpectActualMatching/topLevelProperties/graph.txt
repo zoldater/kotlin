@@ -1,0 +1,32 @@
+This file presents modules dependency graph for the test (topLevelProperties).
+Please, use monospaced font.
+
+     common-1
+        |  \____________
+        |               \
+        |                \
+     common-2           jvm-1
+        |  \____________
+        |               \
+        |                \
+     common-3           jvm-2
+        |  \____________
+        |               \
+        |                \
+     common-4           jvm-3
+        |  \____________
+        |               \
+        |                \
+     common-5           js-1
+        |  \____________
+        |               \
+        |                \
+     common-6           js-2
+        |  \____________
+        |               \
+        |                \
+     common-7         native-1
+        |_______________
+                        \
+                         \
+                      native-2

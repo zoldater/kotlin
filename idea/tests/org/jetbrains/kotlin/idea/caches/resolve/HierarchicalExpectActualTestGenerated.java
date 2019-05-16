@@ -29,6 +29,21 @@ public class HierarchicalExpectActualTestGenerated extends AbstractHierarchicalE
         KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching"), Pattern.compile("^([^\\.]+)$"), TargetBackend.ANY, false);
     }
 
+    @TestMetadata("bothExpectAndActualInTwoModules")
+    public void testBothExpectAndActualInTwoModules() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching/bothExpectAndActualInTwoModules/");
+    }
+
+    @TestMetadata("classes")
+    public void testClasses() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching/classes/");
+    }
+
+    @TestMetadata("declarationsInSingleModule")
+    public void testDeclarationsInSingleModule() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching/declarationsInSingleModule/");
+    }
+
     @TestMetadata("diamondActualInBottom")
     public void testDiamondActualInBottom() throws Exception {
         runTest("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching/diamondActualInBottom/");
@@ -97,5 +112,25 @@ public class HierarchicalExpectActualTestGenerated extends AbstractHierarchicalE
     @TestMetadata("incompleteActualization")
     public void testIncompleteActualization() throws Exception {
         runTest("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching/incompleteActualization/");
+    }
+
+    @TestMetadata("memberProperties")
+    public void testMemberProperties() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching/memberProperties/");
+    }
+
+    @TestMetadata("topLevelFunctions")
+    public void testTopLevelFunctions() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching/topLevelFunctions/");
+    }
+
+    @TestMetadata("topLevelProperties")
+    public void testTopLevelProperties() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching/topLevelProperties/");
+    }
+
+    @TestMetadata("typealiases")
+    public void testTypealiases() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/hierarchicalExpectActualMatching/typealiases/");
     }
 }
