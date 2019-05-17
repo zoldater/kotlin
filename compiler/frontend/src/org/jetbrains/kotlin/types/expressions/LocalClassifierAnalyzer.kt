@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.types.expressions
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.container.get
 import org.jetbrains.kotlin.context.GlobalContext
@@ -33,6 +32,7 @@ import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.debugText.getDebugText
@@ -52,6 +52,7 @@ import org.jetbrains.kotlin.resolve.scopes.LexicalWritableScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.SubstitutingScopeProvider
 import org.jetbrains.kotlin.types.WrappedTypeFactory
+import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
 
 class LocalClassifierAnalyzer(
     private val globalContext: GlobalContext,
@@ -67,7 +68,8 @@ class LocalClassifierAnalyzer(
     private val languageVersionSettings: LanguageVersionSettings,
     private val delegationFilter: DelegationFilter,
     private val wrappedTypeFactory: WrappedTypeFactory,
-    private val substitutingScopeProvider: SubstitutingScopeProvider
+    private val substitutingScopeProvider: SubstitutingScopeProvider,
+    private val refineKotlinTypeChecker: RefineKotlinTypeChecker
 ) {
     fun processClassOrObject(
         scope: LexicalWritableScope?,
@@ -101,7 +103,8 @@ class LocalClassifierAnalyzer(
                 SyntheticResolveExtension.getInstance(project),
                 delegationFilter,
                 wrappedTypeFactory,
-                substitutingScopeProvider
+                substitutingScopeProvider,
+                refineKotlinTypeChecker
             ),
             analyzerServices
         )
@@ -130,7 +133,8 @@ class LocalClassDescriptorHolder(
     val syntheticResolveExtension: SyntheticResolveExtension,
     val delegationFilter: DelegationFilter,
     val wrappedTypeFactory: WrappedTypeFactory,
-    val substitutingScopeProvider: SubstitutingScopeProvider
+    val substitutingScopeProvider: SubstitutingScopeProvider,
+    val refineKotlinTypeChecker: RefineKotlinTypeChecker
 ) {
     // We do not need to synchronize here, because this code is used strictly from one thread
     private var classDescriptor: ClassDescriptor? = null
@@ -171,6 +175,7 @@ class LocalClassDescriptorHolder(
                     override val delegationFilter: DelegationFilter = this@LocalClassDescriptorHolder.delegationFilter
                     override val wrappedTypeFactory: WrappedTypeFactory = this@LocalClassDescriptorHolder.wrappedTypeFactory
                     override val substitutingScopeProvider: SubstitutingScopeProvider = this@LocalClassDescriptorHolder.substitutingScopeProvider
+                    override val refineKotlinTypeChecker: RefineKotlinTypeChecker = this@LocalClassDescriptorHolder.refineKotlinTypeChecker
                 },
                 containingDeclaration,
                 classOrObject.nameAsSafeName,

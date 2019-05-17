@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope;
 import org.jetbrains.kotlin.storage.*;
 import org.jetbrains.kotlin.types.SubstitutingScopeProvider;
 import org.jetbrains.kotlin.types.WrappedTypeFactory;
+import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker;
 import org.jetbrains.kotlin.utils.SmartList;
 
 import javax.inject.Inject;
@@ -85,6 +86,8 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
     private SubstitutingScopeProvider substitutingScopeProvider;
 
     private final SyntheticResolveExtension syntheticResolveExtension;
+
+    private final RefineKotlinTypeChecker refineKotlinTypeChecker;
 
     private Project project;
 
@@ -166,7 +169,8 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
             @NotNull GlobalContext globalContext,
             @NotNull ModuleDescriptor rootDescriptor,
             @NotNull DeclarationProviderFactory declarationProviderFactory,
-            @NotNull BindingTrace delegationTrace
+            @NotNull BindingTrace delegationTrace,
+            @NotNull RefineKotlinTypeChecker refineKotlinTypeChecker
     ) {
         LockBasedLazyResolveStorageManager lockBasedLazyResolveStorageManager =
                 new LockBasedLazyResolveStorageManager(globalContext.getStorageManager());
@@ -207,6 +211,7 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
         syntheticResolveExtension = SyntheticResolveExtension.Companion.getInstance(project);
 
         this.project = project;
+        this.refineKotlinTypeChecker = refineKotlinTypeChecker;
     }
 
     private LazyAnnotations createAnnotations(KtFile file, List<KtAnnotationEntry> annotationEntries) {
@@ -476,5 +481,11 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
     @Override
     public void assertValid() {
         module.assertValid();
+    }
+
+    @NotNull
+    @Override
+    public RefineKotlinTypeChecker getRefineKotlinTypeChecker() {
+        return refineKotlinTypeChecker;
     }
 }

@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.load.kotlin.PackagePartProvider
 import org.jetbrains.kotlin.serialization.deserialization.ErrorReporter
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.SubstitutingScopeProvider
+import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
 import java.util.*
 
 class JavaResolverComponents(
@@ -66,7 +67,8 @@ class JavaResolverComponents(
     val signatureEnhancement: SignatureEnhancement,
     val javaClassesTracker: JavaClassesTracker,
     val settings: JavaResolverSettings,
-    val substitutingScopeProvider: SubstitutingScopeProvider
+    val substitutingScopeProvider: SubstitutingScopeProvider,
+    val refineKotlinTypeChecker: RefineKotlinTypeChecker
 ) {
     fun replace(
         javaResolverCache: JavaResolverCache = this.javaResolverCache
@@ -75,7 +77,8 @@ class JavaResolverComponents(
         signaturePropagator, errorReporter, javaResolverCache,
         javaPropertyInitializerEvaluator, samConversionResolver, sourceElementFactory,
         moduleClassResolver, packagePartProvider, supertypeLoopChecker, lookupTracker, module, reflectionTypes,
-        annotationTypeQualifierResolver, signatureEnhancement, javaClassesTracker, settings, substitutingScopeProvider
+        annotationTypeQualifierResolver, signatureEnhancement, javaClassesTracker, settings,
+        substitutingScopeProvider, refineKotlinTypeChecker
     )
 }
 
