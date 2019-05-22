@@ -66,8 +66,7 @@ open class ProjectStructureParser(private val projectRoot: File) {
         requireNotNull(platformAttribute) { "Missing required attribute 'platform' for module ${builder.name}" }
         builder.platform = parsePlatform(platformAttribute)
 
-        val root = attributes["root"]
-        requireNotNull(root) { "Missing required attribute 'root' for module ${builder.name}" }
+        val root = attributes["root"] ?: builder.name!!
         builder.root = File(projectRoot, root)
 
         val testRoot = attributes["testRoot"]
