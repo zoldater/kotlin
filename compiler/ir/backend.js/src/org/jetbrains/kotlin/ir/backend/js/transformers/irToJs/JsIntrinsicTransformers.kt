@@ -89,22 +89,23 @@ class JsIntrinsicTransformers(backendContext: JsIrBackendContext) {
             add(intrinsics.jsGetJSField) { call, context ->
                 val args = translateCallArguments(call, context)
                 val receiver = args[0]
-                val fieldName = args[1] as JsStringLiteral
-
-                val fieldNameLiteral = fieldName.value!!
-
-                JsNameRef(fieldNameLiteral, receiver)
+                val fieldName = args[1]
+                when (fieldName) {
+                    is JsStringLiteral -> JsNameRef(fieldName.value!!, receiver)
+                    else -> JsArrayAccess(receiver, fieldName)
+                }
             }
 
             add(intrinsics.jsSetJSField) { call, context ->
                 val args = translateCallArguments(call, context)
                 val receiver = args[0]
-                val fieldName = args[1] as JsStringLiteral
+                val fieldName = args[1]
                 val fieldValue = args[2]
-
-                val fieldNameLiteral = fieldName.value!!
-
-                jsAssignment(JsNameRef(fieldNameLiteral, receiver), fieldValue)
+                val fieldAccess = when (fieldName) {
+                    is JsStringLiteral -> JsNameRef(fieldName.value!!, receiver)
+                    else -> JsArrayAccess(receiver, fieldName)
+                }
+                jsAssignment(fieldAccess, fieldValue)
             }
 
             add(intrinsics.jsClass) { call, context ->
