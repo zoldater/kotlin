@@ -14,7 +14,6 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import junit.framework.TestCase
 import org.jetbrains.kotlin.checkers.utils.clearFileFromDiagnosticMarkup
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
-import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.idea.framework.CommonLibraryKind
 import org.jetbrains.kotlin.idea.framework.JSLibraryKind
 import org.jetbrains.kotlin.idea.stubs.AbstractMultiModuleTest
@@ -91,7 +90,7 @@ fun AbstractMultiModuleTest.doSetup(projectModel: ProjectResolveModel) {
         val platform = resolveModule.platform
         ideaModule.createFacet(
             platform,
-            implementedModuleNames = resolveModule.dependencies.filter { it.kind == ResolveDependency.Kind.EXPECTED_BY }.map { it.to.name }
+            implementedModuleNames = resolveModule.dependencies.filter { it.kind == ResolveDependency.Kind.DEPENDS_ON }.map { it.to.name }
         )
         ideaModule.enableMultiPlatform()
     }

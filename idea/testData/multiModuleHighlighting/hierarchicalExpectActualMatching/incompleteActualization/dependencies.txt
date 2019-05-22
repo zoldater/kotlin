@@ -3,6 +3,6 @@ MODULE jvmAndJs { platform=[JVM, JS] }
 MODULE jvm { platform=[JVM] }
 MODULE js { platform=[JS] }
 
-jvm -> jvmAndJs { kind=EXPECTED_BY }
-js -> jvmAndJs { kind=EXPECTED_BY }
-jvmAndJs -> common { kind=EXPECTED_BY }
+jvm -> jvmAndJs { kind=DEPENDS_ON }
+js -> jvmAndJs { kind=DEPENDS_ON }
+jvmAndJs -> common { kind=DEPENDS_ON }

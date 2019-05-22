@@ -3,6 +3,6 @@ MODULE left { platform=[JVM, JS, Native] }
 MODULE right { platform=[JVM, JS, Native] }
 MODULE bottom { platform=[JVM] }
 
-left -> top { kind=EXPECTED_BY }
-right -> top { kind=EXPECTED_BY }
-bottom -> left, right { kind=EXPECTED_BY }
+left -> top { kind=DEPENDS_ON }
+right -> top { kind=DEPENDS_ON }
+bottom -> left, right { kind=DEPENDS_ON }
