@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.idea.test;
 
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -37,6 +38,10 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 
 public abstract class KotlinLightCodeInsightFixtureTestCaseBase extends LightCodeInsightFixtureTestCase {
+    public Module getMyModule() {
+        return super.getModule();
+    }
+
     @NotNull
     @Override
     public Project getProject() {

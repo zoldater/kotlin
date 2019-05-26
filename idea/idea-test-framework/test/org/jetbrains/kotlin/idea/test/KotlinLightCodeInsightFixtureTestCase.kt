@@ -60,7 +60,7 @@ import kotlin.reflect.full.findAnnotation
 abstract class KotlinLightCodeInsightFixtureTestCase : KotlinLightCodeInsightFixtureTestCaseBase() {
     private val exceptions = ArrayList<Throwable>()
 
-    protected val module: Module get() = myFixture.module
+//    protected val module: Module get() = myFixture.module
 
     protected open val captureExceptions = true
 

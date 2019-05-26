@@ -12,6 +12,7 @@ import com.intellij.testFramework.FileStructureTestFixture
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.concurrency.Promise
 import org.jetbrains.kotlin.idea.test.KotlinLightCodeInsightFixtureTestCase
 
 abstract class KotlinFileStructureTestBase : KotlinLightCodeInsightFixtureTestCase() {

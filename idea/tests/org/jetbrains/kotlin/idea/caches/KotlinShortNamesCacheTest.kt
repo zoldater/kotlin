@@ -186,7 +186,7 @@ class KotlinShortNamesCacheTest : KotlinLightCodeInsightFixtureTestCase() {
 
     fun testGetMethodsByNameWithFunctions() {
         myFixture.configureByFile("kotlinShortNamesCacheTestDataMethods.kt")
-        val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(myModule)
+        val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)
         checkIsSingleMethodFound(scope, "KotlinShortNamesCacheTestDataMethodsKt.topLevelFunction", true)
         checkIsSingleMethodFound(scope, "B1.staticMethodOfObject", true)
         checkIsSingleMethodFound(scope, "B1.nonStaticMethodOfObject", false)

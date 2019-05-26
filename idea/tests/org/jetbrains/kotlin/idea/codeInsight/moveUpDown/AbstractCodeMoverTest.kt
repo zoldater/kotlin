@@ -91,7 +91,7 @@ abstract class AbstractCodeMoverTest : LightCodeInsightTestCase() {
     }
 
     private fun invokeAndCheck(fileText: String, path: String, action: EditorAction, isApplicableExpected: Boolean) {
-        val codeStyleSettings = FormatSettingsUtil.getSettings()
+        val codeStyleSettings = FormatSettingsUtil.getSettings(getProject())
         val configurator = FormatSettingsUtil.createConfigurator(fileText, codeStyleSettings)
         configurator.configureSettings()
 

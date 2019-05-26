@@ -109,7 +109,7 @@ abstract class AbstractQuickFixTest : KotlinLightCodeInsightFixtureTestCase(), Q
 
                 fixtureClasses = InTextDirectivesUtils.findListWithPrefixes(fileText, "// FIXTURE_CLASS: ")
                 for (fixtureClass in fixtureClasses) {
-                    TestFixtureExtension.loadFixture(fixtureClass, LightPlatformTestCase.getModule())
+                    TestFixtureExtension.loadFixture(fixtureClass, getModule())
                 }
 
                 expectedErrorMessage = InTextDirectivesUtils.findStringWithPrefixes(fileText, "// SHOULD_FAIL_WITH: ")

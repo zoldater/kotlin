@@ -116,7 +116,7 @@ open class KotlinUMethod(
         }
     }
 
-    override val isOverride: Boolean
+    val isOverride: Boolean
         get() = (kotlinOrigin as? KtCallableDeclaration)?.hasModifier(KtTokens.OVERRIDE_KEYWORD) ?: false
 
     override fun getBody(): PsiCodeBlock? = super<UAnnotationMethod>.getBody()
