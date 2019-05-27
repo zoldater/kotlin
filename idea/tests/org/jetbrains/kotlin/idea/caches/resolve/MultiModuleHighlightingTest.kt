@@ -179,6 +179,30 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
         checkHighlightingInProject()
     }
 
+    fun testTypeRefinementTypeAliases() {
+        val common = module("common")
+        val platform = module("platform")
+        val main = module("main")
+
+        platform.addDependency(common)
+        main.addDependency(common)
+        main.addDependency(platform)
+
+        checkHighlightingInProject()
+    }
+
+    fun testTypeRefinementTypeParameters() {
+        val common = module("common")
+        val platform = module("platform")
+        val main = module("main")
+
+        platform.addDependency(common)
+        main.addDependency(common)
+        main.addDependency(platform)
+
+        checkHighlightingInProject()
+    }
+
     fun testTypesRefinement() {
         val d1 = module("d1")
         val d2 = module("d2")
