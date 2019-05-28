@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.fir.resolve.impl.FirProviderImpl
 import org.jetbrains.kotlin.fir.resolve.transformers.FirBodyResolveTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.FirTotalResolveTransformer
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
+import org.jetbrains.kotlin.load.kotlin.kotlinClassFinderTime
 import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.TestJdkKind
@@ -139,6 +140,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         }
         println("Total time resolving kotlin.*: ${totalKotlinTime / 1_000_000} ms")
         println("Total time resolving class members: ${FirBodyResolveTransformer.memberResolveTime / 1_000_000} ms")
+        println("Total time for findKotlinClass() calls: ${kotlinClassFinderTime / 1_000_000} ms")
         println("=============================================")
 
         Disposer.dispose(disposable)

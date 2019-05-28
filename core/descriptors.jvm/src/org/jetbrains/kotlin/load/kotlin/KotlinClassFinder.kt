@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.load.kotlin
 import org.jetbrains.kotlin.load.java.structure.JavaClass
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.serialization.deserialization.KotlinMetadataFinder
+import kotlin.system.measureNanoTime
 
 interface KotlinClassFinder : KotlinMetadataFinder {
     fun findKotlinClassOrContent(classId: ClassId): Result?
@@ -36,8 +37,15 @@ interface KotlinClassFinder : KotlinMetadataFinder {
     }
 }
 
-fun KotlinClassFinder.findKotlinClass(classId: ClassId): KotlinJvmBinaryClass? =
-    findKotlinClassOrContent(classId)?.toKotlinJvmBinaryClass()
+var kotlinClassFinderTime = 0L
+
+fun KotlinClassFinder.findKotlinClass(classId: ClassId): KotlinJvmBinaryClass? {
+    var result: KotlinJvmBinaryClass? = null
+    kotlinClassFinderTime += measureNanoTime {
+        result = findKotlinClassOrContent(classId)?.toKotlinJvmBinaryClass()
+    }
+    return result
+}
 
 fun KotlinClassFinder.findKotlinClass(javaClass: JavaClass): KotlinJvmBinaryClass? =
     findKotlinClassOrContent(javaClass)?.toKotlinJvmBinaryClass()
