@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
+import org.jetbrains.kotlin.fir.resolve.constructClassType
 import org.jetbrains.kotlin.fir.resolve.scope
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.resolve.transformers.FirBodyResolveTransformer
@@ -30,10 +31,12 @@ import org.jetbrains.kotlin.fir.symbols.*
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage
+import org.jetbrains.kotlin.resolve.calls.inference.model.SimpleConstraintSystemConstraintPosition
 import org.jetbrains.kotlin.resolve.calls.model.PostponedResolvedAtomMarker
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.utils.addToStdlib.cast
@@ -546,14 +549,41 @@ class ExplicitReceiverTowerDataConsumer<T : ConeSymbol>(
                             dispatchReceiverValue: ClassDispatchReceiverValue?,
                             implicitExtensionReceiverValue: ImplicitReceiverValue?
                         ): ProcessorAction {
+                            val explicitReceiverType = explicitReceiver.type
+                            if (dispatchReceiverValue == null && explicitReceiverType is ConeClassType) {
+                                val declarationReceiverType =
+                                    ((symbol as? FirCallableSymbol)?.fir?.receiverTypeRef as? FirResolvedTypeRef)?.type
+                                val declarationReceiverBoundType = when (declarationReceiverType) {
+                                    is ConeTypeParameterType ->
+                                        ((declarationReceiverType.lookupTag as? FirTypeParameterSymbol)?.fir?.bounds?.firstOrNull() as? FirResolvedTypeRef)?.type
+                                    else ->
+                                        declarationReceiverType
+                                }
+                                if (declarationReceiverBoundType is ConeClassType) {
+                                    val constraintSystem = candidateFactory.inferenceComponents.createConstraintSystem()
+                                    constraintSystem.addSubtypeConstraint(
+                                        explicitReceiverType,
+                                        declarationReceiverBoundType.lookupTag.constructClassType(
+                                            declarationReceiverBoundType.typeArguments.map { ConeStarProjection }.toTypedArray(),
+                                            declarationReceiverBoundType.isNullable
+                                        ),
+                                        SimpleConstraintSystemConstraintPosition
+                                    )
+                                    if (constraintSystem.hasContradiction) {
+                                        return ProcessorAction.NEXT
+                                    }
+                                }
+                            }
+                            val candidate = candidateFactory.createCandidate(
+                                symbol,
+                                dispatchReceiverValue,
+                                implicitExtensionReceiverValue,
+                                ExplicitReceiverKind.EXTENSION_RECEIVER
+                            )
+
                             resultCollector.consumeCandidate(
                                 group,
-                                candidateFactory.createCandidate(
-                                    symbol,
-                                    dispatchReceiverValue,
-                                    implicitExtensionReceiverValue,
-                                    ExplicitReceiverKind.EXTENSION_RECEIVER
-                                )
+                                candidate
                             )
                             return ProcessorAction.NEXT
                         }
@@ -691,9 +721,6 @@ enum class CandidateApplicability {
     SYNTHETIC_RESOLVED,
     RESOLVED
 }
-
-
-var ID = ""
 
 class CandidateCollector(val callInfo: CallInfo, val components: InferenceComponents) {
 
