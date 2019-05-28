@@ -553,11 +553,15 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
         resolver.callInfo = info
         resolver.scopes = (scopes + localScopes).asReversed()
 
-        val consumer = createFunctionConsumer(session, name, info, inferenceComponents)
-        val result = resolver.runTowerResolver(consumer, implicitReceiverStack.asReversed())
-        val bestCandidates = result.bestCandidates()
+        lateinit var bestCandidates: List<Candidate>
+        lateinit var result: CandidateCollector
+        val towerResolverTime = measureNanoTime {
+            val consumer = createFunctionConsumer(session, name, info, inferenceComponents)
+            result = resolver.runTowerResolver(consumer, implicitReceiverStack.asReversed())
+            bestCandidates = result.bestCandidates()
+        }
         lateinit var reducedCandidates: Set<Candidate>
-        overloadConflictResolvedTime += measureNanoTime {
+        val conflictResolvedTime = measureNanoTime {
             reducedCandidates = if (result.currentApplicability < CandidateApplicability.SYNTHETIC_RESOLVED) {
                 bestCandidates.toSet()
             } else {
@@ -565,36 +569,8 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
                     .chooseMaximallySpecificCandidates(bestCandidates, discriminateGenerics = false)
             }
         }
+        overloadConflictResolvedTime += conflictResolvedTime
 
-
-//        fun isInvoke()
-//
-//        val resultExpression =
-//
-//        when {
-//            successCandidates.singleOrNull() as? ConeCallableSymbol -> {
-//                FirFunctionCallImpl(functionCall.session, functionCall.psi, safe = functionCall.safe).apply {
-//                    calleeReference =
-//                        functionCall.calleeReference.transformSingle(this@FirBodyResolveTransformer, result.successCandidates())
-//                    explicitReceiver =
-//                        FirQualifiedAccessExpressionImpl(
-//                            functionCall.session,
-//                            functionCall.calleeReference.psi,
-//                            functionCall.safe
-//                        ).apply {
-//                            calleeReference = createResolvedNamedReference(
-//                                functionCall.calleeReference,
-//                                result.variableChecker.successCandidates() as List<ConeCallableSymbol>
-//                            )
-//                            explicitReceiver = functionCall.explicitReceiver
-//                        }
-//                }
-//            }
-//            is ApplicabilityChecker -> {
-//                functionCall.transformCalleeReference(this, result.successCandidates())
-//            }
-//            else -> functionCall
-//        }
         val nameReference = createResolvedNamedReference(
             functionCall.calleeReference,
             reducedCandidates,
@@ -608,11 +584,15 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
                 if (callableId.className == null && callableId.packageName.startsWith(observedPackage)) {
                     totalObserved++
                     val resolvedName = callableId.callableName.asString()
-                    //if (resolvedName in observedNames) {
-                        val previous = observedNameTotal[resolvedName] ?: 0
-                        observedNameTotal[resolvedName] = previous + 1
-                    //}
+                    val previous = observedNameTotal[resolvedName] ?: 0
+                    observedNameTotal[resolvedName] = previous + 1
+
+                    val previousTime = observedNameResolveTime[resolvedName] ?: 0L
+                    observedNameResolveTime[resolvedName] = previousTime + (towerResolverTime + conflictResolvedTime)
+                } else if (callableId.className != null) {
+                    memberResolveTime += (towerResolverTime + conflictResolvedTime)
                 }
+
             }
         }
 
@@ -630,6 +610,8 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
         )
 
         val observedNameResolveTime = mutableMapOf<String, Long>()
+
+        var memberResolveTime = 0L
 
         val observedPackage = Name.identifier("kotlin")
 
@@ -753,33 +735,34 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
         if (calleeReference !is FirSimpleNamedReference) return functionCall.compose()
         val expectedTypeRef = data as FirTypeRef?
         val name = calleeReference.name.asString()
-        if (name in observedNames) {
-            lateinit var completeInference: FirFunctionCall
-            val time = measureNanoTime {
-                completeInference = try {
-                    val resultExpression = resolveCallAndSelectCandidate(functionCall, expectedTypeRef)
-                    completeTypeInference(resultExpression, expectedTypeRef)
-                } catch (e: Throwable) {
-                    throw RuntimeException("While resolving call ${functionCall.render()}", e)
-                }
+
+        lateinit var completeInference: FirFunctionCall
+        val resultExpression = resolveCallAndSelectCandidate(functionCall, expectedTypeRef)
+        val time = measureNanoTime {
+            completeInference = try {
+                completeTypeInference(resultExpression, expectedTypeRef)
+            } catch (e: Throwable) {
+                throw RuntimeException("While resolving call ${functionCall.render()}", e)
             }
+        }
+        if (name in observedNames) {
             val previous = observedNameResolveTime[name] ?: 0L
             observedNameResolveTime[name] = previous + time
-
-            return completeInference.compose()
-
         } else {
-            val completeInference =
-                try {
-                    val resultExpression = resolveCallAndSelectCandidate(functionCall, expectedTypeRef)
-                    completeTypeInference(resultExpression, expectedTypeRef)
-                } catch (e: Throwable) {
-                    throw RuntimeException("While resolving call ${functionCall.render()}", e)
+            val resolvedReference = completeInference.calleeReference
+            if (resolvedReference is FirResolvedCallableReference) {
+                val symbol = resolvedReference.coneSymbol
+                if (symbol is FirFunctionSymbol) {
+                    val callableId = symbol.callableId
+                    if (callableId.packageName.startsWith(observedPackage)) {
+                        val previous = observedNameResolveTime[name] ?: 0L
+                        observedNameResolveTime[name] = previous + time
+                    }
                 }
-
-
-            return completeInference.compose()
+            }
         }
+
+        return completeInference.compose()
     }
 
     private fun describeSymbol(symbol: ConeSymbol): String {

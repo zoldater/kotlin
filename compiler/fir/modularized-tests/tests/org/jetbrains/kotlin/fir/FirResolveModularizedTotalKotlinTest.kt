@@ -130,9 +130,15 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         FirBodyResolveTransformer.observedNameTotal.dump("observed")
         println("Total kotlin top-level ERROR: ${FirBodyResolveTransformer.totalError}")
         FirBodyResolveTransformer.errorNameTotal.dump("ERROR")
+        var totalKotlinTime = 0L
         for ((name, time) in FirBodyResolveTransformer.observedNameResolveTime) {
-            println("Total time resolving $name: ${time / 1000000} ms")
+            if (time >= 250_000_000L) {
+                println("Total time resolving $name: ${time / 1_000_000} ms")
+            }
+            totalKotlinTime += time
         }
+        println("Total time resolving kotlin.*: ${totalKotlinTime / 1_000_000} ms")
+        println("Total time resolving class members: ${FirBodyResolveTransformer.memberResolveTime / 1_000_000} ms")
         println("=============================================")
 
         Disposer.dispose(disposable)
