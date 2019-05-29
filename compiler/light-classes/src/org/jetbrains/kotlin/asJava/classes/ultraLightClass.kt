@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.asJava.classes
 
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.*
+import com.intellij.psi.impl.InheritanceImplUtil
 import com.intellij.psi.impl.PsiClassImplUtil
 import com.intellij.psi.impl.PsiSuperMethodImplUtil
 import com.intellij.psi.impl.light.LightMethodBuilder
@@ -44,6 +45,8 @@ open class KtUltraLightClass(classOrObject: KtClassOrObject, internal val suppor
     }
 
     private val tooComplex: Boolean by lazyPub { support.isTooComplexForUltraLightGeneration(classOrObject) }
+
+    private val _deprecated by lazyPub { classOrObject.isDeprecated(support) }
 
     override fun isFinal(isFinalByPsi: Boolean) = if (tooComplex) super.isFinal(isFinalByPsi) else isFinalByPsi
 
@@ -366,12 +369,8 @@ open class KtUltraLightClass(classOrObject: KtClassOrObject, internal val suppor
 
     override fun getScope(): PsiElement? = if (tooComplex) super.getScope() else parent
 
-    override fun isInheritorDeep(baseClass: PsiClass?, classToByPass: PsiClass?): Boolean {
-        //TODO: Implement inheritor deep to avoid access to clsDelegate
-        return super.isInheritorDeep(baseClass, classToByPass)
-    }
-
-    private val _deprecated by lazyPub { classOrObject.isDeprecated(support) }
+    override fun isInheritorDeep(baseClass: PsiClass?, classToByPass: PsiClass?): Boolean =
+        baseClass?.let { InheritanceImplUtil.isInheritorDeep(this, it, classToByPass) } ?: false
 
     override fun isDeprecated(): Boolean = _deprecated
 
