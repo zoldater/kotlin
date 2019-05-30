@@ -237,6 +237,7 @@ extra["compilerModules"] = arrayOf(
     ":core:deserialization",
     ":core:util.runtime",
     ":core:type-system",
+    ":compiler:javac-wrapper",
     ":compiler:fir:cones",
     ":compiler:fir:resolve",
     ":compiler:fir:tree",
