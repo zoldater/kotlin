@@ -152,7 +152,7 @@ class MockKotlinClassifier(override val classId: ClassId,
     override val isStatic get() = shouldNotBeCalled()
     override val isFinal get() = shouldNotBeCalled()
     override val typeParameters get() = shouldNotBeCalled()
-    override val outerClass get() = shouldNotBeCalled()
+    override val outerClass get() = null//shouldNotBeCalled()
     override val isInterface get() = shouldNotBeCalled()
     override val isAnnotationType get() = shouldNotBeCalled()
     override val isEnum get() = shouldNotBeCalled()

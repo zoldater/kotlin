@@ -38,6 +38,7 @@ class JavacWrapperKotlinResolverImpl(private val lightClassGenerationSupport: Li
             return supersCache[classOrObject]!!
         }
 
+        return emptyList()
         val classDescriptor =
             lightClassGenerationSupport.analyze(classOrObject).get(BindingContext.CLASS, classOrObject) ?: return emptyList()
         val classIds = classDescriptor.defaultType.constructor.supertypes
