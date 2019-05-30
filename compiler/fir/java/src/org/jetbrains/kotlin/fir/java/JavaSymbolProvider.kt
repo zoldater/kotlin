@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.ConeClassErrorType
 import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.FirResolvedTypeRefImpl
+import org.jetbrains.kotlin.javac.JavacWrapper
 import org.jetbrains.kotlin.load.java.JavaClassFinder
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames
 import org.jetbrains.kotlin.load.java.structure.JavaClass
@@ -51,9 +52,11 @@ class JavaSymbolProvider(
     private val searchScope: GlobalSearchScope
 ) : AbstractFirSymbolProvider() {
 
+    private val javacWrapper: JavacWrapper get() = JavacWrapper.getInstance(project)
+
     private val facade: KotlinJavaPsiFacade get() = KotlinJavaPsiFacade.getInstance(project)
 
-    private fun findClass(classId: ClassId): JavaClass? = facade.findClass(JavaClassFinder.Request(classId), searchScope)
+    private fun findClass(classId: ClassId): JavaClass? = javacWrapper.findClass(classId, searchScope)
 
     override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<ConeCallableSymbol> =
         emptyList()
@@ -268,7 +271,7 @@ class JavaSymbolProvider(
 
     private fun hasTopLevelClassOf(classId: ClassId): Boolean {
         val knownNames = knownClassNamesInPackage.getOrPut(classId.packageFqName) {
-            facade.knownClassNamesInPackage(classId.packageFqName)
+            javacWrapper.knownClassNamesInPackage(classId.packageFqName)
         } ?: return true
         return classId.relativeClassName.topLevelName() in knownNames
     }
