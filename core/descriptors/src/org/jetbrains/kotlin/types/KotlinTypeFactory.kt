@@ -69,10 +69,11 @@ object KotlinTypeFactory {
             annotations, constructor, arguments, nullable,
             computeMemberScope(constructor, arguments, moduleDescriptor)
         ) f@{ module ->
-            val expandedTypeOrRefinedConstructor = refineConstructor(constructor, module, arguments) ?: return@f null
+            val refinedArguments = arguments.map { it.refine(module) }
+            val expandedTypeOrRefinedConstructor = refineConstructor(constructor, module, refinedArguments) ?: return@f null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@f it }
 
-            simpleType(annotations, expandedTypeOrRefinedConstructor.refinedConstructor!!, arguments, nullable, module)
+            simpleType(annotations, expandedTypeOrRefinedConstructor.refinedConstructor!!, refinedArguments, nullable, module)
         }
     }
 
