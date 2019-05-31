@@ -571,7 +571,7 @@ class PSICallResolver(
             null -> null
             is QualifierReceiver -> QualifierReceiverKotlinCallArgument(oldReceiver) // todo report warning if isSafeCall
             is ReceiverValue -> {
-                val detailedReceiver = context.transformToReceiverWithSmartCastInfo(oldReceiver)
+                val detailedReceiver = context.transformToReceiverWithSmartCastInfo(oldReceiver).refine(moduleDescriptor)
 
                 var subCallArgument: ReceiverKotlinCallArgument? = null
                 if (oldReceiver is ExpressionReceiver) {
