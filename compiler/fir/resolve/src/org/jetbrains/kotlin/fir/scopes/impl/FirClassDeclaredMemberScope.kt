@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.name.Name
 
 class FirClassDeclaredMemberScope(klass: FirRegularClass) : FirScope {
-    private val callablesIndex: Map<Name, List<FirCallableSymbol>> by lazy {
+    private val callablesIndex by lazy {
         val result = mutableMapOf<Name, MutableList<FirCallableSymbol>>()
         for (declaration in klass.declarations) {
             if (declaration is FirCallableMemberDeclaration) {
@@ -30,7 +30,7 @@ class FirClassDeclaredMemberScope(klass: FirRegularClass) : FirScope {
         }
         result
     }
-    private val classIndex: Map<Name, FirClassSymbol> by lazy {
+    private val classIndex by lazy {
         val result = mutableMapOf<Name, FirClassSymbol>()
         for (declaration in klass.declarations) {
             if (declaration is FirRegularClass) {
