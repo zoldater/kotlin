@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.types;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor;
+import org.jetbrains.kotlin.types.refinement.TypeRefinement;
 
 public class TypeProjectionImpl extends TypeProjectionBase {
     private final Variance projection;
@@ -51,6 +52,7 @@ public class TypeProjectionImpl extends TypeProjectionBase {
 
     @NotNull
     @Override
+    @TypeRefinement
     public TypeProjection refine(@NotNull ModuleDescriptor moduleDescriptor) {
         return new TypeProjectionImpl(projection, type.refine(moduleDescriptor));
     }

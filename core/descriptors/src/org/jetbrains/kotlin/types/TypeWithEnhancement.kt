@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.DescriptorRendererOptions
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 
 interface TypeWithEnhancement {
     val origin: UnwrappedType
@@ -42,6 +43,7 @@ class SimpleTypeWithEnhancement(
 
     override fun replaceDelegate(delegate: SimpleType) = SimpleTypeWithEnhancement(delegate, enhancement)
 
+    @TypeRefinement
     override fun refine(moduleDescriptor: ModuleDescriptor): SimpleTypeWithEnhancement =
             SimpleTypeWithEnhancement(delegate.refine(moduleDescriptor), enhancement.refine(moduleDescriptor))
 }
@@ -67,6 +69,7 @@ class FlexibleTypeWithEnhancement(
 
     override val delegate: SimpleType get() = origin.delegate
 
+    @TypeRefinement
     override fun refine(moduleDescriptor: ModuleDescriptor) =
         FlexibleTypeWithEnhancement(origin.refine(moduleDescriptor), enhancement.refine(moduleDescriptor))
 }
