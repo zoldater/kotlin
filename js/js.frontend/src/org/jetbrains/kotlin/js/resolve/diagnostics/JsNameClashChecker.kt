@@ -30,12 +30,13 @@ import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtensionProperty
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 
 class JsNameClashChecker(
     private val nameSuggestion: NameSuggestion,
     private val moduleDescriptor: ModuleDescriptor,
-    private val refineKotlinTypeChecker: RefineKotlinTypeChecker
+    private val kotlinTypeRefiner: KotlinTypeRefiner
 ) : DeclarationChecker {
     companion object {
         private val COMMON_DIAGNOSTICS = setOf(
@@ -152,7 +153,9 @@ class JsNameClashChecker(
                         .forEach { collect(it, scope)  }
             }
             is ClassDescriptor -> collect(
-                refineKotlinTypeChecker.refineType(descriptor.defaultType).memberScope,
+                @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+                @UseExperimental(TypeRefinement::class)
+                kotlinTypeRefiner.refineType(descriptor.defaultType).memberScope,
                 scope
             )
         }

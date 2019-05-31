@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.types.KotlinTypeKt;
 import org.jetbrains.kotlin.types.TypeConstructor;
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
 import org.jetbrains.kotlin.types.checker.KotlinTypeCheckerImpl;
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker;
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner;
 import org.jetbrains.kotlin.utils.SmartSet;
 
 import java.util.*;
@@ -62,28 +62,28 @@ public class OverridingUtil {
 
     static {
 
-        DEFAULT = new OverridingUtil(DEFAULT_TYPE_CONSTRUCTOR_EQUALITY, RefineKotlinTypeChecker.Default.INSTANCE);
+        DEFAULT = new OverridingUtil(DEFAULT_TYPE_CONSTRUCTOR_EQUALITY, KotlinTypeRefiner.Default.INSTANCE);
     }
 
     @NotNull
     public static OverridingUtil createWithEqualityAxioms(@NotNull KotlinTypeChecker.TypeConstructorEquality equalityAxioms) {
-        return new OverridingUtil(equalityAxioms, RefineKotlinTypeChecker.Default.INSTANCE);
+        return new OverridingUtil(equalityAxioms, KotlinTypeRefiner.Default.INSTANCE);
     }
 
     @NotNull
-    public static OverridingUtil createWithRefinedTypeChecker(@NotNull RefineKotlinTypeChecker refineKotlinTypeChecker) {
-        return new OverridingUtil(DEFAULT_TYPE_CONSTRUCTOR_EQUALITY, refineKotlinTypeChecker);
+    public static OverridingUtil createWithTypeRefiner(@NotNull KotlinTypeRefiner kotlinTypeRefiner) {
+        return new OverridingUtil(DEFAULT_TYPE_CONSTRUCTOR_EQUALITY, kotlinTypeRefiner);
     }
 
-    private final RefineKotlinTypeChecker refineKotlinTypeChecker;
+    private final KotlinTypeRefiner kotlinTypeRefiner;
     private final KotlinTypeChecker.TypeConstructorEquality equalityAxioms;
 
     private OverridingUtil(
             @NotNull KotlinTypeChecker.TypeConstructorEquality axioms,
-            @NotNull RefineKotlinTypeChecker refineKotlinTypeChecker
+            @NotNull KotlinTypeRefiner kotlinTypeRefiner
     ) {
         equalityAxioms = axioms;
-        this.refineKotlinTypeChecker = refineKotlinTypeChecker;
+        this.kotlinTypeRefiner = kotlinTypeRefiner;
     }
 
     /**
@@ -300,8 +300,8 @@ public class OverridingUtil {
                 boolean bothErrors = KotlinTypeKt.isError(subReturnType) && KotlinTypeKt.isError(superReturnType);
                 if (!bothErrors &&
                     !typeChecker.isSubtypeOf(
-                            refineKotlinTypeChecker.refineType(subReturnType),
-                            refineKotlinTypeChecker.refineType(superReturnType)
+                            kotlinTypeRefiner.refineType(subReturnType),
+                            kotlinTypeRefiner.refineType(superReturnType)
                     )
                 ) {
                     return OverrideCompatibilityInfo.conflict("Return type mismatch");
@@ -387,7 +387,7 @@ public class OverridingUtil {
     ) {
         boolean bothErrors = KotlinTypeKt.isError(typeInSuper) && KotlinTypeKt.isError(typeInSub);
         if (bothErrors) return true;
-        return typeChecker.equalTypes(refineKotlinTypeChecker.refineType(typeInSuper), refineKotlinTypeChecker.refineType(typeInSub));
+        return typeChecker.equalTypes(kotlinTypeRefiner.refineType(typeInSuper), kotlinTypeRefiner.refineType(typeInSub));
     }
 
     // See JLS 8, 8.4.4 Generic Methods

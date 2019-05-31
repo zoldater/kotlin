@@ -36,7 +36,7 @@ import org.jetbrains.kotlin.resolve.constants.IntegerValueTypeConstructor;
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator;
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope;
 import org.jetbrains.kotlin.types.*;
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker;
+import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
 import org.jetbrains.kotlin.types.expressions.*;
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 
@@ -60,7 +60,7 @@ public class ArgumentTypeResolver {
     @NotNull private final ConstantExpressionEvaluator constantExpressionEvaluator;
     @NotNull private final FunctionPlaceholders functionPlaceholders;
     @NotNull private final ModuleDescriptor moduleDescriptor;
-    @NotNull private final RefineKotlinTypeChecker refineKotlinTypeChecker;
+    @NotNull private final KotlinTypeChecker kotlinTypeChecker;
 
     private ExpressionTypingServices expressionTypingServices;
     private DoubleColonExpressionResolver doubleColonExpressionResolver;
@@ -72,7 +72,7 @@ public class ArgumentTypeResolver {
             @NotNull ConstantExpressionEvaluator constantExpressionEvaluator,
             @NotNull FunctionPlaceholders functionPlaceholders,
             @NotNull ModuleDescriptor moduleDescriptor,
-            @NotNull RefineKotlinTypeChecker refineKotlinTypeChecker
+            @NotNull KotlinTypeChecker kotlinTypeChecker
     ) {
         this.typeResolver = typeResolver;
         this.builtIns = builtIns;
@@ -80,7 +80,7 @@ public class ArgumentTypeResolver {
         this.constantExpressionEvaluator = constantExpressionEvaluator;
         this.functionPlaceholders = functionPlaceholders;
         this.moduleDescriptor = moduleDescriptor;
-        this.refineKotlinTypeChecker = refineKotlinTypeChecker;
+        this.kotlinTypeChecker = kotlinTypeChecker;
     }
 
     // component dependency cycle
@@ -100,9 +100,9 @@ public class ArgumentTypeResolver {
     ) {
         if (FunctionPlaceholdersKt.isFunctionPlaceholder(actualType)) {
             KotlinType functionType = ConstraintSystemBuilderImplKt.createTypeForFunctionPlaceholder(actualType, expectedType);
-            return refineKotlinTypeChecker.isSubtypeOf(functionType, expectedType);
+            return kotlinTypeChecker.isSubtypeOf(functionType, expectedType);
         }
-        return refineKotlinTypeChecker.isSubtypeOf(actualType, expectedType);
+        return kotlinTypeChecker.isSubtypeOf(actualType, expectedType);
     }
 
     public void checkTypesWithNoCallee(

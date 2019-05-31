@@ -28,8 +28,9 @@ import org.jetbrains.kotlin.idea.resolve.frontendService
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.isError
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 
 open class RemovePartsFromPropertyFix(
         element: KtProperty,
@@ -91,7 +92,9 @@ open class RemovePartsFromPropertyFix(
             // The ideal fix would be using a String that needs to be rendered instead of actual type
             //
             // But calling another type refinement also helps because it makes KotlinType instance using new module descriptor
-            typeToAdd = replaceElement.getResolutionFacade().frontendService<RefineKotlinTypeChecker>().refineType(typeToAdd)
+            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+            @UseExperimental(TypeRefinement::class)
+            typeToAdd = replaceElement.getResolutionFacade().frontendService<KotlinTypeRefiner>().refineType(typeToAdd)
 
             SpecifyTypeExplicitlyIntention.addTypeAnnotation(editor, replaceElement, typeToAdd)
         }

@@ -70,7 +70,7 @@ class LazyJavaStaticClassScope(
             result,
             ownerDescriptor,
             c.components.errorReporter,
-            c.components.refineKotlinTypeChecker.overridingUtil
+            c.components.kotlinTypeChecker.overridingUtil
         ))
 
         if (jClass.isEnum) {
@@ -94,7 +94,7 @@ class LazyJavaStaticClassScope(
                     result,
                     ownerDescriptor,
                     c.components.errorReporter,
-                    c.components.refineKotlinTypeChecker.overridingUtil
+                    c.components.kotlinTypeChecker.overridingUtil
                 )
             )
         } else {
@@ -103,7 +103,7 @@ class LazyJavaStaticClassScope(
             }.flatMap {
                 resolveOverridesForStaticMembers(
                     name, it.value, result, ownerDescriptor, c.components.errorReporter,
-                    c.components.refineKotlinTypeChecker.overridingUtil
+                    c.components.kotlinTypeChecker.overridingUtil
                 )
             })
         }

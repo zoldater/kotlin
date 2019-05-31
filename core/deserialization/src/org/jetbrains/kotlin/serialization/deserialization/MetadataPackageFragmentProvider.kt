@@ -33,7 +33,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.serialization.deserialization.builtins.BuiltInSerializerProtocol
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedPackageMemberScope
 import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import java.io.InputStream
 
 class MetadataPackageFragmentProvider(
@@ -43,7 +43,7 @@ class MetadataPackageFragmentProvider(
     notFoundClasses: NotFoundClasses,
     private val metadataPartProvider: MetadataPartProvider,
     contractDeserializer: ContractDeserializer,
-    refineKotlinTypeChecker: RefineKotlinTypeChecker
+    kotlinTypeChecker: NewKotlinTypeChecker
 ) : AbstractDeserializedPackageFragmentProvider(storageManager, finder, moduleDescriptor) {
     init {
         components = DeserializationComponents(
@@ -62,7 +62,7 @@ class MetadataPackageFragmentProvider(
             contractDeserializer,
             AdditionalClassPartsProvider.None, PlatformDependentDeclarationFilter.All,
             BuiltInSerializerProtocol.extensionRegistry,
-            refineKotlinTypeChecker
+            kotlinTypeChecker
         )
     }
 

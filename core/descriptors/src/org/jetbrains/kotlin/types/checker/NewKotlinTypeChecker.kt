@@ -18,15 +18,16 @@ package org.jetbrains.kotlin.types.checker
 
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
+import org.jetbrains.kotlin.resolve.OverridingUtil
 import org.jetbrains.kotlin.resolve.calls.inference.CapturedType
 import org.jetbrains.kotlin.resolve.calls.inference.CapturedTypeConstructorImpl
 import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
 import org.jetbrains.kotlin.resolve.constants.IntegerValueTypeConstructor
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.AbstractNullabilityChecker.hasNotNullSupertype
-import org.jetbrains.kotlin.types.AbstractNullabilityChecker.hasPathByNotMarkedNullableNodes
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext.SupertypesPolicy
 import org.jetbrains.kotlin.types.model.CaptureStatus
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.typeUtil.makeNullable
 
 object SimpleClassicTypeSystemContext : ClassicTypeSystemContext
@@ -50,18 +51,42 @@ object StrictEqualityTypeChecker {
 
 object ErrorTypesAreEqualToAnything : KotlinTypeChecker {
     override fun isSubtypeOf(subtype: KotlinType, supertype: KotlinType): Boolean =
-        NewKotlinTypeChecker.run { ClassicTypeCheckerContext(true).isSubtypeOf(subtype.unwrap(), supertype.unwrap()) }
+        NewKotlinTypeChecker.Default.run { ClassicTypeCheckerContext(true).isSubtypeOf(subtype.unwrap(), supertype.unwrap()) }
 
     override fun equalTypes(a: KotlinType, b: KotlinType): Boolean =
-        NewKotlinTypeChecker.run { ClassicTypeCheckerContext(true).equalTypes(a.unwrap(), b.unwrap()) }
+        NewKotlinTypeChecker.Default.run { ClassicTypeCheckerContext(true).equalTypes(a.unwrap(), b.unwrap()) }
 }
 
-object NewKotlinTypeChecker : KotlinTypeChecker {
-    override fun isSubtypeOf(subtype: KotlinType, supertype: KotlinType): Boolean =
-        ClassicTypeCheckerContext(true).isSubtypeOf(subtype.unwrap(), supertype.unwrap()) // todo fix flag errorTypeEqualsToAnything
+interface NewKotlinTypeChecker : KotlinTypeChecker {
+    val kotlinTypeRefiner: KotlinTypeRefiner
+    val overridingUtil: OverridingUtil
 
+    fun transformToNewType(type: UnwrappedType): UnwrappedType
+
+    companion object {
+        val Default = NewKotlinTypeCheckerImpl(KotlinTypeRefiner.Default)
+    }
+}
+
+
+class NewKotlinTypeCheckerImpl(override val kotlinTypeRefiner: KotlinTypeRefiner) : NewKotlinTypeChecker {
+    override val overridingUtil: OverridingUtil = OverridingUtil.createWithTypeRefiner(kotlinTypeRefiner)
+
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun isSubtypeOf(subtype: KotlinType, supertype: KotlinType): Boolean =
+        ClassicTypeCheckerContext(true).isSubtypeOf(
+            kotlinTypeRefiner.refineType(subtype.unwrap()).unwrap(),
+            kotlinTypeRefiner.refineType(supertype.unwrap()).unwrap()
+        ) // todo fix flag errorTypeEqualsToAnything
+
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
     override fun equalTypes(a: KotlinType, b: KotlinType): Boolean =
-        ClassicTypeCheckerContext(false).equalTypes(a.unwrap(), b.unwrap())
+        ClassicTypeCheckerContext(false).equalTypes(
+            kotlinTypeRefiner.refineType(a.unwrap()).unwrap(),
+            kotlinTypeRefiner.refineType(b.unwrap()).unwrap()
+        )
 
     fun ClassicTypeCheckerContext.equalTypes(a: UnwrappedType, b: UnwrappedType): Boolean {
         return AbstractTypeChecker.equalTypes(this as AbstractTypeCheckerContext, a, b)
@@ -111,7 +136,7 @@ object NewKotlinTypeChecker : KotlinTypeChecker {
         return type
     }
 
-    fun transformToNewType(type: UnwrappedType): UnwrappedType =
+    override fun transformToNewType(type: UnwrappedType): UnwrappedType =
         when (type) {
             is SimpleType -> transformToNewType(type)
             is FlexibleType -> {

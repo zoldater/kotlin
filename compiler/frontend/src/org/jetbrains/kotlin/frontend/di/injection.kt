@@ -36,7 +36,8 @@ import org.jetbrains.kotlin.resolve.checkers.ExpectedActualDeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.ExperimentalUsageChecker
 import org.jetbrains.kotlin.resolve.lazy.*
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactory
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeCheckerImpl
 import org.jetbrains.kotlin.types.expressions.DeclarationScopeProviderForLocalClassifierAnalyzer
 import org.jetbrains.kotlin.types.expressions.LocalClassDescriptorHolder
 import org.jetbrains.kotlin.types.expressions.LocalLazyDeclarationResolver
@@ -67,10 +68,12 @@ fun StorageComponentContainer.configureModule(
         extension.registerModuleComponents(this, platform, moduleContext.module)
     }
 
+    useImpl<NewKotlinTypeCheckerImpl>()
+
     if (languageVersionSettings.isTypeRefinementEnabled) {
-        useImpl<RefineKotlinTypeCheckerImpl>()
+        useImpl<KotlinTypeRefinerImpl>()
     } else {
-        useInstance(RefineKotlinTypeChecker.Default)
+        useInstance(KotlinTypeRefiner.Default)
     }
 
     configurePlatformIndependentComponents()

@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.types.checker
 
 import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
 import org.jetbrains.kotlin.types.*
-import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker.transformToNewType
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker
@@ -26,11 +25,11 @@ import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 open class ClassicTypeCheckerContext(
     private val errorTypeEqualsToAnything: Boolean,
     private val allowedTypeVariable: Boolean = true,
-    private val refineKotlinTypeChecker: RefineKotlinTypeChecker = RefineKotlinTypeChecker.Default
+    private val kotlinTypeChecker: NewKotlinTypeChecker = NewKotlinTypeChecker.Default
 ) : ClassicTypeSystemContext, AbstractTypeCheckerContext() {
 
     override fun prepareType(type: KotlinTypeMarker): KotlinTypeMarker {
-        return transformToNewType(refineKotlinTypeChecker.refineType((type as KotlinType).unwrap()) as UnwrappedType)
+        return kotlinTypeChecker.transformToNewType((type as KotlinType).unwrap())
     }
 
     override val isErrorTypeEqualsToAnything: Boolean
