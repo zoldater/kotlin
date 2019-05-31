@@ -58,3 +58,6 @@ class RefineKotlinTypeCheckerImpl(
 
     override val overridingUtil = OverridingUtil.createWithRefinedTypeChecker(this)
 }
+
+val LanguageVersionSettings.isTypeRefinementEnabled: Boolean
+    get() = getFlag(AnalysisFlags.useTypeRefinement) && supportsFeature(LanguageFeature.MultiPlatformProjects)

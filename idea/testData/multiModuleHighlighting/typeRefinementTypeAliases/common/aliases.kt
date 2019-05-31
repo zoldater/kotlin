@@ -1,4 +1,4 @@
-@file:Suppress("UNSUPPORTED_FEATURE")
+@file:Suppress("NO_ACTUAL_FOR_EXPECT")
 
 package aliases
 

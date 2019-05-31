@@ -180,9 +180,9 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
     }
 
     fun testTypeRefinementTypeAliases() {
-        val common = module("common")
-        val platform = module("platform")
-        val main = module("main")
+        val common = moduleWithRefinement("common")
+        val platform = moduleWithRefinement("platform")
+        val main = moduleWithRefinement("main")
 
         platform.addDependency(common)
         main.addDependency(common)
@@ -192,9 +192,9 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
     }
 
     fun testTypeRefinementTypeParameters() {
-        val common = module("common")
-        val platform = module("platform")
-        val main = module("main")
+        val common = moduleWithRefinement("common")
+        val platform = moduleWithRefinement("platform")
+        val main = moduleWithRefinement("main")
 
         platform.addDependency(common)
         main.addDependency(common)
@@ -204,10 +204,10 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
     }
 
     fun testTypesRefinement() {
-        val d1 = module("d1")
-        val d2 = module("d2")
-        val d3 = module("d3")
-        val d4 = module("d4")
+        val d1 = moduleWithRefinement("d1")
+        val d2 = moduleWithRefinement("d2")
+        val d3 = moduleWithRefinement("d3")
+        val d4 = moduleWithRefinement("d4")
 
         d3.addDependency(d1)
         d4.addDependency(d2)
@@ -217,11 +217,11 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
     }
 
     fun testTypesRefinementSupertypes() {
-        val d0 = module("d0")
-        val d1 = module("d1")
-        val d2 = module("d2")
-        val d3 = module("d3")
-        val d4 = module("d4")
+        val d0 = moduleWithRefinement("d0")
+        val d1 = moduleWithRefinement("d1")
+        val d2 = moduleWithRefinement("d2")
+        val d3 = moduleWithRefinement("d3")
+        val d4 = moduleWithRefinement("d4")
 
         d3.addDependency(d1)
 
@@ -353,5 +353,9 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
         setupKotlinFacet {
             settings.compilerArguments = K2JSCompilerArguments()
         }
+    }
+
+    private fun moduleWithRefinement(name: String): Module = module(name).setupKotlinFacet {
+        settings.compilerArguments?.apply { multiPlatform = true }
     }
 }
