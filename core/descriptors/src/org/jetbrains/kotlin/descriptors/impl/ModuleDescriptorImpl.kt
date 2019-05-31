@@ -24,6 +24,8 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
+import org.jetbrains.kotlin.types.refinement.RefinementCacheImpl
+import org.jetbrains.kotlin.types.refinement.refinementCacheCapability
 import org.jetbrains.kotlin.utils.sure
 
 class ModuleDescriptorImpl @JvmOverloads constructor(
@@ -32,13 +34,17 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
     override val builtIns: KotlinBuiltIns,
     // May be null in compiler context, should be not-null in IDE context
     override val platform: TargetPlatform? = null,
-    private val capabilities: Map<ModuleDescriptor.Capability<*>, Any?> = emptyMap(),
+    capabilities: Map<ModuleDescriptor.Capability<*>, Any?> = emptyMap(),
     override val stableName: Name? = null
 ) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName), ModuleDescriptor {
+    private val capabilities: Map<ModuleDescriptor.Capability<*>, Any?>
+
     init {
         if (!moduleName.isSpecial) {
             throw IllegalArgumentException("Module name must be special: $moduleName")
         }
+        this.capabilities = capabilities.toMutableMap()
+        this.capabilities[refinementCacheCapability] = RefinementCacheImpl(this, storageManager)
     }
 
     private var dependencies: ModuleDependencies? = null
