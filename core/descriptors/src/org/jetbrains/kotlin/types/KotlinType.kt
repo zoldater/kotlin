@@ -57,13 +57,17 @@ sealed class KotlinType : Annotated, KotlinTypeMarker {
 
     abstract fun refine(moduleDescriptor: ModuleDescriptor): KotlinType
 
-    final override fun hashCode(): Int {
-        if (isError) return super.hashCode()
+    private val _hashCode: Int by lazy {
+        if (isError) return@lazy super.hashCode()
 
         var result = constructor.hashCode()
         result = 31 * result + arguments.hashCode()
         result = 31 * result + if (isMarkedNullable) 1 else 0
-        return result
+        result
+    }
+
+    final override fun hashCode(): Int {
+        return _hashCode
     }
 
     final override fun equals(other: Any?): Boolean {
