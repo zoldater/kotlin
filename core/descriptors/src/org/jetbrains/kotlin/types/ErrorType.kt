@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.types
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 
 open class ErrorType @JvmOverloads internal constructor(
         override val constructor: TypeConstructor,
@@ -37,6 +38,7 @@ open class ErrorType @JvmOverloads internal constructor(
     override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType =
             ErrorType(constructor, memberScope, arguments, newNullability)
 
+    @TypeRefinement
     override fun refine(moduleDescriptor: ModuleDescriptor) = this
 }
 
@@ -50,5 +52,6 @@ class UnresolvedType(
     override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType =
             UnresolvedType(presentableName, constructor, memberScope, arguments, newNullability)
 
+    @TypeRefinement
     override fun refine(moduleDescriptor: ModuleDescriptor) = this
 }

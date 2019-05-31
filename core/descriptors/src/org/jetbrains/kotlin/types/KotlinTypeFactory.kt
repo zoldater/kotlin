@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.descriptors.impl.getRefinedUnsubstitutedMemberScopeI
 import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.refinementCache
 
 object KotlinTypeFactory {
@@ -54,6 +55,8 @@ object KotlinTypeFactory {
 
     @JvmStatic
     @JvmOverloads
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
     fun simpleType(
         annotations: Annotations,
         constructor: TypeConstructor,
@@ -84,6 +87,8 @@ object KotlinTypeFactory {
         )
     }
 
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
     private fun refineConstructor(
         constructor: TypeConstructor,
         moduleDescriptor: ModuleDescriptor,
@@ -208,6 +213,7 @@ private class SimpleTypeImpl(
         }
     }
 
+    @TypeRefinement
     override fun refine(moduleDescriptor: ModuleDescriptor): SimpleType {
         return moduleDescriptor.refinementCache.refineOrGetType(this, refinedTypeFactory)
     }

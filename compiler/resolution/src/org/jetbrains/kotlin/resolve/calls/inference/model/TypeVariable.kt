@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.checker.NewTypeVariableConstructor
 import org.jetbrains.kotlin.types.model.TypeVariableMarker
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 
 
 class TypeVariableTypeConstructor(private val builtIns: KotlinBuiltIns, val debugName: String) : TypeConstructor,
@@ -42,6 +43,7 @@ class TypeVariableTypeConstructor(private val builtIns: KotlinBuiltIns, val debu
 
     override fun getBuiltIns() = builtIns
 
+    @TypeRefinement
     override fun refine(moduleDescriptor: ModuleDescriptor): TypeConstructor? = null
 
     override fun toString() = "TypeVariable($debugName)"

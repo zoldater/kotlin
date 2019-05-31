@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.model.CaptureStatus
 import org.jetbrains.kotlin.types.model.CapturedTypeMarker
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 import org.jetbrains.kotlin.utils.DO_NOTHING_2
@@ -141,6 +142,7 @@ class NewCapturedType(
     override fun makeNullableAsSpecified(newNullability: Boolean) =
         NewCapturedType(captureStatus, constructor, lowerType, annotations, newNullability)
 
+    @TypeRefinement
     override fun refine(moduleDescriptor: ModuleDescriptor) =
         NewCapturedType(
             captureStatus,
@@ -170,6 +172,7 @@ class NewCapturedTypeConstructor(
     override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
     override fun getBuiltIns(): KotlinBuiltIns = projection.type.builtIns
 
+    @TypeRefinement
     override fun refine(moduleDescriptor: ModuleDescriptor) =
         NewCapturedTypeConstructor(
             projection.refine(moduleDescriptor),

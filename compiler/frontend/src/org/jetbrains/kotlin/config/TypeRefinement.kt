@@ -12,8 +12,11 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.refinementCache
 
+@Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+@UseExperimental(TypeRefinement::class)
 class RefineKotlinTypeCheckerImpl(
     private val moduleDescriptor: ModuleDescriptor,
     languageVersionSettings: LanguageVersionSettings
