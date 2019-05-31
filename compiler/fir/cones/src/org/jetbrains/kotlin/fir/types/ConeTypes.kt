@@ -6,7 +6,9 @@
 package org.jetbrains.kotlin.fir.types
 
 import org.jetbrains.kotlin.fir.symbols.*
-import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName.Companion.ROOT
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.types.model.*
 
 sealed class ConeKotlinTypeProjection : TypeArgumentMarker {
@@ -74,7 +76,7 @@ typealias ConeKotlinErrorType = ConeClassErrorType
 
 class ConeClassErrorType(val reason: String) : ConeClassLikeType() {
     override val lookupTag: ConeClassLikeLookupTag
-        get() = ConeClassLikeLookupTagImpl(ClassId.fromString("<error>"))
+        get() = ConeClassLikeLookupTagImpl(errorClassId)
 
     override val typeArguments: Array<out ConeKotlinTypeProjection>
         get() = EMPTY_ARRAY
@@ -84,6 +86,10 @@ class ConeClassErrorType(val reason: String) : ConeClassLikeType() {
 
     override fun toString(): String {
         return "<ERROR CLASS: $reason>"
+    }
+
+    companion object {
+        val errorClassId = FirClassId(ROOT, FirName.special("<error>"))
     }
 }
 

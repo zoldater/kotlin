@@ -5,24 +5,27 @@
 
 package org.jetbrains.kotlin.fir.symbols
 
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
-import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.fir.names.FirClassId
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.fir.names.FirNameFactory
 
 // NB: with className == null we are at top level
-data class CallableId(val packageName: FqName, val className: FqName?, val callableName: Name) {
-    val classId: ClassId? get() = className?.let { ClassId(packageName, it, false) }
+data class CallableId(val packageName: FirFqName, val className: FirFqName?, val callableName: FirName) {
+    val classId: FirClassId? get() = className?.let { FirClassId(packageName, it/*, false*/) }
 
-    constructor(packageName: FqName, callableName: Name) : this(packageName, null, callableName)
+    constructor(packageName: FirFqName, callableName: FirName) : this(packageName, null, callableName)
 
     @Deprecated("TODO: Better solution for local callables?")
-    constructor(callableName: Name) : this(FqName.topLevel(Name.special("<local>")), null, callableName)
+    constructor(callableName: FirName) : this(FirFqName.create(FirNameFactory.LOCAL), null, callableName)
 
 
     override fun toString(): String {
         return buildString {
-            append(packageName.asString().replace('.', '/'))
+            append(packageName.toString().replace('.', '/'))
             append("/")
             if (className != null) {
                 append(className)
@@ -30,6 +33,9 @@ data class CallableId(val packageName: FqName, val className: FqName?, val calla
             }
             append(callableName)
         }
+    }
+
+    companion object {
     }
 }
 

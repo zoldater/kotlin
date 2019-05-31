@@ -5,11 +5,11 @@
 
 package org.jetbrains.kotlin.fir.symbols
 
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirName
 
 interface ConeClassifierLookupTag {
-    val name: Name
+    val name: FirName
 }
 
 interface ConeClassifierLookupTagWithFixedSymbol {
@@ -17,13 +17,13 @@ interface ConeClassifierLookupTagWithFixedSymbol {
 }
 
 interface ConeTypeParameterLookupTag : ConeClassifierLookupTag {
-    override val name: Name
+    override val name: FirName
 
 }
 interface ConeClassLikeLookupTag : ConeClassifierLookupTag {
-    val classId: ClassId
+    val classId: FirClassId
 
-    override val name: Name
+    override val name: FirName
         get() = classId.shortClassName
 }
 
@@ -31,7 +31,7 @@ interface ConeTypeAliasLookupTag : ConeClassLikeLookupTag
 
 interface ConeClassLookupTag : ConeClassLikeLookupTag
 
-class ConeClassLikeLookupTagImpl(override val classId: ClassId) : ConeClassLikeLookupTag {
+class ConeClassLikeLookupTagImpl(override val classId: FirClassId) : ConeClassLikeLookupTag {
     var boundSymbol: Pair<*, *>? = null
 
     override fun equals(other: Any?): Boolean {

@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.fir.symbols
 
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 import org.jetbrains.kotlin.types.model.TypeParameterMarker
 
@@ -21,7 +21,7 @@ interface ConeTypeParameterSymbol : ConeClassifierSymbol, ConeTypeParameterLooku
 }
 
 interface ConeClassLikeSymbol : ConeClassifierSymbol, TypeConstructorMarker {
-    val classId: ClassId
+    val classId: FirClassId
 
     override fun toLookupTag(): ConeClassLikeLookupTag
 }

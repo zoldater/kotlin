@@ -5,15 +5,16 @@
 
 package org.jetbrains.kotlin.fir.symbols
 
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirName
 
 object StandardClassIds {
 
-    private val BASE_KOTLIN_PACKAGE = FqName("kotlin")
-    private fun String.baseId() = ClassId(BASE_KOTLIN_PACKAGE, Name.identifier(this))
-    private fun Name.arrayId() = ClassId(Array.packageFqName, Name.identifier(identifier + Array.shortClassName.identifier))
+    private val BASE_KOTLIN_PACKAGE = FirFqName.create(FirName.identifier("kotlin"))
+    private fun String.baseId() = FirClassId(BASE_KOTLIN_PACKAGE, FirName.identifier(this))
+    private fun FirName.arrayId() = FirClassId(Array.packageFqName, FirName.identifier(identifier + Array.shortClassName.identifier))
 
     val Nothing = "Nothing".baseId()
     val Unit = "Unit".baseId()
@@ -35,8 +36,8 @@ object StandardClassIds {
 
     fun byName(name: String) = name.baseId()
 
-    val primitiveArrayTypeByElementType: Map<ClassId, ClassId> = mutableMapOf<ClassId, ClassId>().apply {
-        fun addPrimitive(id: ClassId) {
+    val primitiveArrayTypeByElementType: Map<FirClassId, FirClassId> = mutableMapOf<FirClassId, FirClassId>().apply {
+        fun addPrimitive(id: FirClassId) {
             put(id, id.shortClassName.arrayId())
         }
 
