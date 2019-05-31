@@ -85,7 +85,6 @@ class RawTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : FlexibleType
     }
 
     override fun refine(moduleDescriptor: ModuleDescriptor): FlexibleType {
-        if (moduleDescriptor.builtIns === lowerBound.builtIns) return this
         return RawTypeImpl(lowerBound.refine(moduleDescriptor), upperBound.refine(moduleDescriptor))
     }
 }
