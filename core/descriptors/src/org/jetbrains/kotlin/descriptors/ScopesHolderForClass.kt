@@ -10,6 +10,8 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.storage.getValue
 import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.getOrPutScopeForClass
 
 class ScopesHolderForClass<T : MemberScope> private constructor(
     private val classDescriptor: ClassDescriptor,
@@ -19,6 +21,8 @@ class ScopesHolderForClass<T : MemberScope> private constructor(
 ) {
     private val scopeForOwnerModule by storageManager.createLazyValue { scopeFactory(classDescriptor.module) }
 
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
     fun getScope(moduleDescriptor: ModuleDescriptor): T {
         if (classDescriptor.module === moduleDescriptor) return scopeForOwnerModule
 

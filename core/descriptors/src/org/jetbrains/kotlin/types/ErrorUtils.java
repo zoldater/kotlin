@@ -148,13 +148,6 @@ public class ErrorUtils {
             public void assertValid() {
                 throw new InvalidModuleException("ERROR_MODULE is not a valid module");
             }
-
-            @Override
-            @NotNull
-            public <S extends MemberScope> S getOrPutScopeForClass(
-                    @NotNull ClassDescriptor classDescriptor, @NotNull Function0<? extends S> compute) {
-                return compute.invoke();
-            }
         };
     }
 
