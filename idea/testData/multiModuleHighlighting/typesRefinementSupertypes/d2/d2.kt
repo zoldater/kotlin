@@ -1,4 +1,4 @@
-@file:Suppress("UNSUPPORTED_FEATURE")
+@file:Suppress("ACTUAL_WITHOUT_EXPECT")
 
 package foo
 import d0.AnotherSupertype
