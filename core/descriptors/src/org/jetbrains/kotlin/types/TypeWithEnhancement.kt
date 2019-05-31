@@ -41,6 +41,9 @@ class SimpleTypeWithEnhancement(
             = origin.makeNullableAsSpecified(newNullability).wrapEnhancement(enhancement.unwrap().makeNullableAsSpecified(newNullability)) as SimpleType
 
     override fun replaceDelegate(delegate: SimpleType) = SimpleTypeWithEnhancement(delegate, enhancement)
+
+    override fun refine(moduleDescriptor: ModuleDescriptor): SimpleTypeWithEnhancement =
+            SimpleTypeWithEnhancement(delegate.refine(moduleDescriptor), enhancement.refine(moduleDescriptor))
 }
 
 class FlexibleTypeWithEnhancement(

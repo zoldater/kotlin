@@ -103,10 +103,7 @@ class CapturedType(
         CapturedType(typeProjection, constructor, isMarkedNullable, newAnnotations)
 
     override fun refine(moduleDescriptor: ModuleDescriptor) =
-        CapturedType(
-            TypeProjectionImpl(typeProjection.projectionKind, typeProjection.type.refine(moduleDescriptor)),
-            constructor, isMarkedNullable, annotations
-        )
+        CapturedType(typeProjection.refine(moduleDescriptor), constructor, isMarkedNullable, annotations)
 }
 
 fun createCapturedType(typeProjection: TypeProjection): KotlinType = CapturedType(typeProjection)

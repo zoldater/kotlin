@@ -125,19 +125,8 @@ class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {
         expression: KtExpression?,
         c: ResolutionContext<*>,
         call: Call?,
-        recordExpressionType: Boolean
-    ): SmartCastResult? {
-        return checkAndRecordPossibleCast(dataFlowValue, expectedType, null, expression, c, call, recordExpressionType)
-    }
-
-    fun checkAndRecordPossibleCast(
-        dataFlowValue: DataFlowValue,
-        expectedType: KotlinType,
-        additionalPredicate: ((KotlinType) -> Boolean)?,
-        expression: KtExpression?,
-        c: ResolutionContext<*>,
-        call: Call?,
-        recordExpressionType: Boolean
+        recordExpressionType: Boolean,
+        additionalPredicate: ((KotlinType) -> Boolean)? = null
     ): SmartCastResult? {
         val calleeExpression = call?.calleeExpression
         val expectedTypes = if (c.languageVersionSettings.supportsFeature(LanguageFeature.NewInference))

@@ -50,6 +50,9 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
             = AbbreviatedType(delegate.makeNullableAsSpecified(newNullability), abbreviation.makeNullableAsSpecified(newNullability))
 
     override fun replaceDelegate(delegate: SimpleType) = AbbreviatedType(delegate, abbreviation)
+
+    override fun refine(moduleDescriptor: ModuleDescriptor): AbbreviatedType =
+        AbbreviatedType(delegate.refine(moduleDescriptor), abbreviation.refine(moduleDescriptor))
 }
 
 fun KotlinType.getAbbreviatedType(): AbbreviatedType? = unwrap() as? AbbreviatedType
