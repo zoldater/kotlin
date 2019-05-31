@@ -549,7 +549,7 @@ open class WrappedClassDescriptor(
 
 
     private val _defaultType: SimpleType by lazy {
-        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope) { _defaultType }
+        TypeUtils.makeUnsubstitutedType(this, unsubstitutedMemberScope) { null }
     }
 
     override fun getDefaultType(): SimpleType = _defaultType
