@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.descriptors.impl.getRefinedUnsubstitutedMemberScopeI
 import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.refinement.refinementCache
 
 object KotlinTypeFactory {
     private fun computeMemberScope(
@@ -207,7 +208,7 @@ private class SimpleTypeImpl(
     }
 
     override fun refine(moduleDescriptor: ModuleDescriptor): SimpleType {
-        return refinedTypeFactory(moduleDescriptor) ?: this
+        return moduleDescriptor.refinementCache.refineOrGetType(this, refinedTypeFactory)
     }
 }
 
