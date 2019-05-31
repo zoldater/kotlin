@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.resolve.scopes.receivers
 
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.prepareArgumentTypeRegardingCaptureTypes
@@ -31,6 +32,16 @@ class ReceiverValueWithSmartCastInfo(
 ) : DetailedReceiver {
     override fun toString() = receiverValue.toString()
 }
+
+fun ReceiverValueWithSmartCastInfo.refine(moduleDescriptor: ModuleDescriptor): ReceiverValueWithSmartCastInfo {
+    val refinedType = receiverValue.type.refine(moduleDescriptor)
+    return ReceiverValueWithSmartCastInfo(
+        receiverValue.replaceType(refinedType),
+        possibleTypes.mapTo(mutableSetOf()) { it.refine(moduleDescriptor) },
+        isStable
+    )
+}
+
 
 interface QualifierReceiver : Receiver, DetailedReceiver {
     val descriptor: DeclarationDescriptor
