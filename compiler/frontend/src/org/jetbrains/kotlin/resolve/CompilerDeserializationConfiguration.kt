@@ -5,10 +5,7 @@
 
 package org.jetbrains.kotlin.resolve
 
-import org.jetbrains.kotlin.config.AnalysisFlags
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
-import org.jetbrains.kotlin.config.LanguageFeature
-import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.serialization.deserialization.DeserializationConfiguration
 
 class CompilerDeserializationConfiguration(languageVersionSettings: LanguageVersionSettings) : DeserializationConfiguration {
@@ -25,5 +22,5 @@ class CompilerDeserializationConfiguration(languageVersionSettings: LanguageVers
 
     override val releaseCoroutines: Boolean = languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
 
-    override val useRefineTypes: Boolean = languageVersionSettings.getFlag(AnalysisFlags.useTypeRefinement)
+    override val useRefineTypes: Boolean = languageVersionSettings.isTypeRefinementEnabled
 }

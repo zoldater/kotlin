@@ -17,8 +17,7 @@
 package org.jetbrains.kotlin.frontend.di
 
 import org.jetbrains.kotlin.platform.TargetPlatform
-import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.config.RefineKotlinTypeCheckerImpl
+import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useImpl
 import org.jetbrains.kotlin.container.useInstance
@@ -37,6 +36,7 @@ import org.jetbrains.kotlin.resolve.checkers.ExpectedActualDeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.ExperimentalUsageChecker
 import org.jetbrains.kotlin.resolve.lazy.*
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactory
+import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
 import org.jetbrains.kotlin.types.expressions.DeclarationScopeProviderForLocalClassifierAnalyzer
 import org.jetbrains.kotlin.types.expressions.LocalClassDescriptorHolder
 import org.jetbrains.kotlin.types.expressions.LocalLazyDeclarationResolver
@@ -67,6 +67,12 @@ fun StorageComponentContainer.configureModule(
         extension.registerModuleComponents(this, platform, moduleContext.module)
     }
 
+    if (languageVersionSettings.isTypeRefinementEnabled) {
+        useImpl<RefineKotlinTypeCheckerImpl>()
+    } else {
+        useInstance(RefineKotlinTypeChecker.Default)
+    }
+
     configurePlatformIndependentComponents()
 }
 
@@ -83,8 +89,6 @@ private fun StorageComponentContainer.configurePlatformIndependentComponents() {
     useImpl<CompilerDeserializationConfiguration>()
 
     useImpl<ClassicTypeSystemContextForCS>()
-
-    useImpl<RefineKotlinTypeCheckerImpl>()
 }
 
 /**
