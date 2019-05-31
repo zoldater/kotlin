@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.resolve.calls.tower.KotlinResolutionCallbacksImpl;
 import org.jetbrains.kotlin.resolve.scopes.*;
 import org.jetbrains.kotlin.types.ErrorUtils;
 import org.jetbrains.kotlin.types.KotlinType;
+import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker;
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import org.jetbrains.kotlin.util.slicedMap.WritableSlice;
 
@@ -387,5 +388,9 @@ public class ExpressionTypingServices {
 
     public LocalRedeclarationChecker createLocalRedeclarationChecker(BindingTrace trace) {
         return new TraceBasedLocalRedeclarationChecker(trace, expressionTypingComponents.overloadChecker);
+    }
+
+    public @NotNull RefineKotlinTypeChecker getRefineKotlinTypeChecker() {
+        return expressionTypingComponents.refineKotlinTypeChecker;
     }
 }

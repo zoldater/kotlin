@@ -117,6 +117,11 @@ class CallExpressionResolver(
         )
         val resolutionResult = callResolver.resolveSimpleProperty(contextForVariable)
 
+        val resultType = if (resolutionResult.isSingleResult)
+            resolutionResult.resultingDescriptor.returnType?.let { expressionTypingServices.refineKotlinTypeChecker.refineType(it) }
+        else
+            null
+
         // if the expression is a receiver in a qualified expression, it should be resolved after the selector is resolved
         val isLHSOfDot = KtPsiUtil.isLHSOfDot(nameExpression)
         if (!resolutionResult.isNothing && resolutionResult.resultCode != CANDIDATES_WITH_WRONG_RECEIVER) {
@@ -125,15 +130,12 @@ class CallExpressionResolver(
                     resolutionResult.resultingDescriptor is FakeCallableDescriptorForObject
             if (!isQualifier) {
                 temporaryForVariable.commit()
-                return Pair(true, if (resolutionResult.isSingleResult) resolutionResult.resultingDescriptor.returnType else null)
+                return Pair(true, resultType)
             }
         }
 
         temporaryForVariable.commit()
-        return Pair(
-            !resolutionResult.isNothing,
-            if (resolutionResult.isSingleResult) resolutionResult.resultingDescriptor.returnType else null
-        )
+        return Pair(!resolutionResult.isNothing, resultType)
     }
 
     fun getSimpleNameExpressionTypeInfo(
