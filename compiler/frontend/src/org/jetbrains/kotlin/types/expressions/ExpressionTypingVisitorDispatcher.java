@@ -184,7 +184,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends KtVisitor<Kotlin
 
                     KotlinType refinedType =
                             result.getType() != null
-                            ? components.refineKotlinTypeChecker.refineType(result.getType())
+                            ? components.kotlinTypeChecker.getKotlinTypeRefiner().refineType(result.getType())
                             : null;
 
                     if (refinedType != result.getType()) {

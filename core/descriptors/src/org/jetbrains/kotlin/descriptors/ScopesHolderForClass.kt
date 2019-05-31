@@ -9,14 +9,13 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.storage.getValue
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.getOrPutScopeForClass
+import org.jetbrains.kotlin.types.refinement.isRefinementNeededForTypeConstructor
 
 class ScopesHolderForClass<T : MemberScope> private constructor(
     private val classDescriptor: ClassDescriptor,
     storageManager: StorageManager,
-    private val refineKotlinTypeChecker: RefineKotlinTypeChecker,
     private val scopeFactory: (ModuleDescriptor) -> T
 ) {
     private val scopeForOwnerModule by storageManager.createLazyValue { scopeFactory(classDescriptor.module) }
@@ -26,7 +25,7 @@ class ScopesHolderForClass<T : MemberScope> private constructor(
     fun getScope(moduleDescriptor: ModuleDescriptor): T {
         if (classDescriptor.module === moduleDescriptor) return scopeForOwnerModule
 
-        if (!refineKotlinTypeChecker.isRefinementNeeded(classDescriptor.typeConstructor)) return scopeForOwnerModule
+        if (!moduleDescriptor.isRefinementNeededForTypeConstructor(classDescriptor.typeConstructor)) return scopeForOwnerModule
         return moduleDescriptor.getOrPutScopeForClass(classDescriptor) { scopeFactory(moduleDescriptor) }
     }
 
@@ -34,10 +33,9 @@ class ScopesHolderForClass<T : MemberScope> private constructor(
         fun <T : MemberScope> create(
             classDescriptor: ClassDescriptor,
             storageManager: StorageManager,
-            refineKotlinTypeChecker: RefineKotlinTypeChecker,
             scopeFactory: (ModuleDescriptor) -> T
         ): ScopesHolderForClass<T> {
-            return ScopesHolderForClass(classDescriptor, storageManager, refineKotlinTypeChecker, scopeFactory)
+            return ScopesHolderForClass(classDescriptor, storageManager, scopeFactory)
         }
     }
 }

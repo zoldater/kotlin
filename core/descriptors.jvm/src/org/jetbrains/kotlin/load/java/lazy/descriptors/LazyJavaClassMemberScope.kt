@@ -57,6 +57,7 @@ import org.jetbrains.kotlin.storage.NotNullLazyValue
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.utils.SmartSet
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
@@ -284,7 +285,7 @@ class LazyJavaClassMemberScope(
         // Merge functions with same signatures
         val mergedFunctionFromSuperTypes = resolveOverridesForNonStaticMembers(
             name, functionsFromSupertypes, emptyList(), ownerDescriptor, ErrorReporter.DO_NOTHING,
-            c.components.refineKotlinTypeChecker.overridingUtil
+            c.components.kotlinTypeChecker.overridingUtil
         )
 
         // add declarations
@@ -314,7 +315,7 @@ class LazyJavaClassMemberScope(
 
         val additionalOverrides = resolveOverridesForNonStaticMembers(
             name, functionsFromSupertypes, result, ownerDescriptor, c.components.errorReporter,
-            c.components.refineKotlinTypeChecker.overridingUtil
+            c.components.kotlinTypeChecker.overridingUtil
         )
 
         if (!isSpecialBuiltinName) {
@@ -462,7 +463,7 @@ class LazyJavaClassMemberScope(
                 result,
                 ownerDescriptor,
                 c.components.errorReporter,
-                c.components.refineKotlinTypeChecker.overridingUtil
+                c.components.kotlinTypeChecker.overridingUtil
             )
         )
     }
@@ -562,7 +563,10 @@ class LazyJavaClassMemberScope(
 
     private fun computeSupertypes(): Collection<KotlinType> {
         if (skipRefinement) return ownerDescriptor.typeConstructor.supertypes
-        return c.components.refineKotlinTypeChecker.refineSupertypes(ownerDescriptor, moduleDescriptor)
+
+        @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+        @UseExperimental(TypeRefinement::class)
+        return c.components.kotlinTypeChecker.kotlinTypeRefiner.refineSupertypes(ownerDescriptor, moduleDescriptor)
     }
 
     override fun resolveMethodSignature(

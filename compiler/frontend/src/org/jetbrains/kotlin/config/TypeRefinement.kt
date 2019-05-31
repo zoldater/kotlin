@@ -7,56 +7,32 @@ package org.jetbrains.kotlin.config
 
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.resolve.OverridingUtil
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.TypeConstructor
-import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
-import org.jetbrains.kotlin.types.refinement.isRefinementNeededForTypeConstructor
 
-@Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
-@UseExperimental(TypeRefinement::class)
-class RefineKotlinTypeCheckerImpl(
+class KotlinTypeRefinerImpl(
     private val moduleDescriptor: ModuleDescriptor,
     languageVersionSettings: LanguageVersionSettings
-) : RefineKotlinTypeChecker {
-    private val isRefinementDisabled = !languageVersionSettings.getFlag(AnalysisFlags.useTypeRefinement)
+) : KotlinTypeRefiner {
+    private val isRefinementDisabled = !languageVersionSettings.isTypeRefinementEnabled
 
-    override fun isSubtypeOf(subtype: KotlinType, supertype: KotlinType): Boolean {
-        if (isRefinementDisabled) return NewKotlinTypeChecker.isSubtypeOf(subtype, supertype)
-
-        return NewKotlinTypeChecker.isSubtypeOf(subtype.refine(moduleDescriptor), supertype.refine(moduleDescriptor))
-    }
-
-    override fun equalTypes(subtype: KotlinType, supertype: KotlinType): Boolean {
-        if (isRefinementDisabled) return NewKotlinTypeChecker.equalTypes(subtype, supertype)
-
-        return NewKotlinTypeChecker.equalTypes(subtype.refine(moduleDescriptor), supertype.refine(moduleDescriptor))
-    }
-
+    @TypeRefinement
     override fun refineType(type: KotlinType): KotlinType {
         if (isRefinementDisabled) return type
         return type.refine(moduleDescriptor)
     }
 
-    override fun refineSupertypes(
-        classDescriptor: ClassDescriptor,
-        moduleDescriptor: ModuleDescriptor
-    ): Collection<KotlinType> {
+    @TypeRefinement
+    override fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<KotlinType> {
+        return refineSupertypes(classDescriptor, moduleDescriptor)
+    }
+
+    @TypeRefinement
+    override fun refineSupertypes(classDescriptor: ClassDescriptor, moduleDescriptor: ModuleDescriptor): Collection<KotlinType> {
         if (isRefinementDisabled) return classDescriptor.typeConstructor.supertypes
         return classDescriptor.typeConstructor.supertypes.map { it.refine(moduleDescriptor) }
     }
-
-    override fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<KotlinType> =
-        refineSupertypes(classDescriptor, moduleDescriptor)
-
-    override fun isRefinementNeeded(typeConstructor: TypeConstructor): Boolean {
-        if (isRefinementDisabled) return false
-        return moduleDescriptor.isRefinementNeededForTypeConstructor(typeConstructor)
-    }
-
-    override val overridingUtil = OverridingUtil.createWithRefinedTypeChecker(this)
 }
 
 val LanguageVersionSettings.isTypeRefinementEnabled: Boolean

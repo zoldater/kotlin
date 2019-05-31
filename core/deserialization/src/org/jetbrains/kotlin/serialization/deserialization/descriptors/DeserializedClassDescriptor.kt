@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.serialization.deserialization.*
 import org.jetbrains.kotlin.types.AbstractClassTypeConstructor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import java.util.*
 
 class DeserializedClassDescriptor(
@@ -55,7 +56,7 @@ class DeserializedClassDescriptor(
     private val typeConstructor = DeserializedClassTypeConstructor()
 
     private val memberScopeHolder =
-        ScopesHolderForClass.create(this, c.storageManager, c.components.refineKotlinTypeChecker, this::DeserializedClassMemberScope)
+        ScopesHolderForClass.create(this, c.storageManager, this::DeserializedClassMemberScope)
 
     private val memberScope get() = memberScopeHolder.getScope(module)
     private val enumEntries = if (kind == ClassKind.ENUM_CLASS) EnumEntryClassDescriptors() else null
@@ -217,7 +218,9 @@ class DeserializedClassDescriptor(
         }
 
         private val refinedSupertypes = c.storageManager.createLazyValue {
-            c.components.refineKotlinTypeChecker.refineSupertypes(classDescriptor, moduleDescriptor)
+            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+            @UseExperimental(TypeRefinement::class)
+            c.components.kotlinTypeChecker.kotlinTypeRefiner.refineSupertypes(classDescriptor, moduleDescriptor)
         }
 
         override fun getContributedDescriptors(
@@ -262,7 +265,7 @@ class DeserializedClassDescriptor(
             result: MutableCollection<D>
         ) {
             val fromCurrent = ArrayList<CallableMemberDescriptor>(result)
-            c.components.refineKotlinTypeChecker.overridingUtil.generateOverridesInFunctionGroup(
+            c.components.kotlinTypeChecker.overridingUtil.generateOverridesInFunctionGroup(
                 name,
                 fromSupertypes,
                 fromCurrent,

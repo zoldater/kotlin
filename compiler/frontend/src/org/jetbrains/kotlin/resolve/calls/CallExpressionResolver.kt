@@ -65,6 +65,7 @@ import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.createTypeInfo
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.noTypeInfo
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.util.AstLoadingFilter
 import javax.inject.Inject
 
@@ -117,8 +118,13 @@ class CallExpressionResolver(
         )
         val resolutionResult = callResolver.resolveSimpleProperty(contextForVariable)
 
-        val resultType = if (resolutionResult.isSingleResult)
-            resolutionResult.resultingDescriptor.returnType?.let { expressionTypingServices.refineKotlinTypeChecker.refineType(it) }
+        val resultType = if (resolutionResult.isSingleResult) {
+            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+            @UseExperimental(TypeRefinement::class)
+            resolutionResult.resultingDescriptor.returnType?.let {
+                expressionTypingServices.kotlinTypeChecker.kotlinTypeRefiner.refineType(it)
+            }
+        }
         else
             null
 

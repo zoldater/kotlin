@@ -42,9 +42,10 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.scopes.*
 import org.jetbrains.kotlin.resolve.scopes.receivers.*
 import org.jetbrains.kotlin.types.*
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.expressions.*
 import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContext
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.util.*
@@ -69,7 +70,7 @@ class PSICallResolver(
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
     private val callableReferenceResolver: CallableReferenceResolver,
-    private val refineKotlinTypeChecker: RefineKotlinTypeChecker
+    private val kotlinTypeRefiner: KotlinTypeRefiner
 ) {
     private val givenCandidatesName = Name.special("<given candidates>")
 
@@ -719,11 +720,13 @@ class PSICallResolver(
         return replaceScope(catchScope)
     }
 
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
     private fun ReceiverValueWithSmartCastInfo.refine(): ReceiverValueWithSmartCastInfo {
-        val refinedType = refineKotlinTypeChecker.refineType(receiverValue.type)
+        val refinedType = kotlinTypeRefiner.refineType(receiverValue.type)
         return ReceiverValueWithSmartCastInfo(
             receiverValue.replaceType(refinedType),
-            possibleTypes.mapTo(mutableSetOf()) { refineKotlinTypeChecker.refineType(it) },
+            possibleTypes.mapTo(mutableSetOf()) { kotlinTypeRefiner.refineType(it) },
             isStable
         )
     }

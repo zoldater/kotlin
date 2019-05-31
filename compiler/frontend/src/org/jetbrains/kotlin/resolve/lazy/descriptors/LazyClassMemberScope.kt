@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.storage.NotNullLazyValue
 import org.jetbrains.kotlin.storage.NullableLazyValue
 import org.jetbrains.kotlin.storage.getValue
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import java.util.*
 
 open class LazyClassMemberScope(
@@ -98,7 +99,9 @@ open class LazyClassMemberScope(
     }
 
     val supertypes by storageManager.createLazyValue {
-        c.refineKotlinTypeChecker.refineSupertypes(thisDescriptor, moduleDescriptor)
+        @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+        @UseExperimental(TypeRefinement::class)
+        c.kotlinTypeChecker.kotlinTypeRefiner.refineSupertypes(thisDescriptor, moduleDescriptor)
     }
 
     private val _variableNames: MutableSet<Name>
@@ -151,7 +154,7 @@ open class LazyClassMemberScope(
         result: MutableCollection<D>,
         exactDescriptorClass: Class<out D>
     ) {
-        c.refineKotlinTypeChecker.overridingUtil.generateOverridesInFunctionGroup(
+        c.kotlinTypeChecker.overridingUtil.generateOverridesInFunctionGroup(
             name,
             fromSupertypes,
             ArrayList(result),

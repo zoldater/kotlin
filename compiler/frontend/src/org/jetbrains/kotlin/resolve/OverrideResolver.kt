@@ -38,7 +38,8 @@ import org.jetbrains.kotlin.resolve.OverridingUtil.OverrideCompatibilityInfo.Res
 import org.jetbrains.kotlin.resolve.calls.callResolverUtil.isOrOverridesSynthesized
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.utils.addToStdlib.assertedCast
 import java.util.*
 
@@ -46,7 +47,7 @@ class OverrideResolver(
     private val trace: BindingTrace,
     private val overridesBackwardCompatibilityHelper: OverridesBackwardCompatibilityHelper,
     private val languageVersionSettings: LanguageVersionSettings,
-    private val refineKotlinTypeChecker: RefineKotlinTypeChecker
+    private val kotlinTypeRefiner: KotlinTypeRefiner
 ) {
 
     fun check(c: TopDownAnalysisContext) {
@@ -273,7 +274,7 @@ class OverrideResolver(
 
         if (hasOverrideNode) {
             checkOverridesForMemberMarkedOverride(
-                declared, refineKotlinTypeChecker, object : CheckOverrideReportForDeclaredMemberStrategy {
+                declared, kotlinTypeRefiner, object : CheckOverrideReportForDeclaredMemberStrategy {
                 private var finalOverriddenError = false
                 private var typeMismatchError = false
                 private var kindMismatchError = false
@@ -756,7 +757,7 @@ class OverrideResolver(
 
         private fun checkOverridesForMemberMarkedOverride(
             declared: CallableMemberDescriptor,
-            refineKotlinTypeChecker: RefineKotlinTypeChecker,
+            kotlinTypeRefiner: KotlinTypeRefiner,
             reportError: CheckOverrideReportForDeclaredMemberStrategy
         ) {
             val overriddenDescriptors = declared.overriddenDescriptors
@@ -771,7 +772,7 @@ class OverrideResolver(
 
                 val invisibleOverriddenDescriptor =
                     findInvisibleOverriddenDescriptor(
-                        declared, declaringClass, refineKotlinTypeChecker
+                        declared, declaringClass, kotlinTypeRefiner
                     )
                 if (invisibleOverriddenDescriptor != null) {
                     reportError.cannotOverrideInvisibleMember(declared, invisibleOverriddenDescriptor)
@@ -871,9 +872,11 @@ class OverrideResolver(
         private fun findInvisibleOverriddenDescriptor(
             declared: CallableMemberDescriptor,
             declaringClass: ClassDescriptor,
-            refineKotlinTypeChecker: RefineKotlinTypeChecker
+            kotlinTypeRefiner: KotlinTypeRefiner
         ): CallableMemberDescriptor? {
-            for (supertype in refineKotlinTypeChecker.refineSupertypes(declaringClass)) {
+            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+            @UseExperimental(TypeRefinement::class)
+            for (supertype in kotlinTypeRefiner.refineSupertypes(declaringClass)) {
                 val all = linkedSetOf<CallableMemberDescriptor>()
                 all.addAll(supertype.memberScope.getContributedFunctions(declared.name, NoLookupLocation.WHEN_CHECK_OVERRIDES))
                 all.addAll(supertype.memberScope.getContributedVariables(declared.name, NoLookupLocation.WHEN_CHECK_OVERRIDES))

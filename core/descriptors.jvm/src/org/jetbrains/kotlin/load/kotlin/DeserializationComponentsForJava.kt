@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.load.java.lazy.LazyJavaPackageFragmentProvider
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
 import org.jetbrains.kotlin.serialization.deserialization.*
 import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 
 // This class is needed only for easier injection: exact types of needed components are specified in the constructor here.
 // Otherwise injector generator is not smart enough to deduce, for example, which package fragment provider DeserializationComponents needs
@@ -41,7 +41,7 @@ class DeserializationComponentsForJava(
     errorReporter: ErrorReporter,
     lookupTracker: LookupTracker,
     contractDeserializer: ContractDeserializer,
-    refineKotlinTypeChecker: RefineKotlinTypeChecker
+    kotlinTypeChecker: NewKotlinTypeChecker
 ) {
     val components: DeserializationComponents
 
@@ -55,7 +55,7 @@ class DeserializationComponentsForJava(
             additionalClassPartsProvider = jvmBuiltIns?.settings ?: AdditionalClassPartsProvider.None,
             platformDependentDeclarationFilter = jvmBuiltIns?.settings ?: PlatformDependentDeclarationFilter.NoPlatformDependent,
             extensionRegistryLite = JvmProtoBufUtil.EXTENSION_REGISTRY,
-            refineKotlinTypeChecker = refineKotlinTypeChecker
+            kotlinTypeChecker = kotlinTypeChecker
         )
     }
 }
