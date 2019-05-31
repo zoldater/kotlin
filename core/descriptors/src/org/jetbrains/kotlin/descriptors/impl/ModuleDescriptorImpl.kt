@@ -144,14 +144,6 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> getCapability(capability: ModuleDescriptor.Capability<T>) = capabilities[capability] as? T
-
-
-    private val scopes = storageManager.createCacheWithNotNullValues<ClassDescriptor, MemberScope>()
-
-    override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S {
-        @Suppress("UNCHECKED_CAST")
-        return scopes.computeIfAbsent(classDescriptor, compute) as S
-    }
 }
 
 interface ModuleDependencies {
