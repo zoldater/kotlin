@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.TypeIntersectionScope
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import java.util.*
 
 class IntersectionTypeConstructor(typesToIntersect: Collection<KotlinType>) : TypeConstructor {
@@ -62,6 +63,7 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<KotlinType>) : Ty
         return intersectedTypes == other.intersectedTypes
     }
 
+    @UseExperimental(TypeRefinement::class)
     fun createType(): SimpleType =
         KotlinTypeFactory.simpleTypeWithNonTrivialMemberScope(
             Annotations.EMPTY, this, listOf(), false, this.createScopeForKotlinType()
@@ -71,6 +73,7 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<KotlinType>) : Ty
 
     override fun hashCode(): Int = hashCode
 
+    @TypeRefinement
     override fun refine(moduleDescriptor: ModuleDescriptor) =
         IntersectionTypeConstructor(intersectedTypes.map { it.refine(moduleDescriptor) })
 }
