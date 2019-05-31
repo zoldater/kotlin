@@ -53,8 +53,6 @@ interface ModuleDescriptor : DeclarationDescriptor {
 
     val expectedByModules: List<ModuleDescriptor>
 
-    fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S = compute()
-
     fun <T> getCapability(capability: Capability<T>): T?
 
     class Capability<T>(val name: String) {

@@ -7,34 +7,36 @@ package org.jetbrains.kotlin.types.refinement
 
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.types.TypeConstructor
-import org.jetbrains.kotlin.types.checker.NewCapturedType
-import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
-import org.jetbrains.kotlin.utils.DFS
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 sealed class RefinementCache(protected val moduleDescriptor: ModuleDescriptor) {
     abstract fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean
     abstract fun refineOrGetType(type: SimpleType, refinedTypeFactory: (ModuleDescriptor) -> SimpleType?): SimpleType
+    abstract fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S
 }
 
 internal class RefinementCacheImpl(moduleDescriptor: ModuleDescriptor, storageManager: StorageManager) : RefinementCache(moduleDescriptor) {
     private val _isRefinementNeededForTypeConstructor =
         storageManager.createMemoizedFunction(TypeConstructor::areThereExpectSupertypesOrTypeArguments)
-    private val refinedTypeCache = HashMap<SimpleType, SimpleType>()
+    private val refinedTypeCache = storageManager.createCacheWithNotNullValues<SimpleType, SimpleType>()
+    private val scopes = storageManager.createCacheWithNotNullValues<ClassDescriptor, MemberScope>()
 
     override fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean {
         return _isRefinementNeededForTypeConstructor.invoke(typeConstructor)
     }
 
     override fun refineOrGetType(type: SimpleType, refinedTypeFactory: (ModuleDescriptor) -> SimpleType?): SimpleType {
-        refinedTypeCache[type]?.let { return it }
-        val refinedType = refinedTypeFactory(moduleDescriptor) ?: type
-        refinedTypeCache[type] = refinedType
-        return refinedType
+        return refinedTypeCache.computeIfAbsent(type) {
+            refinedTypeFactory(moduleDescriptor) ?: type
+        }
+    }
+
+    override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S {
+        @Suppress("UNCHECKED_CAST")
+        return scopes.computeIfAbsent(classDescriptor, compute) as S
     }
 }
 
@@ -46,42 +48,26 @@ private class EmptyRefinementCache(moduleDescriptor: ModuleDescriptor) : Refinem
     override fun refineOrGetType(type: SimpleType, refinedTypeFactory: (ModuleDescriptor) -> SimpleType?): SimpleType {
         return refinedTypeFactory(moduleDescriptor) ?: type
     }
+
+    override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S = compute()
 }
 
 internal val refinementCacheCapability = ModuleDescriptor.Capability<RefinementCache>("RefinementCache")
 
-val ModuleDescriptor.refinementCache: RefinementCache
+@TypeRefinement
+private val ModuleDescriptor.refinementCache: RefinementCache
     get() = getCapability(refinementCacheCapability) ?: EmptyRefinementCache(this)
 
-private fun TypeConstructor.areThereExpectSupertypesOrTypeArguments(): Boolean {
-    var result = false
-    DFS.dfs(
-        listOf(this),
-        DFS.Neighbors(TypeConstructor::allDependentTypeConstructors),
-        DFS.VisitedWithSet(),
-        object : DFS.AbstractNodeHandler<TypeConstructor, Unit>() {
-            override fun beforeChildren(current: TypeConstructor): Boolean {
-                if (current.isExpectClass()) {
-                    result = true
-                    return false
-                }
-                return true
-            }
+@TypeRefinement
+fun <S : MemberScope> ModuleDescriptor.getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S =
+    refinementCache.getOrPutScopeForClass(classDescriptor, compute)
 
-            override fun result() = Unit
-        }
-    )
-
-    return result
+@TypeRefinement
+fun ModuleDescriptor.refineOrGetType(type: SimpleType, refinedTypeFactory: (ModuleDescriptor) -> SimpleType?): SimpleType {
+    return refinementCache.refineOrGetType(type, refinedTypeFactory)
 }
 
-private val TypeConstructor.allDependentTypeConstructors: Collection<TypeConstructor>
-    get() = when (this) {
-        is NewCapturedTypeConstructor -> {
-            supertypes.map { it.constructor } + projection.type.constructor
-        }
-        else -> supertypes.map { it.constructor } + parameters.map { it.typeConstructor }
-    }
-
-private fun TypeConstructor.isExpectClass() =
-    declarationDescriptor?.safeAs<ClassDescriptor>()?.isExpect == true
+@TypeRefinement
+fun ModuleDescriptor.isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean {
+    return refinementCache.isRefinementNeededForTypeConstructor(typeConstructor)
+}

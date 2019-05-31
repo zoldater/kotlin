@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
-import org.jetbrains.kotlin.types.refinement.refinementCache
+import org.jetbrains.kotlin.types.refinement.isRefinementNeededForTypeConstructor
 
 @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
 @UseExperimental(TypeRefinement::class)
@@ -53,7 +53,7 @@ class RefineKotlinTypeCheckerImpl(
 
     override fun isRefinementNeeded(typeConstructor: TypeConstructor): Boolean {
         if (isRefinementDisabled) return false
-        return moduleDescriptor.refinementCache.isRefinementNeededForTypeConstructor(typeConstructor)
+        return moduleDescriptor.isRefinementNeededForTypeConstructor(typeConstructor)
     }
 
     override val overridingUtil = OverridingUtil.createWithRefinedTypeChecker(this)

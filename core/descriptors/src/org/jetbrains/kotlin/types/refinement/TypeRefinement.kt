@@ -8,5 +8,5 @@ package org.jetbrains.kotlin.types.refinement
 @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
 @Experimental(level = Experimental.Level.ERROR)
 @Retention(AnnotationRetention.BINARY)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY)
 annotation class TypeRefinement
