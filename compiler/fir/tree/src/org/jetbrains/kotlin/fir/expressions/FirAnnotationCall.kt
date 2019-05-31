@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirFqName
 
 @BaseTransformedType
 interface FirAnnotationCall : FirCall {
@@ -33,5 +33,5 @@ interface FirAnnotationCall : FirCall {
 val FirAnnotationCall.coneClassLikeType: ConeClassLikeType?
     get() = ((annotationTypeRef as? FirResolvedTypeRef)?.type as? ConeClassLikeType)?.takeIf { it !is ConeClassErrorType }
 
-val FirAnnotationCall.resolvedFqName: FqName?
+val FirAnnotationCall.resolvedFqName: FirFqName?
     get() = coneClassLikeType?.lookupTag?.classId?.asSingleFqName()

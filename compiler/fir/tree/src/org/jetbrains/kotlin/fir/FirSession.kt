@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir
 
 import org.jetbrains.kotlin.analyzer.ModuleInfo
+import org.jetbrains.kotlin.fir.names.FirNameFactory
 import org.jetbrains.kotlin.utils.Jsr305State
 import kotlin.reflect.KClass
 
@@ -13,6 +14,8 @@ interface FirSession {
     val moduleInfo: ModuleInfo?
 
     val sessionProvider: FirSessionProvider? get() = null
+
+    val nameFactory: FirNameFactory
 
     val jsr305State: Jsr305State? get() = null
 

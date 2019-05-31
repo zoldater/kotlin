@@ -21,8 +21,8 @@ import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitUnitTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 
 abstract class FirDefaultPropertyAccessor(
     session: FirSession,
@@ -75,7 +75,7 @@ class FirDefaultPropertySetter(
         FirDefaultSetterValueParameter(
             session, psi, propertyTypeRef, FirVariableSymbol(
                 CallableId(
-                    FqName.ROOT, Name.special("<default-setter-parameter>")
+                    FirFqName.ROOT, FirName.special("<default-setter-parameter>")
                 )
             )
         )

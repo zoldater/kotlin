@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.fir.java.FirProjectSessionProvider
 import org.jetbrains.kotlin.fir.resolve.FirProvider
 import org.jetbrains.kotlin.fir.resolve.impl.FirProviderImpl
 import org.jetbrains.kotlin.fir.resolve.transformers.FirTotalResolveTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.platform.CommonPlatforms
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.js.JsPlatforms
@@ -129,14 +129,14 @@ abstract class AbstractFirDiagnosticsSmokeTest : BaseDiagnosticsTest() {
         return modules
     }
 
-    private val builtInsModuleInfo = BuiltInModuleInfo(Name.special("<built-ins>"))
+    private val builtInsModuleInfo = BuiltInModuleInfo(FirName.special("<built-ins>"))
 
     protected open fun createModule(moduleName: String): TestModuleInfo {
         parseModulePlatformByName(moduleName)
-        return TestModuleInfo(Name.special("<$moduleName>"))
+        return TestModuleInfo(FirName.special("<$moduleName>"))
     }
 
-    class BuiltInModuleInfo(override val name: Name) : ModuleInfo {
+    class BuiltInModuleInfo(override val name: FirName) : ModuleInfo {
         override val platform: TargetPlatform
             get() = JvmPlatforms.unspecifiedJvmPlatform
 
@@ -148,7 +148,7 @@ abstract class AbstractFirDiagnosticsSmokeTest : BaseDiagnosticsTest() {
         }
     }
 
-    protected class TestModuleInfo(override val name: Name) : ModuleInfo {
+    protected class TestModuleInfo(override val name: FirName) : ModuleInfo {
         override val platform: TargetPlatform
             get() = JvmPlatforms.unspecifiedJvmPlatform
 

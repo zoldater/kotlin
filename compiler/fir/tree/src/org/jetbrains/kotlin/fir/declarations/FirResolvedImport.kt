@@ -6,17 +6,17 @@
 package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 
 interface FirResolvedImport : FirImport {
-    val packageFqName: FqName
+    val packageFqName: FirFqName
 
-    val relativeClassName: FqName?
-    val resolvedClassId: ClassId? get() = relativeClassName?.let { ClassId(packageFqName, it, false) }
+    val relativeClassName: FirFqName?
+    val resolvedClassId: FirClassId? get() = relativeClassName?.let { FirClassId(packageFqName, it, false) }
 
-    val importedName: Name? get() = importedFqName?.shortName()
+    val importedName: FirName? get() = importedFqName?.shortName()
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitResolvedImport(this, data)

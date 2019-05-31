@@ -9,16 +9,16 @@ import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
 import org.jetbrains.kotlin.fir.scopes.FirPosition
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.symbols.ConeClassifierSymbol
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirNestedClassifierScope(
-    val classId: ClassId,
+    val classId: FirClassId,
     private val symbolProvider: FirSymbolProvider
 ) : FirScope {
 
     override fun processClassifiersByName(
-        name: Name,
+        name: FirName,
         position: FirPosition,
         processor: (ConeClassifierSymbol) -> Boolean
     ): Boolean {

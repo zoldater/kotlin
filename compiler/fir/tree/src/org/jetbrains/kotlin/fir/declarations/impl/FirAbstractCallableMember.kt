@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.fir.declarations.FirCallableMemberDeclaration
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 abstract class FirAbstractCallableMember : FirAbstractMemberDeclaration, FirCallableMemberDeclaration {
@@ -32,7 +32,7 @@ abstract class FirAbstractCallableMember : FirAbstractMemberDeclaration, FirCall
     constructor(
         session: FirSession,
         psi: PsiElement?,
-        name: Name,
+        name: FirName,
         receiverTypeRef: FirTypeRef?,
         returnTypeRef: FirTypeRef
     ) : super(session, psi, name) {
@@ -43,7 +43,7 @@ abstract class FirAbstractCallableMember : FirAbstractMemberDeclaration, FirCall
     constructor(
         session: FirSession,
         psi: PsiElement?,
-        name: Name,
+        name: FirName,
         visibility: Visibility,
         modality: Modality?,
         isExpect: Boolean,

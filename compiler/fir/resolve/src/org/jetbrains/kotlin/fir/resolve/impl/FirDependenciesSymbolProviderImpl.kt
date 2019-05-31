@@ -15,9 +15,9 @@ import org.jetbrains.kotlin.fir.service
 import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.ConeCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeSymbol
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 class FirDependenciesSymbolProviderImpl(val session: FirSession) : AbstractFirSymbolProvider() {
@@ -28,16 +28,16 @@ class FirDependenciesSymbolProviderImpl(val session: FirSession) : AbstractFirSy
         }.toList()
     }
 
-    override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<ConeCallableSymbol> {
+    override fun getTopLevelCallableSymbols(packageFqName: FirFqName, name: FirName): List<ConeCallableSymbol> {
         return topLevelCallableCache.lookupCacheOrCalculate(CallableId(packageFqName, null, name)) {
             dependencyProviders.flatMap { provider -> provider.getTopLevelCallableSymbols(packageFqName, name) }
         } ?: emptyList()
     }
 
-    override fun getClassDeclaredMemberScope(classId: ClassId) =
+    override fun getClassDeclaredMemberScope(classId: FirClassId) =
         dependencyProviders.firstNotNullResult { it.getClassDeclaredMemberScope(classId) }
 
-    override fun getClassLikeSymbolByFqName(classId: ClassId): ConeClassLikeSymbol? {
+    override fun getClassLikeSymbolByFqName(classId: FirClassId): ConeClassLikeSymbol? {
         return classCache.lookupCacheOrCalculate(classId) {
             for (provider in dependencyProviders) {
                 provider.getClassLikeSymbolByFqName(classId)?.let {
@@ -49,14 +49,14 @@ class FirDependenciesSymbolProviderImpl(val session: FirSession) : AbstractFirSy
     }
 
     override fun getClassUseSiteMemberScope(
-        classId: ClassId,
+        classId: FirClassId,
         useSiteSession: FirSession,
         scopeSession: ScopeSession
     ): FirScope? {
         return dependencyProviders.firstNotNullResult { it.getClassUseSiteMemberScope(classId, useSiteSession, scopeSession) }
     }
 
-    override fun getPackage(fqName: FqName): FqName? {
+    override fun getPackage(fqName: FirFqName): FirFqName? {
         return packageCache.lookupCacheOrCalculate(fqName) {
             for (provider in dependencyProviders) {
                 provider.getPackage(fqName)?.let {
@@ -67,19 +67,19 @@ class FirDependenciesSymbolProviderImpl(val session: FirSession) : AbstractFirSy
         }
     }
 
-    override fun getAllCallableNamesInPackage(fqName: FqName): Set<Name> {
+    override fun getAllCallableNamesInPackage(fqName: FirFqName): Set<FirName> {
         return dependencyProviders.flatMapTo(mutableSetOf()) { it.getAllCallableNamesInPackage(fqName) }
     }
 
-    override fun getClassNamesInPackage(fqName: FqName): Set<Name> {
+    override fun getClassNamesInPackage(fqName: FirFqName): Set<FirName> {
         return dependencyProviders.flatMapTo(mutableSetOf()) { it.getClassNamesInPackage(fqName) }
     }
 
-    override fun getAllCallableNamesInClass(classId: ClassId): Set<Name> {
+    override fun getAllCallableNamesInClass(classId: FirClassId): Set<FirName> {
         return dependencyProviders.flatMapTo(mutableSetOf()) { it.getAllCallableNamesInClass(classId) }
     }
 
-    override fun getNestedClassesNamesInClass(classId: ClassId): Set<Name> {
+    override fun getNestedClassesNamesInClass(classId: FirClassId): Set<FirName> {
         return dependencyProviders.flatMapTo(mutableSetOf()) { it.getNestedClassesNamesInClass(classId) }
     }
 }

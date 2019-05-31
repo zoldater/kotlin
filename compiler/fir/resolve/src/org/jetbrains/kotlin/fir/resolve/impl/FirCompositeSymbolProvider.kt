@@ -11,47 +11,47 @@ import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.symbols.ConeCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeSymbol
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 class FirCompositeSymbolProvider(val providers: List<FirSymbolProvider>) : FirSymbolProvider {
     override fun getClassUseSiteMemberScope(
-        classId: ClassId,
+        classId: FirClassId,
         useSiteSession: FirSession,
         scopeSession: ScopeSession
     ): FirScope? {
         return providers.firstNotNullResult { it.getClassUseSiteMemberScope(classId, useSiteSession, scopeSession) }
     }
 
-    override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<ConeCallableSymbol> {
+    override fun getTopLevelCallableSymbols(packageFqName: FirFqName, name: FirName): List<ConeCallableSymbol> {
         return providers.flatMap { it.getTopLevelCallableSymbols(packageFqName, name) }
     }
 
-    override fun getClassDeclaredMemberScope(classId: ClassId) = providers.firstNotNullResult { it.getClassDeclaredMemberScope(classId) }
+    override fun getClassDeclaredMemberScope(classId: FirClassId) = providers.firstNotNullResult { it.getClassDeclaredMemberScope(classId) }
 
-    override fun getPackage(fqName: FqName): FqName? {
+    override fun getPackage(fqName: FirFqName): FirFqName? {
         return providers.firstNotNullResult { it.getPackage(fqName) }
     }
 
-    override fun getClassLikeSymbolByFqName(classId: ClassId): ConeClassLikeSymbol? {
+    override fun getClassLikeSymbolByFqName(classId: FirClassId): ConeClassLikeSymbol? {
         return providers.firstNotNullResult { it.getClassLikeSymbolByFqName(classId) }
     }
 
-    override fun getAllCallableNamesInPackage(fqName: FqName): Set<Name> {
+    override fun getAllCallableNamesInPackage(fqName: FirFqName): Set<FirName> {
         return providers.flatMapTo(mutableSetOf()) { it.getAllCallableNamesInPackage(fqName) }
     }
 
-    override fun getClassNamesInPackage(fqName: FqName): Set<Name> {
+    override fun getClassNamesInPackage(fqName: FirFqName): Set<FirName> {
         return providers.flatMapTo(mutableSetOf()) { it.getClassNamesInPackage(fqName) }
     }
 
-    override fun getAllCallableNamesInClass(classId: ClassId): Set<Name> {
+    override fun getAllCallableNamesInClass(classId: FirClassId): Set<FirName> {
         return providers.flatMapTo(mutableSetOf()) { it.getAllCallableNamesInClass(classId) }
     }
 
-    override fun getNestedClassesNamesInClass(classId: ClassId): Set<Name> {
+    override fun getNestedClassesNamesInClass(classId: FirClassId): Set<FirName> {
         return providers.flatMapTo(mutableSetOf()) { it.getNestedClassesNamesInClass(classId) }
     }
 }

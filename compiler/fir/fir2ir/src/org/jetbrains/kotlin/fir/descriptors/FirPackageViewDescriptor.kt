@@ -7,11 +7,11 @@ package org.jetbrains.kotlin.fir.descriptors
 
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 
-class FirPackageViewDescriptor(override val fqName: FqName, val moduleDescriptor: ModuleDescriptor) : PackageViewDescriptor {
+class FirPackageViewDescriptor(override val fqName: FirFqName, val moduleDescriptor: ModuleDescriptor) : PackageViewDescriptor {
     override fun getContainingDeclaration(): PackageViewDescriptor? {
         TODO("not implemented")
     }
@@ -29,7 +29,7 @@ class FirPackageViewDescriptor(override val fqName: FqName, val moduleDescriptor
         TODO("not implemented")
     }
 
-    override fun getName(): Name {
+    override fun getName(): FirName {
         TODO("not implemented")
     }
 

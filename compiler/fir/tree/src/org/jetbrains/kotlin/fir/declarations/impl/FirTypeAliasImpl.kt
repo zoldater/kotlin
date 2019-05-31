@@ -15,13 +15,13 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirTypeAliasImpl(
     session: FirSession,
     psi: PsiElement?,
     override val symbol: FirTypeAliasSymbol,
-    name: Name,
+    name: FirName,
     visibility: Visibility,
     isExpect: Boolean,
     isActual: Boolean,

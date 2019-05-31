@@ -15,8 +15,8 @@ import org.jetbrains.kotlin.fir.scopes.processConstructors
 import org.jetbrains.kotlin.fir.symbols.ConeFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.ConePropertySymbol
 import org.jetbrains.kotlin.fir.symbols.ConeVariableSymbol
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirTopLevelDeclaredMemberScope(
     file: FirFile,
@@ -25,8 +25,8 @@ class FirTopLevelDeclaredMemberScope(
 ) : FirAbstractProviderBasedScope(session, lookupInFir) {
     private val packageFqName = file.packageFqName
 
-    override fun processFunctionsByName(name: Name, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
-        val matchedClass = provider.getClassLikeSymbolByFqName(ClassId(packageFqName, name))
+    override fun processFunctionsByName(name: FirName, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
+        val matchedClass = provider.getClassLikeSymbolByFqName(FirClassId(packageFqName, name))
 
         if (processConstructors(
                 matchedClass,
@@ -47,7 +47,7 @@ class FirTopLevelDeclaredMemberScope(
         return NEXT
     }
 
-    override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
         val symbols = provider.getTopLevelCallableSymbols(packageFqName, name)
         for (symbol in symbols) {
             if (symbol is ConePropertySymbol && !processor(symbol)) {

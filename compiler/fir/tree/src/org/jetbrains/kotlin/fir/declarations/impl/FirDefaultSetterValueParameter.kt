@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirDefaultSetterValueParameter(
     session: FirSession,
@@ -56,6 +56,6 @@ class FirDefaultSetterValueParameter(
     }
 
     companion object {
-        val name = Name.identifier("value")
+        val name = FirName.identifier("value")
     }
 }

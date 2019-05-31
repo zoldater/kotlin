@@ -13,13 +13,13 @@ import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
 
 open class FirValueParameterImpl(
     session: FirSession,
     psi: PsiElement?,
-    name: Name,
+    name: FirName,
     override var returnTypeRef: FirTypeRef,
     override var defaultValue: FirExpression?,
     override val isCrossinline: Boolean,

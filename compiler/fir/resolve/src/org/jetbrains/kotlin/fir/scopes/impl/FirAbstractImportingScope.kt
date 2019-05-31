@@ -17,8 +17,8 @@ import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.scopes.processConstructors
 import org.jetbrains.kotlin.fir.symbols.*
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 
 abstract class FirAbstractImportingScope(session: FirSession, lookupInFir: Boolean) : FirAbstractProviderBasedScope(session, lookupInFir) {
@@ -27,7 +27,7 @@ abstract class FirAbstractImportingScope(session: FirSession, lookupInFir: Boole
     protected val scopeCache = ScopeSession()
 
 
-    private fun getStaticsScope(classId: ClassId): FirScope? {
+    private fun getStaticsScope(classId: FirClassId): FirScope? {
         provider.getClassUseSiteMemberScope(classId, session, scopeCache)?.let { return it }
 
 
@@ -44,7 +44,7 @@ abstract class FirAbstractImportingScope(session: FirSession, lookupInFir: Boole
 
     protected fun <T : ConeCallableSymbol> processCallables(
         import: FirResolvedImport,
-        name: Name,
+        name: FirName,
         token: TowerScopeLevel.Token<T>,
         processor: (ConeCallableSymbol) -> ProcessorAction
     ): ProcessorAction {
@@ -70,7 +70,7 @@ abstract class FirAbstractImportingScope(session: FirSession, lookupInFir: Boole
                 return ProcessorAction.STOP
             }
         } else if (name.isSpecial || name.identifier.isNotEmpty()) {
-            val matchedClass = provider.getClassLikeSymbolByFqName(ClassId(import.packageFqName, name))
+            val matchedClass = provider.getClassLikeSymbolByFqName(FirClassId(import.packageFqName, name))
             if (processConstructors(
                     matchedClass,
                     processor,
@@ -96,19 +96,19 @@ abstract class FirAbstractImportingScope(session: FirSession, lookupInFir: Boole
     }
 
     abstract fun <T : ConeCallableSymbol> processCallables(
-        name: Name,
+        name: FirName,
         token: TowerScopeLevel.Token<T>,
         processor: (ConeCallableSymbol) -> ProcessorAction
     ): ProcessorAction
 
-    final override fun processFunctionsByName(name: Name, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
+    final override fun processFunctionsByName(name: FirName, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
         return processCallables(
             name,
             TowerScopeLevel.Token.Functions
         ) { if (it is ConeFunctionSymbol) processor(it) else ProcessorAction.NEXT }
     }
 
-    final override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+    final override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
         return processCallables(
             name,
             TowerScopeLevel.Token.Properties

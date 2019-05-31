@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.types.ConeAbbreviatedType
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.coneTypeUnsafe
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 fun MutableList<FirScope>.addImportingScopes(file: FirFile, session: FirSession) {
@@ -37,7 +37,7 @@ fun FirCompositeScope.addImportingScopes(file: FirFile, session: FirSession) {
     scopes.addImportingScopes(file, session)
 }
 
-private fun finalExpansionName(symbol: FirTypeAliasSymbol, session: FirSession): Name? {
+private fun finalExpansionName(symbol: FirTypeAliasSymbol, session: FirSession): FirName? {
     val expandedType = symbol.fir.expandedTypeRef.coneTypeUnsafe<ConeClassLikeType>()
     return when (expandedType) {
         is ConeAbbreviatedType ->
@@ -54,7 +54,7 @@ fun processConstructors(
     processor: (ConeFunctionSymbol) -> ProcessorAction,
     session: FirSession,
     scopeSession: ScopeSession,
-    name: Name
+    name: FirName
 ): ProcessorAction {
     try {
         if (matchedSymbol != null) {

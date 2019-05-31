@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.fir.references.FirSimpleNamedReference
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirComponentCallImpl(
     session: FirSession,
@@ -30,7 +30,7 @@ class FirComponentCallImpl(
     }
 
     override var calleeReference: FirNamedReference =
-        FirSimpleNamedReference(session, psi, Name.identifier("component$componentIndex"))
+        FirSimpleNamedReference(session, psi, FirName.identifier("component$componentIndex"))
 
     override val typeArguments: List<FirTypeProjection>
         get() = emptyList()

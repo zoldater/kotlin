@@ -32,8 +32,8 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.*
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage
 import org.jetbrains.kotlin.resolve.calls.inference.model.SimpleConstraintSystemConstraintPosition
 import org.jetbrains.kotlin.resolve.calls.model.PostponedResolvedAtomMarker
@@ -144,7 +144,7 @@ interface TowerScopeLevel {
 
     fun <T : ConeSymbol> processElementsByName(
         token: Token<T>,
-        name: Name,
+        name: FirName,
         explicitReceiver: ExpressionReceiverValue?,
         processor: TowerScopeLevelProcessor<T>
     ): ProcessorAction
@@ -160,7 +160,7 @@ interface TowerScopeLevel {
     object Empty : TowerScopeLevel {
         override fun <T : ConeSymbol> processElementsByName(
             token: Token<T>,
-            name: Name,
+            name: FirName,
             explicitReceiver: ExpressionReceiverValue?,
             processor: TowerScopeLevelProcessor<T>
         ): ProcessorAction = ProcessorAction.NEXT
@@ -222,7 +222,7 @@ class MemberScopeTowerLevel(
 
     override fun <T : ConeSymbol> processElementsByName(
         token: TowerScopeLevel.Token<T>,
-        name: Name,
+        name: FirName,
         explicitReceiver: ExpressionReceiverValue?,
         processor: TowerScopeLevel.TowerScopeLevelProcessor<T>
     ): ProcessorAction {
@@ -258,7 +258,7 @@ class ScopeTowerLevel(
 ) : SessionBasedTowerLevel(session) {
     override fun <T : ConeSymbol> processElementsByName(
         token: TowerScopeLevel.Token<T>,
-        name: Name,
+        name: FirName,
         explicitReceiver: ExpressionReceiverValue?,
         processor: TowerScopeLevel.TowerScopeLevelProcessor<T>
     ): ProcessorAction {
@@ -304,7 +304,7 @@ class ScopeTowerLevel(
 class QualifiedReceiverTowerLevel(session: FirSession) : SessionBasedTowerLevel(session) {
     override fun <T : ConeSymbol> processElementsByName(
         token: TowerScopeLevel.Token<T>,
-        name: Name,
+        name: FirName,
         explicitReceiver: ExpressionReceiverValue?,
         processor: TowerScopeLevel.TowerScopeLevelProcessor<T>
     ): ProcessorAction {
@@ -313,7 +313,7 @@ class QualifiedReceiverTowerLevel(session: FirSession) : SessionBasedTowerLevel(
             listOf(
                 FirResolvedImportImpl(
                     session,
-                    FirImportImpl(session, null, FqName.topLevel(name), false, null),
+                    FirImportImpl(session, null, FirFqName.topLevel(name), false, null),
                     qualifiedReceiver.packageFqName,
                     qualifiedReceiver.relativeClassFqName
                 )
@@ -340,7 +340,7 @@ class QualifiedReceiverTowerLevel(session: FirSession) : SessionBasedTowerLevel(
 
 class QualifiedReceiverTowerDataConsumer<T : ConeSymbol>(
     val session: FirSession,
-    val name: Name,
+    val name: FirName,
     val token: TowerScopeLevel.Token<T>,
     val explicitReceiver: ExpressionReceiverValue,
     val candidateFactory: CandidateFactory
@@ -402,7 +402,7 @@ abstract class TowerDataConsumer {
 
 fun createVariableAndObjectConsumer(
     session: FirSession,
-    name: Name,
+    name: FirName,
     callInfo: CallInfo,
     inferenceComponents: InferenceComponents
 ): TowerDataConsumer {
@@ -427,7 +427,7 @@ fun createVariableAndObjectConsumer(
 
 fun createFunctionConsumer(
     session: FirSession,
-    name: Name,
+    name: FirName,
     callInfo: CallInfo,
     inferenceComponents: InferenceComponents
 ): TowerDataConsumer {
@@ -443,7 +443,7 @@ fun createFunctionConsumer(
 
 fun createSimpleConsumer(
     session: FirSession,
-    name: Name,
+    name: FirName,
     token: TowerScopeLevel.Token<*>,
     callInfo: CallInfo,
     inferenceComponents: InferenceComponents
@@ -497,14 +497,14 @@ class PrioritizedTowerDataConsumer(
 
 class ExplicitReceiverTowerDataConsumer<T : ConeSymbol>(
     val session: FirSession,
-    val name: Name,
+    val name: FirName,
     val token: TowerScopeLevel.Token<T>,
     val explicitReceiver: ExpressionReceiverValue,
     val candidateFactory: CandidateFactory
 ) : TowerDataConsumer() {
 
     companion object {
-        val defaultPackage = Name.identifier("kotlin")
+        val defaultPackage = FirName.identifier("kotlin")
     }
 
 
@@ -596,7 +596,7 @@ class ExplicitReceiverTowerDataConsumer<T : ConeSymbol>(
 
 class NoExplicitReceiverTowerDataConsumer<T : ConeSymbol>(
     val session: FirSession,
-    val name: Name,
+    val name: FirName,
     val token: TowerScopeLevel.Token<T>,
     val candidateFactory: CandidateFactory
 ) : TowerDataConsumer() {

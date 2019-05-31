@@ -7,13 +7,13 @@ package org.jetbrains.kotlin.fir.scopes
 
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
 import org.jetbrains.kotlin.fir.symbols.ConeClassifierSymbol
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 interface FirTypeParameterScope : FirScope {
-    val typeParameters: Map<Name, List<FirTypeParameter>>
+    val typeParameters: Map<FirName, List<FirTypeParameter>>
 
     override fun processClassifiersByName(
-        name: Name,
+        name: FirName,
         position: FirPosition,
         processor: (ConeClassifierSymbol) -> Boolean
     ): Boolean {

@@ -9,10 +9,10 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirAbstractElement
 import org.jetbrains.kotlin.fir.FirNamedReference
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirSimpleNamedReference(
     session: FirSession,
     psi: PsiElement?,
-    override val name: Name
+    override val name: FirName
 ) : FirAbstractElement(session, psi), FirNamedReference

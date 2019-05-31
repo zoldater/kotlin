@@ -36,9 +36,9 @@ import org.jetbrains.kotlin.fir.scopes.impl.FirCompositeScope
 import org.jetbrains.kotlin.fir.service
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 import org.jetbrains.kotlin.test.*
 import org.jetbrains.kotlin.test.KotlinTestUtils.getAnnotationsJar
@@ -111,8 +111,8 @@ abstract class AbstractFirTypeEnhancementTest : KtUsefulTestCase() {
                             text.split("\n").firstOrNull {
                                 it.startsWith("package")
                             }?.substringAfter("package")?.trim()?.substringBefore(";")?.let { name ->
-                                FqName(name)
-                            } ?: FqName.ROOT
+                                FirFqName(name)
+                            } ?: FirFqName.ROOT
                         for (segment in packageFqName.pathSegments()) {
                             currentDir = File(currentDir, segment.asString()).apply { mkdir() }
                         }
@@ -153,12 +153,12 @@ abstract class AbstractFirTypeEnhancementTest : KtUsefulTestCase() {
             val symbolProvider = session.service<FirSymbolProvider>() as FirCompositeSymbolProvider
             val javaProvider = symbolProvider.providers.filterIsInstance<JavaSymbolProvider>().first()
 
-            fun processClassWithChildren(psiClass: PsiClass, parentFqName: FqName) {
+            fun processClassWithChildren(psiClass: PsiClass, parentFqName: FirFqName) {
                 val psiFile = psiClass.containingFile
                 val packageStatement = psiFile.children.filterIsInstance<PsiPackageStatement>().firstOrNull()
                 val packageName = packageStatement?.packageName
-                val fqName = parentFqName.child(Name.identifier(psiClass.name!!))
-                val classId = ClassId(packageName?.let { FqName(it) } ?: FqName.ROOT, fqName, false)
+                val fqName = parentFqName.child(FirName.identifier(psiClass.name!!))
+                val classId = FirClassId(packageName?.let { FirFqName(it) } ?: FirFqName.ROOT, fqName, false)
                 javaProvider.getClassLikeSymbolByFqName(classId)
                     ?: throw AssertionError(classId.asString())
                 psiClass.innerClasses.forEach {
@@ -166,7 +166,7 @@ abstract class AbstractFirTypeEnhancementTest : KtUsefulTestCase() {
                 }
             }
             for (psiClass in topPsiClasses) {
-                processClassWithChildren(psiClass, FqName.ROOT)
+                processClassWithChildren(psiClass, FirFqName.ROOT)
             }
 
             val processedJavaClasses = mutableSetOf<FirJavaClass>()

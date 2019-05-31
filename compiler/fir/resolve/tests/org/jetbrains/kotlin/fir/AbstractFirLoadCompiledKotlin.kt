@@ -12,8 +12,8 @@ import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.jvm.compiler.LoadDescriptorUtil.compileKotlinToDirAndGetModule
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.KotlinTestUtils.newConfiguration
@@ -41,7 +41,7 @@ abstract class AbstractFirLoadCompiledKotlin : AbstractFirResolveWithSessionTest
         prepareProjectExtensions(environment.project)
         val sessionWithDependency = createSession(environment, GlobalSearchScope.EMPTY_SCOPE)
 
-        checkPackageContent(sessionWithDependency, FqName("test"), path)
+        checkPackageContent(sessionWithDependency, FirFqName("test"), path)
     }
 
     private fun compileKtFileToTmpDir(path: String) {
@@ -56,7 +56,7 @@ abstract class AbstractFirLoadCompiledKotlin : AbstractFirResolveWithSessionTest
 
     private fun checkPackageContent(
         session: FirSession,
-        packageFqName: FqName,
+        packageFqName: FirFqName,
         testDataPath: String
     ) {
         val provider = session.getService(FirSymbolProvider::class)
@@ -73,7 +73,7 @@ abstract class AbstractFirLoadCompiledKotlin : AbstractFirResolveWithSessionTest
 
         for (name in provider.getClassNamesInPackage(packageFqName)) {
             val classLikeSymbol =
-                provider.getClassLikeSymbolByFqName(ClassId.topLevel(packageFqName.child(name))) as FirClassSymbol?
+                provider.getClassLikeSymbolByFqName(FirClassId.topLevel(packageFqName.child(name))) as FirClassSymbol?
                     ?: continue
             classLikeSymbol.fir.accept(firRenderer)
             builder.appendln()

@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculator
 import org.jetbrains.kotlin.fir.symbols.*
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.*
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.resolve.calls.inference.components.*
 import org.jetbrains.kotlin.resolve.calls.inference.model.NewConstraintSystemImpl
 import org.jetbrains.kotlin.types.AbstractTypeApproximator
@@ -35,7 +35,7 @@ fun ConeInferenceContext.hasNullableSuperType(type: ConeKotlinType): Boolean {
 }
 
 class ConeTypeVariableTypeConstructor(val debugName: String) : ConeSymbol, ConeClassifierLookupTag, TypeVariableTypeConstructorMarker {
-    override val name: Name get() = Name.identifier(debugName)
+    override val name: FirName get() = FirName.identifier(debugName)
 }
 
 class TypeParameterBasedTypeVariable(val typeParameterSymbol: FirTypeParameterSymbol) :

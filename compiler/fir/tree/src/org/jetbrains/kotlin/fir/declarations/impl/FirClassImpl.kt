@@ -17,14 +17,14 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.transformInplace
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 open class FirClassImpl(
     session: FirSession,
     psi: PsiElement?,
     final override val symbol: FirClassSymbol,
-    name: Name,
+    name: FirName,
     visibility: Visibility,
     modality: Modality?,
     isExpect: Boolean,

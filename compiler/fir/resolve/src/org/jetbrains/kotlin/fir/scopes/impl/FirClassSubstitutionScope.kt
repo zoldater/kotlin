@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.FirResolvedTypeRefImpl
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirClassSubstitutionScope(
     private val session: FirSession,
@@ -34,7 +34,7 @@ class FirClassSubstitutionScope(
 
     private val substitutor = ConeSubstitutorByMap(substitution)
 
-    override fun processFunctionsByName(name: Name, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: FirName, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
         useSiteScope.processFunctionsByName(name) process@{ original ->
 
             val function = fakeOverrides.getOrPut(original) { createFakeOverride(original) }
@@ -45,7 +45,7 @@ class FirClassSubstitutionScope(
         return super.processFunctionsByName(name, processor)
     }
 
-    override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
         return useSiteScope.processPropertiesByName(name, processor)
     }
 

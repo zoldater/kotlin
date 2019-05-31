@@ -13,12 +13,12 @@ import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.ConeFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeVariableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirLocalScope : FirScope {
 
-    val properties = mutableMapOf<Name, ConeVariableSymbol>()
-    val functions = mutableMapOf<Name, ConeFunctionSymbol>()
+    val properties = mutableMapOf<FirName, ConeVariableSymbol>()
+    val functions = mutableMapOf<FirName, ConeFunctionSymbol>()
 
     fun storeDeclaration(declaration: FirNamedDeclaration) {
         when (declaration) {
@@ -27,7 +27,7 @@ class FirLocalScope : FirScope {
         }
     }
 
-    override fun processFunctionsByName(name: Name, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: FirName, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
         val prop = functions[name]
         if (prop != null) {
             return processor(prop)
@@ -35,7 +35,7 @@ class FirLocalScope : FirScope {
         return ProcessorAction.NEXT
     }
 
-    override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
         val prop = properties[name]
         if (prop != null) {
             return processor(prop)

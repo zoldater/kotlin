@@ -16,12 +16,12 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirModifiableClass
 import org.jetbrains.kotlin.fir.java.JavaTypeParameterStack
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirJavaClass internal constructor(
     session: FirSession,
     override val symbol: FirClassSymbol,
-    name: Name,
+    name: FirName,
     visibility: Visibility,
     modality: Modality?,
     override val classKind: ClassKind,

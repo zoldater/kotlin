@@ -9,10 +9,10 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.service
 import org.jetbrains.kotlin.fir.symbols.ConeClassifierSymbol
 import org.jetbrains.kotlin.fir.types.FirQualifierPart
-import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.fir.names.FirClassId
 
 interface FirQualifierResolver {
-    fun resolveSymbolWithPrefix(parts: List<FirQualifierPart>, prefix: ClassId): ConeClassifierSymbol?
+    fun resolveSymbolWithPrefix(parts: List<FirQualifierPart>, prefix: FirClassId): ConeClassifierSymbol?
 
     fun resolveSymbol(parts: List<FirQualifierPart>): ConeClassifierSymbol?
 

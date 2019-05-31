@@ -12,12 +12,12 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirMemberFunctionImpl
 import org.jetbrains.kotlin.fir.java.types.FirJavaTypeRef
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirJavaMethod(
     session: FirSession,
     symbol: FirFunctionSymbol,
-    name: Name,
+    name: FirName,
     visibility: Visibility,
     modality: Modality?,
     returnTypeRef: FirJavaTypeRef,

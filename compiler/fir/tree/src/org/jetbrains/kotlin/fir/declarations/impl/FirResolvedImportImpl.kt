@@ -9,19 +9,19 @@ import org.jetbrains.kotlin.fir.FirAbstractElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirImport
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirResolvedImportImpl(
     session: FirSession,
     val delegate: FirImport,
-    override val packageFqName: FqName,
-    override val relativeClassName: FqName?
+    override val packageFqName: FirFqName,
+    override val relativeClassName: FirFqName?
 ) : FirAbstractElement(session, delegate.psi), FirResolvedImport, FirImport {
-    override val aliasName: Name?
+    override val aliasName: FirName?
         get() = delegate.aliasName
 
-    override val importedFqName: FqName?
+    override val importedFqName: FirFqName?
         get() = delegate.importedFqName
 
     override val isAllUnder: Boolean

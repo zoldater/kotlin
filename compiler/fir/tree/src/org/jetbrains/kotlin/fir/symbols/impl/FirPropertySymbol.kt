@@ -8,12 +8,12 @@ package org.jetbrains.kotlin.fir.symbols.impl
 import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.ConePropertySymbol
 import org.jetbrains.kotlin.fir.symbols.ConeVariableSymbol
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 open class FirPropertySymbol(callableId: CallableId) : FirVariableSymbol(callableId), ConePropertySymbol
 
 open class FirVariableSymbol(override val callableId: CallableId) : ConeVariableSymbol, FirCallableSymbol() {
 
     @Deprecated("TODO: Better solution for local vars?")
-    constructor(name: Name) : this(CallableId(name))  // TODO?
+    constructor(name: FirName) : this(CallableId(name))  // TODO?
 }

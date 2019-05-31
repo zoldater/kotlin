@@ -39,9 +39,9 @@ import org.jetbrains.kotlin.load.java.JavaClassFinder
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames
 import org.jetbrains.kotlin.load.java.structure.JavaClass
 import org.jetbrains.kotlin.load.java.structure.JavaTypeParameter
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade
 import org.jetbrains.kotlin.types.Variance.INVARIANT
 
@@ -53,18 +53,18 @@ class JavaSymbolProvider(
 
     private val facade: KotlinJavaPsiFacade get() = KotlinJavaPsiFacade.getInstance(project)
 
-    private fun findClass(classId: ClassId): JavaClass? = facade.findClass(JavaClassFinder.Request(classId), searchScope)
+    private fun findClass(classId: FirClassId): JavaClass? = facade.findClass(JavaClassFinder.Request(classId), searchScope)
 
-    override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<ConeCallableSymbol> =
+    override fun getTopLevelCallableSymbols(packageFqName: FirFqName, name: FirName): List<ConeCallableSymbol> =
         emptyList()
 
-    override fun getClassDeclaredMemberScope(classId: ClassId): FirScope? {
+    override fun getClassDeclaredMemberScope(classId: FirClassId): FirScope? {
         val classSymbol = getClassLikeSymbolByFqName(classId) as? FirClassSymbol ?: return null
         return FirClassDeclaredMemberScope(classSymbol.fir)
     }
 
     override fun getClassUseSiteMemberScope(
-        classId: ClassId,
+        classId: FirClassId,
         useSiteSession: FirSession,
         scopeSession: ScopeSession
     ): FirScope? {
@@ -136,7 +136,7 @@ class JavaSymbolProvider(
             }
     }
 
-    override fun getClassLikeSymbolByFqName(classId: ClassId): ConeClassLikeSymbol? {
+    override fun getClassLikeSymbolByFqName(classId: FirClassId): ConeClassLikeSymbol? {
         if (!hasTopLevelClassOf(classId)) return null
         return classCache.lookupCacheOrCalculateWithPostCompute(classId, {
             val foundClass = findClass(classId)
@@ -151,7 +151,7 @@ class JavaSymbolProvider(
                 val parentFqName = classId.relativeClassName.parent()
                 val isTopLevel = parentFqName.isRoot
                 if (!isTopLevel) {
-                    val parentId = ClassId(classId.packageFqName, parentFqName, false)
+                    val parentId = FirClassId(classId.packageFqName, parentFqName, false)
                     val parentClassSymbol = getClassLikeSymbolByFqName(parentId) as? FirClassSymbol
                     val parentClass = parentClassSymbol?.fir
                     if (parentClass is FirJavaClass) {
@@ -249,11 +249,11 @@ class JavaSymbolProvider(
         }
     }
 
-    override fun getPackage(fqName: FqName): FqName? {
+    override fun getPackage(fqName: FirFqName): FirFqName? {
         return packageCache.lookupCacheOrCalculate(fqName) {
             val facade = KotlinJavaPsiFacade.getInstance(project)
             val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return@lookupCacheOrCalculate null
-            FqName(javaPackage.qualifiedName)
+            FirFqName(javaPackage.qualifiedName)
         }
     }
 
@@ -264,9 +264,9 @@ class JavaSymbolProvider(
             .map { it.fir }
     }
 
-    private val knownClassNamesInPackage = mutableMapOf<FqName, Set<String>?>()
+    private val knownClassNamesInPackage = mutableMapOf<FirFqName, Set<String>?>()
 
-    private fun hasTopLevelClassOf(classId: ClassId): Boolean {
+    private fun hasTopLevelClassOf(classId: FirClassId): Boolean {
         val knownNames = knownClassNamesInPackage.getOrPut(classId.packageFqName) {
             facade.knownClassNamesInPackage(classId.packageFqName)
         } ?: return true
@@ -274,8 +274,8 @@ class JavaSymbolProvider(
     }
 }
 
-fun FqName.topLevelName() =
-    asString().substringBefore(".")
+fun FirFqName.topLevelName() =
+    segments().first()//asString().substringBefore(".")
 
 
 private val JAVA_ENHANCEMENT = scopeSessionKey<JavaClassEnhancementScope>()

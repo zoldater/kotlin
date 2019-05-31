@@ -49,9 +49,9 @@ import org.jetbrains.kotlin.ir.types.impl.IrErrorTypeImpl
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi2ir.PsiSourceManager
 import org.jetbrains.kotlin.types.AbstractStrictEqualityTypeChecker
@@ -163,7 +163,7 @@ internal class Fir2IrVisitor(
         return accept(this@Fir2IrVisitor, null) as IrDeclaration
     }
 
-    private fun FirTypeRef.collectFunctionNamesFromThisAndSupertypes(result: MutableList<Name> = mutableListOf()): List<Name> {
+    private fun FirTypeRef.collectFunctionNamesFromThisAndSupertypes(result: MutableList<FirName> = mutableListOf()): List<FirName> {
         if (this is FirResolvedTypeRef) {
             val superType = type
             if (superType is ConeClassLikeType) {
@@ -187,7 +187,7 @@ internal class Fir2IrVisitor(
         return result
     }
 
-    private fun FirClass.collectFunctionNamesFromSupertypes(result: MutableList<Name> = mutableListOf()): List<Name> {
+    private fun FirClass.collectFunctionNamesFromSupertypes(result: MutableList<FirName> = mutableListOf()): List<FirName> {
         for (superTypeRef in superTypeRefs) {
             superTypeRef.collectFunctionNamesFromThisAndSupertypes(result)
         }
@@ -197,7 +197,7 @@ internal class Fir2IrVisitor(
     private fun FirClass.getPrimaryConstructorIfAny(): FirConstructor? =
         (declarations.firstOrNull() as? FirConstructor)?.takeIf { it.isPrimary }
 
-    private fun IrClass.addFakeOverrides(klass: FirClass, processedFunctionNames: MutableList<Name>) {
+    private fun IrClass.addFakeOverrides(klass: FirClass, processedFunctionNames: MutableList<FirName>) {
         if (fakeOverrideMode == FakeOverrideMode.NONE) return
         val superTypesFunctionNames = klass.collectFunctionNamesFromSupertypes()
         val useSiteScope = (klass as? FirRegularClass)?.buildUseSiteScope(session, ScopeSession()) ?: return
@@ -244,7 +244,7 @@ internal class Fir2IrVisitor(
             if (irPrimaryConstructor != null) {
                 declarations += irPrimaryConstructor
             }
-            val processedFunctionNames = mutableListOf<Name>()
+            val processedFunctionNames = mutableListOf<FirName>()
             klass.declarations.forEach {
                 if (it !is FirConstructor || !it.isPrimary) {
                     val irDeclaration = it.toIrDeclaration() ?: return@forEach
@@ -314,7 +314,7 @@ internal class Fir2IrVisitor(
                 ) { symbol ->
                     IrValueParameterImpl(
                         startOffset, endOffset, thisOrigin, symbol,
-                        Name.special("<this>"), -1, thisType,
+                        FirName.special("<this>"), -1, thisType,
                         varargElementType = null, isCrossinline = false, isNoinline = false
                     ).setParentByParentStack()
                 }
@@ -538,7 +538,7 @@ internal class Fir2IrVisitor(
             val accessorReturnType = propertyAccessor.returnTypeRef.toIrType(session, declarationStorage)
             IrFunctionImpl(
                 startOffset, endOffset, origin, symbol,
-                Name.special("<$prefix-${correspondingProperty.name}>"),
+                FirName.special("<$prefix-${correspondingProperty.name}>"),
                 propertyAccessor.visibility, correspondingProperty.modality, accessorReturnType,
                 isInline = false, isExternal = false, isTailrec = false, isSuspend = false
             ).withFunction {
@@ -559,7 +559,7 @@ internal class Fir2IrVisitor(
                                 ) { symbol ->
                                     IrValueParameterImpl(
                                         startOffset, endOffset, IrDeclarationOrigin.DEFINED, symbol,
-                                        Name.special("<set-?>"), 0, propertyType,
+                                        FirName.special("<set-?>"), 0, propertyType,
                                         varargElementType = null,
                                         isCrossinline = false, isNoinline = false
                                     ).setParentByParentStack()
@@ -1056,10 +1056,10 @@ internal class Fir2IrVisitor(
         }
         // TODO: it's temporary hack which should be refactored
         val simpleType = when (val classId = (firstType.type as? ConeClassLikeType)?.lookupTag?.classId) {
-            ClassId(FqName("kotlin"), FqName("Long"), false) -> irBuiltIns.builtIns.longType
-            ClassId(FqName("kotlin"), FqName("Int"), false) -> irBuiltIns.builtIns.intType
-            ClassId(FqName("kotlin"), FqName("Float"), false) -> irBuiltIns.builtIns.floatType
-            ClassId(FqName("kotlin"), FqName("Double"), false) -> irBuiltIns.builtIns.doubleType
+            FirClassId(FirFqName("kotlin"), FirFqName("Long"), false) -> irBuiltIns.builtIns.longType
+            FirClassId(FirFqName("kotlin"), FirFqName("Int"), false) -> irBuiltIns.builtIns.intType
+            FirClassId(FirFqName("kotlin"), FirFqName("Float"), false) -> irBuiltIns.builtIns.floatType
+            FirClassId(FirFqName("kotlin"), FirFqName("Double"), false) -> irBuiltIns.builtIns.doubleType
             else -> {
                 return IrErrorCallExpressionImpl(
                     startOffset, endOffset, booleanType, "Comparison of arguments with unsupported type: $classId"

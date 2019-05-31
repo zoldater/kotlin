@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.fir.transformInplace
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 open class FirConstructorImpl : FirAbstractCallableMember, FirConstructor {
 
@@ -72,6 +72,6 @@ open class FirConstructorImpl : FirAbstractCallableMember, FirConstructor {
     }
 
     companion object {
-        val NAME = Name.special("<init>")
+        val NAME = FirName.special("<init>")
     }
 }

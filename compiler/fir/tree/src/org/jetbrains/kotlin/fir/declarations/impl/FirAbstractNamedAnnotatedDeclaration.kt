@@ -8,10 +8,10 @@ package org.jetbrains.kotlin.fir.declarations.impl
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirNamedDeclaration
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 abstract class FirAbstractNamedAnnotatedDeclaration(
     session: FirSession,
     psi: PsiElement?,
-    final override val name: Name
+    final override val name: FirName
 ) : FirAbstractAnnotatedDeclaration(session, psi), FirNamedDeclaration

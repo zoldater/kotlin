@@ -20,13 +20,13 @@ import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitEnumTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirEnumEntryImpl(
     session: FirSession,
     psi: PsiElement?,
     symbol: FirClassSymbol,
-    name: Name
+    name: FirName
 ) : FirClassImpl(
     session,
     psi,

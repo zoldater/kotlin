@@ -8,16 +8,16 @@ package org.jetbrains.kotlin.fir.expressions.impl
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 
 class FirResolvedQualifierImpl(
     session: FirSession,
     psi: PsiElement?,
-    override val packageFqName: FqName,
-    override val relativeClassFqName: FqName?
+    override val packageFqName: FirFqName,
+    override val relativeClassFqName: FirFqName?
 ) : FirResolvedQualifier, FirAbstractExpression(session, psi) {
-    constructor(session: FirSession, psi: PsiElement?, classId: ClassId) : this(
+    constructor(session: FirSession, psi: PsiElement?, classId: FirClassId) : this(
         session,
         psi,
         classId.packageFqName,

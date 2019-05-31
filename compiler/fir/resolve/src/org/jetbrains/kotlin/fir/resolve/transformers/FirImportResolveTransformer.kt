@@ -13,8 +13,8 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedImportImpl
 import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
 import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
 import org.jetbrains.kotlin.fir.visitors.compose
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 
 class FirImportResolveTransformer() : FirAbstractTreeTransformer() {
     override fun <E : FirElement> transformElement(element: E, data: Nothing?): CompositeTransformResult<E> {
@@ -48,7 +48,7 @@ class FirImportResolveTransformer() : FirAbstractTreeTransformer() {
         return transformImportForFqName(parentFqName, import)
     }
 
-    private fun transformImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
+    private fun transformImportForFqName(fqName: FirFqName, delegate: FirImport): CompositeTransformResult<FirImport> {
         val (packageFqName, relativeClassFqName) = resolveToPackageOrClass(symbolProvider, fqName) ?: return delegate.compose()
         return FirResolvedImportImpl(session, delegate, packageFqName, relativeClassFqName).compose()
     }
@@ -56,7 +56,7 @@ class FirImportResolveTransformer() : FirAbstractTreeTransformer() {
 
 }
 
-fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName): PackageOrClass? {
+fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FirFqName): PackageOrClass? {
     var currentPackage = fqName
 
     val pathSegments = fqName.pathSegments()
@@ -71,12 +71,12 @@ fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName): 
 
     if (currentPackage == fqName) return PackageOrClass(currentPackage, null)
     val relativeClassFqName =
-        FqName.fromSegments((prefixSize until pathSegments.size).map { pathSegments[it].asString() })
+        FirFqName.fromSegments((prefixSize until pathSegments.size).map { pathSegments[it].asString() })
 
-    val classId = ClassId(currentPackage, relativeClassFqName, false)
+    val classId = FirClassId(currentPackage, relativeClassFqName, false)
     if (symbolProvider.getClassLikeSymbolByFqName(classId) == null) return null
 
     return PackageOrClass(currentPackage, relativeClassFqName)
 }
 
-data class PackageOrClass(val packageFqName: FqName, val relativeClassFqName: FqName?)
+data class PackageOrClass(val packageFqName: FirFqName, val relativeClassFqName: FirFqName?)

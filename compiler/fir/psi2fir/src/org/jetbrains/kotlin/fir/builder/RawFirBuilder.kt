@@ -22,8 +22,9 @@ import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.*
 import org.jetbrains.kotlin.lexer.KtTokens.*
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
@@ -42,6 +43,14 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
     private val implicitEnumType = FirImplicitEnumTypeRef(session, null)
 
     private val implicitAnnotationType = FirImplicitAnnotationTypeRef(session, null)
+
+    private fun Name.intern(): FirName {
+        return session.nameFactory.create(asString())
+    }
+
+    private fun FqName.intern(): FirFqName {
+        return FirFqName(Array(segments().size) { })
+    }
 
     fun buildFirFile(file: KtFile): FirFile {
         return file.accept(Visitor(), Unit) as FirFile
@@ -201,7 +210,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             }
             val isSpread = getSpreadElement() != null
             return when {
-                name != null -> FirNamedArgumentExpressionImpl(session, expression, name, isSpread, firExpression)
+                name != null -> FirNamedArgumentExpressionImpl(session, expression, name.intern(), isSpread, firExpression)
                 isSpread -> FirSpreadArgumentExpressionImpl(session, expression, firExpression)
                 else -> firExpression
             }
@@ -245,7 +254,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             val firValueParameter = FirValueParameterImpl(
                 session,
                 this,
-                nameAsSafeName,
+                nameAsSafeName.intern(),
                 when {
                     typeReference != null -> typeReference.toFirOrErrorType()
                     defaultTypeRef != null -> defaultTypeRef
@@ -268,8 +277,8 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             val firProperty = FirMemberPropertyImpl(
                 session,
                 this,
-                FirPropertySymbol(callableIdForName(nameAsSafeName)),
-                nameAsSafeName,
+                FirPropertySymbol(callableIdForName(nameAsSafeName.intern())),
+                nameAsSafeName.intern(),
                 visibility,
                 modality,
                 hasExpectModifier(),
@@ -282,7 +291,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 isVar = isMutable,
                 initializer = FirQualifiedAccessExpressionImpl(session, this).apply {
                     calleeReference = FirPropertyFromParameterCallableReference(
-                        this@RawFirBuilder.session, this@toFirProperty, nameAsSafeName, firParameter.symbol
+                        this@RawFirBuilder.session, this@toFirProperty, nameAsSafeName.intern(), firParameter.symbol
                     )
                 },
                 getter = FirDefaultPropertyGetter(session, this, type, visibility),
@@ -416,10 +425,10 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             return firConstructor
         }
 
-        lateinit var packageFqName: FqName
+        lateinit var packageFqName: FirFqName
 
         override fun visitKtFile(file: KtFile, data: Unit): FirElement {
-            packageFqName = file.packageFqName
+            packageFqName = file.packageFqName.intern()
             val firFile = FirFileImpl(session, file, file.name, packageFqName)
             for (annotationEntry in file.annotationEntries) {
                 firFile.annotations += annotationEntry.convert<FirAnnotationCall>()
@@ -428,9 +437,9 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 firFile.imports += FirImportImpl(
                     session,
                     importDirective,
-                    importDirective.importedFqName,
+                    importDirective.importedFqName.intern(),
                     importDirective.isAllUnder,
-                    importDirective.aliasName?.let { Name.identifier(it) }
+                    importDirective.aliasName?.let { FirName.identifier(it) }
                 )
             }
             for (declaration in file.declarations) {
@@ -478,27 +487,27 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             }
         }
 
-        inline fun <T> withChildClassName(name: Name, l: () -> T): T {
+        inline fun <T> withChildClassName(name: FirName, l: () -> T): T {
             className = className.child(name)
             val t = l()
             className = className.parent()
             return t
         }
 
-        val currentClassId get() = ClassId(packageFqName, className, false)
+        val currentClassId get() = FirClassId(packageFqName, className, false)
 
-        fun callableIdForName(name: Name, local: Boolean = false) =
+        fun callableIdForName(name: FirName, local: Boolean = false) =
             when {
                 local -> CallableId(name)
-                className == FqName.ROOT -> CallableId(packageFqName, name)
+                className == FirFqName.ROOT -> CallableId(packageFqName, name)
                 else -> CallableId(packageFqName, className, name)
             }
 
         fun callableIdForClassConstructor() =
-            if (className == FqName.ROOT) CallableId(packageFqName, Name.special("<anonymous-init>"))
+            if (className == FirFqName.ROOT) CallableId(packageFqName, FirName.special("<anonymous-init>"))
             else CallableId(packageFqName, className, className.shortName())
 
-        var className: FqName = FqName.ROOT
+        var className: FirFqName = FirFqName.ROOT
 
         override fun visitClassOrObject(classOrObject: KtClassOrObject, data: Unit): FirElement {
             return withChildClassName(classOrObject.nameAsSafeName) {
@@ -666,7 +675,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                     val multiDeclaration = valueParameter.destructuringDeclaration
                     valueParameters += if (multiDeclaration != null) {
                         val multiParameter = FirValueParameterImpl(
-                            this@RawFirBuilder.session, valueParameter, Name.special("<destruct>"),
+                            this@RawFirBuilder.session, valueParameter, FirName.special("<destruct>"),
                             FirImplicitTypeRefImpl(this@RawFirBuilder.session, multiDeclaration),
                             defaultValue = null, isCrossinline = false, isNoinline = false, isVararg = false
                         )
@@ -1069,12 +1078,12 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             val parameter = expression.loopParameter
             return FirBlockImpl(session, expression).apply {
                 val rangeVal =
-                    generateTemporaryVariable(this@RawFirBuilder.session, expression.loopRange, Name.special("<range>"), rangeExpression)
+                    generateTemporaryVariable(this@RawFirBuilder.session, expression.loopRange, FirName.special("<range>"), rangeExpression)
                 statements += rangeVal
                 val iteratorVal = generateTemporaryVariable(
-                    this@RawFirBuilder.session, expression.loopRange, Name.special("<iterator>"),
+                    this@RawFirBuilder.session, expression.loopRange, FirName.special("<iterator>"),
                     FirFunctionCallImpl(this@RawFirBuilder.session, expression).apply {
-                        calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, Name.identifier("iterator"))
+                        calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, FirName.identifier("iterator"))
                         explicitReceiver = generateResolvedAccessExpression(this@RawFirBuilder.session, expression.loopRange, rangeVal)
                     }
                 )
@@ -1082,7 +1091,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 statements += FirWhileLoopImpl(
                     this@RawFirBuilder.session, expression,
                     FirFunctionCallImpl(this@RawFirBuilder.session, expression).apply {
-                        calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, Name.identifier("hasNext"))
+                        calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, FirName.identifier("hasNext"))
                         explicitReceiver = generateResolvedAccessExpression(this@RawFirBuilder.session, expression, iteratorVal)
                     }
                 ).configure {
@@ -1096,9 +1105,9 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                         val multiDeclaration = parameter.destructuringDeclaration
                         val firLoopParameter = generateTemporaryVariable(
                             this@RawFirBuilder.session, expression.loopParameter,
-                            if (multiDeclaration != null) Name.special("<destruct>") else parameter.nameAsSafeName,
+                            if (multiDeclaration != null) FirName.special("<destruct>") else parameter.nameAsSafeName,
                             FirFunctionCallImpl(this@RawFirBuilder.session, expression).apply {
-                                calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, Name.identifier("next"))
+                                calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, FirName.identifier("next"))
                                 explicitReceiver = generateResolvedAccessExpression(this@RawFirBuilder.session, expression, iteratorVal)
                             }
                         )
@@ -1399,6 +1408,6 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
     }
 
     companion object {
-        val KNPE = Name.identifier("KotlinNullPointerException")
+        val KNPE = FirName.identifier("KotlinNullPointerException")
     }
 }

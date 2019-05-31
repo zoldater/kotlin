@@ -10,11 +10,11 @@ import org.jetbrains.kotlin.fir.FirAbstractElement
 import org.jetbrains.kotlin.fir.FirResolvedCallableReference
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirPropertyFromParameterCallableReference(
     session: FirSession,
     psi: PsiElement?,
-    override val name: Name,
+    override val name: FirName,
     override val coneSymbol: FirVariableSymbol
 ) : FirAbstractElement(session, psi), FirResolvedCallableReference

@@ -14,14 +14,14 @@ import org.jetbrains.kotlin.fir.scopes.ProcessorAction.STOP
 import org.jetbrains.kotlin.fir.symbols.ConeFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassifierSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeVariableSymbol
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirCompositeScope(
     val scopes: MutableList<FirScope>,
     private val reversedPriority: Boolean = false
 ) : FirScope {
     override fun processClassifiersByName(
-        name: Name,
+        name: FirName,
         position: FirPosition,
         processor: (ConeClassifierSymbol) -> Boolean
     ): Boolean {
@@ -36,8 +36,8 @@ class FirCompositeScope(
     }
 
     private inline fun <T> processComposite(
-        process: FirScope.(Name, (T) -> ProcessorAction) -> ProcessorAction,
-        name: Name,
+        process: FirScope.(FirName, (T) -> ProcessorAction) -> ProcessorAction,
+        name: FirName,
         noinline processor: (T) -> ProcessorAction
     ): ProcessorAction {
         val unique = mutableSetOf<T>()
@@ -57,11 +57,11 @@ class FirCompositeScope(
         return NEXT
     }
 
-    override fun processFunctionsByName(name: Name, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: FirName, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
         return processComposite(FirScope::processFunctionsByName, name, processor)
     }
 
-    override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
         return processComposite(FirScope::processPropertiesByName, name, processor)
     }
 

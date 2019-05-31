@@ -29,9 +29,9 @@ import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.compose
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FIRClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.resolve.calls.NewCommonSuperTypeCalculator
 import org.jetbrains.kotlin.resolve.calls.components.InferenceSession
 import org.jetbrains.kotlin.resolve.calls.inference.buildAbstractResultingSubstitutor
@@ -49,7 +49,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
         return (element.transformChildren(this, data) as E).compose()
     }
 
-    private var packageFqName = FqName.ROOT
+    private var packageFqName = FirFqName.ROOT
     private lateinit var file: FirFile
     private var container: FirDeclaration? = null
 
@@ -106,7 +106,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
     }
 
 
-    private inline fun <T> withLabelAndReceiverType(labelName: Name, owner: FirElement, type: ConeKotlinType, block: () -> T): T {
+    private inline fun <T> withLabelAndReceiverType(labelName: FirName, owner: FirElement, type: ConeKotlinType, block: () -> T): T {
         labels.put(labelName, type)
         when (owner) {
             is FirRegularClass -> implicitReceiverStack += ImplicitDispatchReceiverValue(owner.symbol, type)
@@ -191,7 +191,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
     val scopes = mutableListOf<FirScope>()
     private val localScopes = mutableListOf<FirLocalScope>()
 
-    private val labels = LinkedHashMultimap.create<Name, ConeKotlinType>()
+    private val labels = LinkedHashMultimap.create<FirName, ConeKotlinType>()
 
     private val implicitReceiverStack = mutableListOf<ImplicitReceiverValue>()
 
@@ -257,7 +257,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
         }
     }, session, jump)
 
-    private var qualifierStack = mutableListOf<Name>()
+    private var qualifierStack = mutableListOf<FirName>()
     private var qualifierPartsToDrop = 0
 
     private fun tryResolveAsQualifier(): FirStatement? {
@@ -268,7 +268,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
         do {
             resolved = resolveToPackageOrClass(
                 symbolProvider,
-                FqName.fromSegments(qualifierParts)
+                FirFqName.fromSegments(qualifierParts)
             )
             if (resolved == null)
                 qualifierParts = qualifierParts.dropLast(1)
@@ -393,7 +393,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
             is FirThisReference -> {
 
                 val labelName = callee.labelName
-                val types = if (labelName == null) labels.values() else labels[Name.identifier(labelName)]
+                val types = if (labelName == null) labels.values() else labels[FirName.identifier(labelName)]
                 val type = types.lastOrNull() ?: ConeKotlinErrorType("Unresolved this@$labelName")
                 qualifiedAccessExpression.resultType = FirResolvedTypeRefImpl(session, null, type, emptyList())
             }
@@ -445,7 +445,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
                                 FirValueParameterImpl(
                                     session,
                                     null,
-                                    Name.identifier("it"),
+                                    FirName.identifier("it"),
                                     FirResolvedTypeRefImpl(session, null, singleParameterType, emptyList()),
                                     defaultValue = null,
                                     isCrossinline = false,
@@ -515,7 +515,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
 
         val label = anonymousFunction.label
         return if (label != null && receiverTypeRef != null) {
-            withLabelAndReceiverType(Name.identifier(label.name), anonymousFunction, receiverTypeRef.coneTypeUnsafe()) { transform() }
+            withLabelAndReceiverType(FirName.identifier(label.name), anonymousFunction, receiverTypeRef.coneTypeUnsafe()) { transform() }
         } else {
             transform()
         }
@@ -637,7 +637,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
                         FirValueParameterImpl(
                             session,
                             null,
-                            Name.identifier("it"),
+                            FirName.identifier("it"),
                             FirResolvedTypeRefImpl(session, null, parameters.single(), emptyList()),
                             defaultValue = null,
                             isCrossinline = false,
@@ -967,7 +967,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
 
     override fun transformGetClassCall(getClassCall: FirGetClassCall, data: Any?): CompositeTransformResult<FirStatement> {
         val transformedGetClassCall = super.transformGetClassCall(getClassCall, data).single as FirGetClassCall
-        val kClassSymbol = ClassId.fromString("kotlin/reflect/KClass")(session.service())
+        val kClassSymbol = FirClassId.fromString("kotlin/reflect/KClass")(session.service())
 
         val typeOfExpression = when (val lhs = transformedGetClassCall.argument) {
             is FirResolvedQualifier -> {

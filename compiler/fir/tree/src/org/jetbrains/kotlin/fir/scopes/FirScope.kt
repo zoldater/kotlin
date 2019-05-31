@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.fir.scopes.ProcessorAction.STOP
 import org.jetbrains.kotlin.fir.symbols.ConeClassifierSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeVariableSymbol
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 interface FirScope {
     @Deprecated(
@@ -18,25 +18,25 @@ interface FirScope {
         replaceWith = ReplaceWith("processClassifiersByNameWithAction(name, position) { if (processor()) ProcessorAction.NEXT else ProcessorAction.STOP }.next()")
     )
     fun processClassifiersByName(
-        name: Name,
+        name: FirName,
         position: FirPosition,
         processor: (ConeClassifierSymbol) -> Boolean
     ): Boolean = true
 
     fun processFunctionsByName(
-        name: Name,
+        name: FirName,
         processor: (ConeFunctionSymbol) -> ProcessorAction
     ): ProcessorAction = NEXT
 
     fun processPropertiesByName(
-        name: Name,
+        name: FirName,
         processor: (ConeVariableSymbol) -> ProcessorAction
     ): ProcessorAction = NEXT
 }
 
 
 inline fun FirScope.processClassifiersByNameWithAction(
-    name: Name,
+    name: FirName,
     position: FirPosition,
     crossinline processor: (ConeClassifierSymbol) -> ProcessorAction
 ): ProcessorAction {

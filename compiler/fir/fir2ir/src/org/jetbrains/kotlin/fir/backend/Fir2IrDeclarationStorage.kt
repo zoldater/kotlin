@@ -26,8 +26,8 @@ import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.util.SymbolTable
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 
 class Fir2IrDeclarationStorage(
@@ -37,7 +37,7 @@ class Fir2IrDeclarationStorage(
 ) {
     private val firSymbolProvider = session.service<FirSymbolProvider>()
 
-    private val fragmentCache = mutableMapOf<FqName, IrExternalPackageFragment>()
+    private val fragmentCache = mutableMapOf<FirFqName, IrExternalPackageFragment>()
 
     private val classCache = mutableMapOf<FirRegularClass, IrClass>()
 
@@ -73,7 +73,7 @@ class Fir2IrDeclarationStorage(
         irSymbolTable.leaveScope(descriptor)
     }
 
-    private fun getIrExternalPackageFragment(fqName: FqName): IrExternalPackageFragment {
+    private fun getIrExternalPackageFragment(fqName: FirFqName): IrExternalPackageFragment {
         return fragmentCache.getOrPut(fqName) {
             // TODO: module descriptor is wrong here
             return irSymbolTable.declareExternalPackageFragment(FirPackageFragmentDescriptor(fqName, moduleDescriptor))
@@ -90,7 +90,7 @@ class Fir2IrDeclarationStorage(
         ) { symbol ->
             IrValueParameterImpl(
                 startOffset, endOffset, thisOrigin, symbol,
-                Name.special("<this>"), -1, thisType,
+                FirName.special("<this>"), -1, thisType,
                 varargElementType = null, isCrossinline = false, isNoinline = false
             ).apply { this.parent = parent }
         }
@@ -167,7 +167,7 @@ class Fir2IrDeclarationStorage(
             irSymbolTable.declareClass(startOffset, endOffset, origin, descriptor, modality) { symbol ->
                 IrClassImpl(
                     startOffset, endOffset, origin, symbol,
-                    Name.special("<no name provided>"), anonymousObject.classKind,
+                    FirName.special("<no name provided>"), anonymousObject.classKind,
                     Visibilities.LOCAL, modality,
                     isCompanion = false, isInner = false, isData = false, isExternal = false, isInline = false
                 ).apply {
@@ -240,7 +240,7 @@ class Fir2IrDeclarationStorage(
             ) { symbol ->
                 IrValueParameterImpl(
                     startOffset, endOffset, thisOrigin, symbol,
-                    Name.special("<this>"), -1, thisType,
+                    FirName.special("<this>"), -1, thisType,
                     varargElementType = null, isCrossinline = false, isNoinline = false
                 ).apply { this.parent = parent }
             }
@@ -319,7 +319,7 @@ class Fir2IrDeclarationStorage(
             irSymbolTable.declareSimpleFunction(startOffset, endOffset, origin, descriptor) { symbol ->
                 IrFunctionImpl(
                     startOffset, endOffset, origin, symbol,
-                    if (isLambda) Name.special("<anonymous>") else Name.special("<no name provided>"),
+                    if (isLambda) FirName.special("<anonymous>") else FirName.special("<no name provided>"),
                     Visibilities.LOCAL, Modality.FINAL,
                     function.returnTypeRef.toIrType(session, this),
                     isInline = false, isExternal = false, isTailrec = false,
@@ -435,7 +435,7 @@ class Fir2IrDeclarationStorage(
 
     private fun declareIrVariable(
         startOffset: Int, endOffset: Int,
-        origin: IrDeclarationOrigin, name: Name, type: IrType,
+        origin: IrDeclarationOrigin, name: FirName, type: IrType,
         isVar: Boolean, isConst: Boolean, isLateinit: Boolean
     ): IrVariable {
         val descriptor = WrappedVariableDescriptor()
@@ -464,7 +464,7 @@ class Fir2IrDeclarationStorage(
     fun declareTemporaryVariable(base: IrExpression, nameHint: String? = null): IrVariable {
         return declareIrVariable(
             base.startOffset, base.endOffset, IrDeclarationOrigin.IR_TEMPORARY_VARIABLE,
-            Name.identifier(getNameForTemporary(nameHint)), base.type,
+            FirName.identifier(getNameForTemporary(nameHint)), base.type,
             isVar = false, isConst = false, isLateinit = false
         )
     }

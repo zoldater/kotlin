@@ -11,13 +11,13 @@ import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.service
 import org.jetbrains.kotlin.fir.symbols.*
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 
 interface FirSymbolProvider {
 
-    fun getClassLikeSymbolByFqName(classId: ClassId): ConeClassLikeSymbol?
+    fun getClassLikeSymbolByFqName(classId: FirClassId): ConeClassLikeSymbol?
 
     fun getSymbolByLookupTag(lookupTag: ConeClassifierLookupTag): ConeClassifierSymbol? {
         return when (lookupTag) {
@@ -35,32 +35,32 @@ interface FirSymbolProvider {
         }
     }
 
-    fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<ConeCallableSymbol>
+    fun getTopLevelCallableSymbols(packageFqName: FirFqName, name: FirName): List<ConeCallableSymbol>
 
-    fun getClassDeclaredMemberScope(classId: ClassId): FirScope?
+    fun getClassDeclaredMemberScope(classId: FirClassId): FirScope?
     fun getClassUseSiteMemberScope(
-        classId: ClassId,
+        classId: FirClassId,
         useSiteSession: FirSession,
         scopeSession: ScopeSession
     ): FirScope?
 
-    fun getAllCallableNamesInPackage(fqName: FqName): Set<Name> = emptySet()
-    fun getClassNamesInPackage(fqName: FqName): Set<Name> = emptySet()
+    fun getAllCallableNamesInPackage(fqName: FirFqName): Set<FirName> = emptySet()
+    fun getClassNamesInPackage(fqName: FirFqName): Set<FirName> = emptySet()
 
-    fun getAllCallableNamesInClass(classId: ClassId): Set<Name> = emptySet()
-    fun getNestedClassesNamesInClass(classId: ClassId): Set<Name> = emptySet()
+    fun getAllCallableNamesInClass(classId: FirClassId): Set<FirName> = emptySet()
+    fun getNestedClassesNamesInClass(classId: FirClassId): Set<FirName> = emptySet()
 
-    fun getPackage(fqName: FqName): FqName? // TODO: Replace to symbol sometime
+    fun getPackage(fqName: FirFqName): FirFqName? // TODO: Replace to symbol sometime
 
     // TODO: should not retrieve session through the FirElement::session
-    fun getSessionForClass(classId: ClassId): FirSession? = getClassLikeSymbolByFqName(classId)?.toFirClassLike()?.session
+    fun getSessionForClass(classId: FirClassId): FirSession? = getClassLikeSymbolByFqName(classId)?.toFirClassLike()?.session
 
     companion object {
         fun getInstance(session: FirSession) = session.service<FirSymbolProvider>()
     }
 }
 
-fun FirSymbolProvider.getClassDeclaredCallableSymbols(classId: ClassId, name: Name): List<ConeCallableSymbol> {
+fun FirSymbolProvider.getClassDeclaredCallableSymbols(classId: FirClassId, name: FirName): List<ConeCallableSymbol> {
     val declaredMemberScope = getClassDeclaredMemberScope(classId) ?: return emptyList()
     val result = mutableListOf<ConeCallableSymbol>()
     val processor: (ConeCallableSymbol) -> ProcessorAction = {

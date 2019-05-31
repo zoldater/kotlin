@@ -11,14 +11,14 @@ import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.ConeCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeVariableSymbol
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirSuperTypeScope(
     session: FirSession,
     val scopes: List<FirScope>
 ) : AbstractFirOverrideScope(session) {
 
-    override fun processFunctionsByName(name: Name, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: FirName, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
         val accepted = mutableSetOf<ConeFunctionSymbol>()
         val pending = mutableSetOf<ConeFunctionSymbol>()
         for (scope in scopes) {
@@ -40,7 +40,7 @@ class FirSuperTypeScope(
         return super.processFunctionsByName(name, processor)
     }
 
-    override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
         val accepted = mutableSetOf<ConeCallableSymbol>()
         val pending = mutableSetOf<ConeVariableSymbol>()
         for (scope in scopes) {

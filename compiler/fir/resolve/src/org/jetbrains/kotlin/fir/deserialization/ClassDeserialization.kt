@@ -15,20 +15,20 @@ import org.jetbrains.kotlin.metadata.deserialization.Flags
 import org.jetbrains.kotlin.metadata.deserialization.NameResolver
 import org.jetbrains.kotlin.metadata.deserialization.TypeTable
 import org.jetbrains.kotlin.metadata.deserialization.supertypes
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.serialization.deserialization.ProtoEnumFlags
 import org.jetbrains.kotlin.serialization.deserialization.getName
 
 fun deserializeClassToSymbol(
-    classId: ClassId,
+    classId: FirClassId,
     classProto: ProtoBuf.Class,
     symbol: FirClassSymbol,
     nameResolver: NameResolver,
     session: FirSession,
     defaultAnnotationDeserializer: AbstractAnnotationDeserializer?,
     parentContext: FirDeserializationContext? = null,
-    deserializeNestedClass: (ClassId, FirDeserializationContext) -> FirClassSymbol?
+    deserializeNestedClass: (FirClassId, FirDeserializationContext) -> FirClassSymbol?
 ) {
     val flags = classProto.flags
     val kind = Flags.CLASS_KIND.get(flags)
@@ -80,7 +80,7 @@ fun deserializeClassToSymbol(
 
         addDeclarations(
             classProto.nestedClassNameList.mapNotNull { nestedNameId ->
-                val nestedClassId = classId.createNestedClassId(Name.identifier(nameResolver.getString(nestedNameId)))
+                val nestedClassId = classId.createNestedClassId(FirName.identifier(nameResolver.getString(nestedNameId)))
                 deserializeNestedClass(nestedClassId, context)?.fir
             }
         )

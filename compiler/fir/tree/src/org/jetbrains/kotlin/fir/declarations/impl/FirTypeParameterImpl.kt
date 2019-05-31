@@ -13,14 +13,14 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.transformInplace
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.types.Variance
 
 class FirTypeParameterImpl(
     session: FirSession,
     psi: PsiElement?,
     override val symbol: FirTypeParameterSymbol,
-    name: Name,
+    name: FirName,
     override val variance: Variance,
     override val isReified: Boolean
 ) : FirAbstractNamedAnnotatedDeclaration(session, psi, name), FirTypeParameter {

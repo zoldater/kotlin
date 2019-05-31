@@ -27,8 +27,8 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.impl.ConeAbbreviatedTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.ConeClassTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
 import org.jetbrains.kotlin.types.checker.convertVariance
 import org.jetbrains.kotlin.types.model.*
@@ -383,8 +383,8 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext {
     }
 }
 
-private val ANY_CLASS_ID = ClassId.topLevel(FqName("kotlin.Any"))
-private val NOTHING_CLASS_ID = ClassId.topLevel(FqName("kotlin.Nothing"))
+private val ANY_CLASS_ID = FirClassId.topLevel(FirFqName("kotlin.Any"))
+private val NOTHING_CLASS_ID = FirClassId.topLevel(FirFqName("kotlin.Nothing"))
 
 class ConeTypeCheckerContext(override val isErrorTypeEqualsToAnything: Boolean, override val session: FirSession) :
     AbstractTypeCheckerContext(), ConeTypeContext {

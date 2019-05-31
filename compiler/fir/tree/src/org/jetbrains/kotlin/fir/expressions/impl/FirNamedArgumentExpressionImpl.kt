@@ -13,12 +13,12 @@ import org.jetbrains.kotlin.fir.expressions.FirNamedArgumentExpression
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirNamedArgumentExpressionImpl(
     session: FirSession,
     psi: PsiElement?,
-    override val name: Name,
+    override val name: FirName,
     override val isSpread: Boolean,
     override var expression: FirExpression
 ) : FirNamedArgumentExpression, FirAbstractExpression(session, psi) {

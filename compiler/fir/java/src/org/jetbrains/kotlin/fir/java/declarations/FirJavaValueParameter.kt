@@ -8,11 +8,11 @@ package org.jetbrains.kotlin.fir.java.declarations
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
 import org.jetbrains.kotlin.fir.java.types.FirJavaTypeRef
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirJavaValueParameter(
     session: FirSession,
-    name: Name,
+    name: FirName,
     returnTypeRef: FirJavaTypeRef,
     isVararg: Boolean
 ) : FirValueParameterImpl(

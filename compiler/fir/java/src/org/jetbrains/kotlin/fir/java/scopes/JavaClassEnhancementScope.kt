@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.load.java.structure.JavaPrimitiveType
 import org.jetbrains.kotlin.load.java.typeEnhancement.PREDEFINED_FUNCTION_ENHANCEMENT_INFO_BY_SIGNATURE
 import org.jetbrains.kotlin.load.java.typeEnhancement.PredefinedFunctionEnhancementInfo
 import org.jetbrains.kotlin.load.kotlin.SignatureBuildingComponents
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.utils.Jsr305State
 
 class JavaClassEnhancementScope(
@@ -55,7 +55,7 @@ class JavaClassEnhancementScope(
 
     private val enhancements = mutableMapOf<ConeCallableSymbol, ConeCallableSymbol>()
 
-    override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
         useSiteScope.processPropertiesByName(name) process@{ original ->
 
             val field = enhancements.getOrPut(original) { enhance(original, name) }
@@ -65,7 +65,7 @@ class JavaClassEnhancementScope(
         return super.processPropertiesByName(name, processor)
     }
 
-    override fun processFunctionsByName(name: Name, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: FirName, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
         useSiteScope.processFunctionsByName(name) process@{ original ->
 
             val function = enhancements.getOrPut(original) { enhance(original, name) }
@@ -77,7 +77,7 @@ class JavaClassEnhancementScope(
 
     private fun enhance(
         original: ConeVariableSymbol,
-        name: Name
+        name: FirName
     ): ConeVariableSymbol {
         when (val firElement = (original as FirBasedSymbol<*>).fir) {
             is FirJavaField -> {
@@ -117,7 +117,7 @@ class JavaClassEnhancementScope(
 
     private fun enhance(
         original: ConeFunctionSymbol,
-        name: Name
+        name: FirName
     ): FirFunctionSymbol {
         val firMethod = (original as FirFunctionSymbol).fir as? FirFunction
 
@@ -128,7 +128,7 @@ class JavaClassEnhancementScope(
     private fun enhanceMethod(
         firMethod: FirFunction,
         methodId: CallableId,
-        name: Name,
+        name: FirName,
         isAccessor: Boolean = false,
         propertyId: CallableId? = null
     ): ConeCallableSymbol {
@@ -315,7 +315,7 @@ class JavaClassEnhancementScope(
         return signatureParts.type
     }
 
-    private val overrideBindCache = mutableMapOf<Name, Map<ConeCallableSymbol?, List<ConeCallableSymbol>>>()
+    private val overrideBindCache = mutableMapOf<FirName, Map<ConeCallableSymbol?, List<ConeCallableSymbol>>>()
 
     private fun FirCallableMemberDeclaration.overriddenMembers(): List<FirCallableMemberDeclaration> {
         val backMap = overrideBindCache.getOrPut(this.name) {

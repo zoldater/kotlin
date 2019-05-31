@@ -15,17 +15,17 @@ import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
 import org.jetbrains.kotlin.fir.transformInplace
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 abstract class FirAbstractMemberDeclaration(
     session: FirSession,
     psi: PsiElement?,
-    name: Name
+    name: FirName
 ) : FirAbstractNamedAnnotatedDeclaration(session, psi, name), FirMemberDeclaration {
     constructor(
         session: FirSession,
         psi: PsiElement?,
-        name: Name,
+        name: FirName,
         visibility: Visibility,
         modality: Modality?,
         isExpect: Boolean,

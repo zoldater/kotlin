@@ -6,13 +6,13 @@
 package org.jetbrains.kotlin.fir.symbols
 
 import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
-import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.fir.names.FirClassId
 
 
 val FirSymbolProvider.Any: ConeClassLikeSymbol get() = this.getClassLikeSymbolByFqName(StandardClassIds.Any)!!
 val FirSymbolProvider.Nothing: ConeClassLikeSymbol get() = this.getClassLikeSymbolByFqName(StandardClassIds.Nothing)!!
 
 
-operator fun ClassId.invoke(symbolProvider: FirSymbolProvider): ConeClassLikeSymbol {
+operator fun FirClassId.invoke(symbolProvider: FirSymbolProvider): ConeClassLikeSymbol {
     return symbolProvider.getClassLikeSymbolByFqName(this)!!
 }

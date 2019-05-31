@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.*
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 interface SyntheticSymbol : ConeSymbol
 
@@ -32,7 +32,7 @@ class FirSyntheticPropertiesScope(
 
 
     private fun checkGetAndCreateSynthetic(
-        name: Name,
+        name: FirName,
         symbol: ConeFunctionSymbol,
         processor: (ConeVariableSymbol) -> ProcessorAction
     ): ProcessorAction {
@@ -67,9 +67,9 @@ class FirSyntheticPropertiesScope(
         return processor(synthetic)
     }
 
-    override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
         if (name.isSpecial) return ProcessorAction.NEXT
-        if (baseScope.processFunctionsByName(Name.guessByFirstCharacter("get${name.identifier.capitalize()}")) {
+        if (baseScope.processFunctionsByName(FirName.guessByFirstCharacter("get${name.identifier.capitalize()}")) {
                 checkGetAndCreateSynthetic(name, it, processor)
             }.stop()) return ProcessorAction.STOP
 

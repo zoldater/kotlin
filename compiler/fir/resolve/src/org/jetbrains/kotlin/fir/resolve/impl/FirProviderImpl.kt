@@ -20,27 +20,27 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.types.ConeLookupTagBasedType
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirProviderImpl(val session: FirSession) : FirProvider {
     override fun getFirCallableContainerFile(symbol: ConeCallableSymbol): FirFile? {
         return state.callableContainerMap[symbol]
     }
 
-    override fun getClassLikeSymbolByFqName(classId: ClassId): ConeClassLikeSymbol? {
+    override fun getClassLikeSymbolByFqName(classId: FirClassId): ConeClassLikeSymbol? {
         return (getFirClassifierByFqName(classId) as? FirSymbolOwner<*>)?.symbol as? ConeClassLikeSymbol
     }
 
-    override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<ConeCallableSymbol> {
+    override fun getTopLevelCallableSymbols(packageFqName: FirFqName, name: FirName): List<ConeCallableSymbol> {
         return (state.callableMap[CallableId(packageFqName, null, name)] ?: emptyList())
     }
 
-    override fun getClassDeclaredMemberScope(classId: ClassId) =
+    override fun getClassDeclaredMemberScope(classId: FirClassId) =
         (getFirClassifierByFqName(classId) as? FirRegularClass)?.let(::FirClassDeclaredMemberScope)
 
-    override fun getFirClassifierContainerFile(fqName: ClassId): FirFile {
+    override fun getFirClassifierContainerFile(fqName: FirClassId): FirFile {
         return state.classifierContainerFileMap[fqName] ?: error("Couldn't find container for $fqName")
     }
 
@@ -95,9 +95,9 @@ class FirProviderImpl(val session: FirSession) : FirProvider {
     private val state = State()
 
     private class State {
-        val fileMap = mutableMapOf<FqName, List<FirFile>>()
-        val classifierMap = mutableMapOf<ClassId, FirClassLikeDeclaration>()
-        val classifierContainerFileMap = mutableMapOf<ClassId, FirFile>()
+        val fileMap = mutableMapOf<FirFqName, List<FirFile>>()
+        val classifierMap = mutableMapOf<FirClassId, FirClassLikeDeclaration>()
+        val classifierContainerFileMap = mutableMapOf<FirClassId, FirFile>()
         val callableMap = mutableMapOf<CallableId, List<ConeCallableSymbol>>()
         val callableContainerMap = mutableMapOf<ConeCallableSymbol, FirFile>()
 
@@ -116,11 +116,11 @@ class FirProviderImpl(val session: FirSession) : FirProvider {
         }
     }
 
-    override fun getFirFilesByPackage(fqName: FqName): List<FirFile> {
+    override fun getFirFilesByPackage(fqName: FirFqName): List<FirFile> {
         return state.fileMap[fqName].orEmpty()
     }
 
-    override fun getFirClassifierByFqName(fqName: ClassId): FirClassLikeDeclaration? {
+    override fun getFirClassifierByFqName(fqName: FirClassId): FirClassLikeDeclaration? {
         return state.classifierMap[fqName]
     }
 
@@ -195,7 +195,7 @@ class FirProviderImpl(val session: FirSession) : FirProvider {
     }
 
     override fun getClassUseSiteMemberScope(
-        classId: ClassId,
+        classId: FirClassId,
         useSiteSession: FirSession,
         scopeSession: ScopeSession
     ): FirScope? {

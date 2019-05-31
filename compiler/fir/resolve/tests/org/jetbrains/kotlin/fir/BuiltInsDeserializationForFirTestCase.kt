@@ -11,8 +11,8 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.TestJdkKind
@@ -33,7 +33,7 @@ class BuiltInsDeserializationForFirTestCase : AbstractFirResolveWithSessionTestC
         }
     }
 
-    private fun checkPackageContent(packageFqName: FqName) {
+    private fun checkPackageContent(packageFqName: FirFqName) {
         val session = createSession(environment, GlobalSearchScope.allScope(project))
         val provider = session.getService(FirSymbolProvider::class)
 
@@ -49,7 +49,7 @@ class BuiltInsDeserializationForFirTestCase : AbstractFirResolveWithSessionTestC
 
         for (name in provider.getClassNamesInPackage(packageFqName)) {
             val classLikeSymbol =
-                provider.getClassLikeSymbolByFqName(ClassId.topLevel(packageFqName.child(name))) as FirClassSymbol?
+                provider.getClassLikeSymbolByFqName(FirClassId.topLevel(packageFqName.child(name))) as FirClassSymbol?
                     ?: continue
             classLikeSymbol.fir.accept(firRenderer)
             builder.appendln()

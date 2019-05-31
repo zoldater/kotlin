@@ -8,13 +8,13 @@ package org.jetbrains.kotlin.fir.declarations.impl
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirImport
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirImportImpl(
     override val session: FirSession,
     override val psi: PsiElement?,
-    override val importedFqName: FqName?,
+    override val importedFqName: FirFqName?,
     override val isAllUnder: Boolean,
-    override val aliasName: Name?
+    override val aliasName: FirName?
 ) : FirImport

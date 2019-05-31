@@ -35,9 +35,9 @@ import org.jetbrains.kotlin.load.java.descriptors.NullDefaultValue
 import org.jetbrains.kotlin.load.java.descriptors.StringDefaultValue
 import org.jetbrains.kotlin.load.java.structure.*
 import org.jetbrains.kotlin.load.java.typeEnhancement.*
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.types.AbstractStrictEqualityTypeChecker
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -110,21 +110,21 @@ private fun coneFlexibleOrSimpleType(
     return ConeFlexibleType(lowerBound, upperBound)
 }
 
-private val KOTLIN_COLLECTIONS = FqName("kotlin.collections")
+private val KOTLIN_COLLECTIONS = FirFqName("kotlin.collections")
 
 private val KOTLIN_COLLECTIONS_PREFIX_LENGTH = KOTLIN_COLLECTIONS.asString().length + 1
 
-internal fun ClassId.readOnlyToMutable(): ClassId? {
+internal fun FirClassId.readOnlyToMutable(): FirClassId? {
     val mutableFqName = JavaToKotlinClassMap.readOnlyToMutable(asSingleFqName().toUnsafe())
     return mutableFqName?.let {
-        ClassId(KOTLIN_COLLECTIONS, FqName(it.asString().substring(KOTLIN_COLLECTIONS_PREFIX_LENGTH)), false)
+        FirClassId(KOTLIN_COLLECTIONS, FirFqName(it.asString().substring(KOTLIN_COLLECTIONS_PREFIX_LENGTH)), false)
     }
 }
 
-private fun ClassId.mutableToReadOnly(): ClassId? {
+private fun FirClassId.mutableToReadOnly(): FirClassId? {
     val readOnlyFqName = JavaToKotlinClassMap.mutableToReadOnly(asSingleFqName().toUnsafe())
     return readOnlyFqName?.let {
-        ClassId(KOTLIN_COLLECTIONS, FqName(it.asString().substring(KOTLIN_COLLECTIONS_PREFIX_LENGTH)), false)
+        FirClassId(KOTLIN_COLLECTIONS, FirFqName(it.asString().substring(KOTLIN_COLLECTIONS_PREFIX_LENGTH)), false)
     }
 }
 
@@ -242,7 +242,7 @@ internal fun ConeKotlinType.lexicalCastFrom(session: FirSession, value: String):
     val lookupTag = lookupTagBasedType.lookupTag
     val firElement = (lookupTag.toSymbol(session) as? FirBasedSymbol<*>)?.fir
     if (firElement is FirRegularClass && firElement.classKind == ClassKind.ENUM_CLASS) {
-        val name = Name.identifier(value)
+        val name = FirName.identifier(value)
         val firEnumEntry = firElement.declarations.filterIsInstance<FirEnumEntry>().find { it.name == name }
 
         return if (firEnumEntry != null) FirQualifiedAccessExpressionImpl(session, null).apply {
@@ -265,7 +265,7 @@ internal fun ConeKotlinType.lexicalCastFrom(session: FirSession, value: String):
 
     if (lookupTag !is ConeClassLikeLookupTag) return null
     val classId = lookupTag.classId
-    if (classId.packageFqName != FqName("kotlin")) return null
+    if (classId.packageFqName != FirFqName("kotlin")) return null
 
     val (number, radix) = extractRadix(value)
     return when (classId.relativeClassName.asString()) {

@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.fir.resolve.calls
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.references.FirResolvedCallableReferenceImpl
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
-class FirNamedReferenceWithCandidate(session: FirSession, psi: PsiElement?, name: Name, val candidate: Candidate) :
+class FirNamedReferenceWithCandidate(session: FirSession, psi: PsiElement?, name: FirName, val candidate: Candidate) :
     FirResolvedCallableReferenceImpl(session, psi, name, candidate.symbol)

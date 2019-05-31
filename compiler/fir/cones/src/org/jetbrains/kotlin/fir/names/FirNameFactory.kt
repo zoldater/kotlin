@@ -12,7 +12,7 @@ class FirNameFactory {
 
     private val commonNameCache: Map<String, FirName> = mutableMapOf<String, FirName>().apply {
         for (name in commonNames) {
-            this[name] = identifier(name)
+            this[name] = create(name)
         }
     }
 
@@ -22,7 +22,7 @@ class FirNameFactory {
         }
     }
 
-    fun identifier(name: String): FirName {
+    fun create(name: String): FirName {
         return commonNameCache[name] ?: nameCache[name]
     }
 

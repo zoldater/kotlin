@@ -13,15 +13,15 @@ import org.jetbrains.kotlin.fir.scopes.FirPosition
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.*
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirName
 
 abstract class FirAbstractSimpleImportingScope(session: FirSession) : FirAbstractImportingScope(session, lookupInFir = true) {
 
-    protected abstract val simpleImports: Map<Name, List<FirResolvedImportImpl>>
+    protected abstract val simpleImports: Map<FirName, List<FirResolvedImportImpl>>
 
     override fun processClassifiersByName(
-        name: Name,
+        name: FirName,
         position: FirPosition,
         processor: (ConeClassifierSymbol) -> Boolean
     ): Boolean {
@@ -32,7 +32,7 @@ abstract class FirAbstractSimpleImportingScope(session: FirSession) : FirAbstrac
             val importedName = import.importedName ?: continue
             val classId =
                 import.resolvedClassId?.createNestedClassId(importedName)
-                    ?: ClassId.topLevel(import.packageFqName.child(importedName))
+                    ?: FirClassId.topLevel(import.packageFqName.child(importedName))
             val symbol = provider.getClassLikeSymbolByFqName(classId) ?: continue
             if (!processor(symbol)) {
                 return false
@@ -42,7 +42,7 @@ abstract class FirAbstractSimpleImportingScope(session: FirSession) : FirAbstrac
     }
 
     override fun <T : ConeCallableSymbol> processCallables(
-        name: Name,
+        name: FirName,
         token: TowerScopeLevel.Token<T>,
         processor: (ConeCallableSymbol) -> ProcessorAction
     ): ProcessorAction {

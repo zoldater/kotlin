@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction.NEXT
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction.STOP
 import org.jetbrains.kotlin.fir.symbols.*
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirClassUseSiteScope(
     session: FirSession,
@@ -20,7 +20,7 @@ class FirClassUseSiteScope(
     private val declaredMemberScope: FirScope
 ) : AbstractFirOverrideScope(session) {
 
-    override fun processFunctionsByName(name: Name, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: FirName, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
         val seen = mutableSetOf<ConeCallableSymbol>()
         if (!declaredMemberScope.processFunctionsByName(name) {
                 seen += it
@@ -39,7 +39,7 @@ class FirClassUseSiteScope(
         }
     }
 
-    override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
         val seen = mutableSetOf<ConeCallableSymbol>()
         if (!declaredMemberScope.processPropertiesByName(name) {
                 seen += it
@@ -58,7 +58,7 @@ class FirClassUseSiteScope(
         }
     }
 
-    override fun processClassifiersByName(name: Name, position: FirPosition, processor: (ConeClassifierSymbol) -> Boolean): Boolean {
+    override fun processClassifiersByName(name: FirName, position: FirPosition, processor: (ConeClassifierSymbol) -> Boolean): Boolean {
         return declaredMemberScope.processClassifiersByName(name, position, processor)
     }
 }

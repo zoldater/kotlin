@@ -17,13 +17,13 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class FirMemberPropertyImpl(
     session: FirSession,
     psi: PsiElement?,
     override val symbol: FirPropertySymbol,
-    name: Name,
+    name: FirName,
     visibility: Visibility,
     modality: Modality?,
     isExpect: Boolean,

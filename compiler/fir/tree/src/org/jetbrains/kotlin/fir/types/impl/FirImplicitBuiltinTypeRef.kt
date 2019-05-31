@@ -14,12 +14,12 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirImplicitTypeRef
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
-import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.fir.names.FirClassId
 
 sealed class FirImplicitBuiltinTypeRef(
     override val session: FirSession,
     override val psi: PsiElement?,
-    val id: ClassId
+    val id: FirClassId
 ) : FirImplicitTypeRef, FirResolvedTypeRef {
     override val annotations: List<FirAnnotationCall>
         get() = emptyList()

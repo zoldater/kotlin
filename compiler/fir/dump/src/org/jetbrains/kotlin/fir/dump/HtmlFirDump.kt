@@ -28,9 +28,9 @@ import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.FirTypePlaceholderProjection
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.types.AbstractStrictEqualityTypeChecker
 import org.jetbrains.kotlin.types.Variance
 import java.io.File
@@ -38,12 +38,12 @@ import java.io.Writer
 
 
 internal interface FirLinkResolver {
-    fun nearPackage(fqName: FqName): String?
+    fun nearPackage(fqName: FirFqName): String?
 
     fun symbolSignature(symbol: ConeSymbol): String
     fun nearSymbolLocation(symbol: ConeSymbol): String?
 
-    fun classLocation(classId: ClassId): String?
+    fun classLocation(classId: FirClassId): String?
 
     fun HEAD.supplementary()
 }
@@ -64,7 +64,7 @@ private fun HEAD.commonHead() {
 }
 
 
-private class PackageInfo(val fqName: FqName, val moduleInfo: ModuleInfo) {
+private class PackageInfo(val fqName: FirFqName, val moduleInfo: ModuleInfo) {
     val contents = LinkedHashSet<String>()
     val packageRoot = fqName.pathSegments().fold(moduleInfo.moduleRoot) { dir, segment -> dir.resolve(segment.asString()) }.also {
         it.mkdirs()
@@ -73,7 +73,7 @@ private class PackageInfo(val fqName: FqName, val moduleInfo: ModuleInfo) {
 }
 
 private class ModuleInfo(val name: String, outputRoot: File) {
-    val packages = mutableMapOf<FqName, PackageInfo>()
+    val packages = mutableMapOf<FirFqName, PackageInfo>()
     val moduleRoot = outputRoot.resolve(name).also {
         it.mkdirs()
     }
@@ -289,12 +289,12 @@ class MultiModuleHtmlFirDump(private val outputRoot: File) {
 
         private val originDir = origin.parentFile
 
-        override fun nearPackage(fqName: FqName): String? {
+        override fun nearPackage(fqName: FirFqName): String? {
             val packageInfo = currentModule.packages[fqName] ?: return null
             return packageInfo.packageRoot.resolve(PACKAGE_INDEX).relativeTo(originDir).path
         }
 
-        override fun classLocation(classId: ClassId): String? {
+        override fun classLocation(classId: FirClassId): String? {
             val location = index.classes[classId] ?: return null
             return location.relativeTo(originDir).path + "#$classId"
         }
@@ -307,7 +307,7 @@ class MultiModuleHtmlFirDump(private val outputRoot: File) {
 
     private inner class Index {
         val files = mutableMapOf<FirFile, File>()
-        val classes = mutableMapOf<ClassId, File>()
+        val classes = mutableMapOf<FirClassId, File>()
         val symbols = mutableMapOf<FirBasedSymbol<*>, File>()
         val symbolIds = mutableMapOf<FirBasedSymbol<*>, Int>()
         private var symbolCounter = 0
@@ -391,7 +391,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
         ident()
     }
 
-    private fun FlowContent.simpleName(name: Name) {
+    private fun FlowContent.simpleName(name: FirName) {
         span(classes = "simple-name") {
             +name.asString()
         }
@@ -415,7 +415,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
         }
     }
 
-    private fun FlowContent.packageName(fqName: FqName) {
+    private fun FlowContent.packageName(fqName: FirFqName) {
         line {
             keyword("package")
             ws
@@ -426,7 +426,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
 
     private val FlowContent.ws get() = +" "
 
-    private fun FlowContent.fqn(name: FqName) {
+    private fun FlowContent.fqn(name: FirFqName) {
         +name.asString()
     }
 
@@ -517,7 +517,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
     }
 
 
-    private fun FlowContent.anchoredName(name: Name, signature: String) {
+    private fun FlowContent.anchoredName(name: FirName, signature: String) {
         span(classes = "declaration") {
             id = signature
             simpleName(name)

@@ -23,8 +23,8 @@ import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.FirResolvedTypeRefImpl
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.*
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.serialization.deserialization.ProtoEnumFlags
 import org.jetbrains.kotlin.serialization.deserialization.getName
 import org.jetbrains.kotlin.types.Variance
@@ -34,8 +34,8 @@ class FirDeserializationContext(
     val typeTable: TypeTable,
     val versionRequirementTable: VersionRequirementTable,
     val session: FirSession,
-    val packageFqName: FqName,
-    val relativeClassName: FqName?,
+    val packageFqName: FirFqName,
+    val relativeClassName: FirFqName?,
     val typeDeserializer: FirTypeDeserializer,
     val annotationDeserializer: AbstractAnnotationDeserializer,
     val components: FirDeserializationComponents
@@ -44,7 +44,7 @@ class FirDeserializationContext(
         typeParameterProtos: List<ProtoBuf.TypeParameter>,
         nameResolver: NameResolver = this.nameResolver,
         typeTable: TypeTable = this.typeTable,
-        relativeClassName: FqName? = this.relativeClassName
+        relativeClassName: FirFqName? = this.relativeClassName
     ): FirDeserializationContext = FirDeserializationContext(
         nameResolver, typeTable, versionRequirementTable, session, packageFqName, relativeClassName,
         FirTypeDeserializer(
@@ -57,7 +57,7 @@ class FirDeserializationContext(
 
     companion object {
         fun createForPackage(
-            fqName: FqName,
+            fqName: FirFqName,
             packageProto: ProtoBuf.Package,
             nameResolver: NameResolver,
             session: FirSession,
@@ -73,7 +73,7 @@ class FirDeserializationContext(
         )
 
         fun createForClass(
-            classId: ClassId,
+            classId: FirClassId,
             classProto: ProtoBuf.Class,
             nameResolver: NameResolver,
             session: FirSession,
@@ -93,8 +93,8 @@ class FirDeserializationContext(
             typeTable: TypeTable,
             session: FirSession,
             annotationDeserializer: AbstractAnnotationDeserializer,
-            packageFqName: FqName,
-            relativeClassName: FqName?,
+            packageFqName: FirFqName,
+            relativeClassName: FirFqName?,
             typeParameterProtos: List<ProtoBuf.TypeParameter>
         ): FirDeserializationContext {
             return FirDeserializationContext(
@@ -134,7 +134,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
         return FirTypeAliasImpl(
             c.session,
             null,
-            FirTypeAliasSymbol(ClassId(c.packageFqName, name)),
+            FirTypeAliasSymbol(FirClassId(c.packageFqName, name)),
             name,
             ProtoEnumFlags.visibility(Flags.VISIBILITY.get(flags)),
             Flags.IS_EXPECT_CLASS.get(flags),

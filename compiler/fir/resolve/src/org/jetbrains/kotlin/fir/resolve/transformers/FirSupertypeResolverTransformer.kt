@@ -21,12 +21,12 @@ import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.fir.types.impl.FirErrorTypeRefImpl
 import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
 import org.jetbrains.kotlin.fir.visitors.compose
-import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.fir.names.FirClassId
 
 class FirSupertypeResolverTransformer : FirAbstractTreeTransformer() {
     private lateinit var firSession: FirSession
-    private val currentlyComputing: MutableSet<ClassId> = mutableSetOf()
-    private val fullyComputed: MutableSet<ClassId> = mutableSetOf()
+    private val currentlyComputing: MutableSet<FirClassId> = mutableSetOf()
+    private val fullyComputed: MutableSet<FirClassId> = mutableSetOf()
     private lateinit var file: FirFile
 
     override fun transformFile(file: FirFile, data: Nothing?): CompositeTransformResult<FirFile> {
@@ -72,10 +72,10 @@ class FirSupertypeResolverTransformer : FirAbstractTreeTransformer() {
 
     private class ResolveSuperTypesTask(
         private val session: FirSession,
-        private val requestedClassId: ClassId,
+        private val requestedClassId: FirClassId,
         file: FirFile,
-        private val currentlyComputing: MutableSet<ClassId>,
-        private val fullyComputed: MutableSet<ClassId>,
+        private val currentlyComputing: MutableSet<FirClassId>,
+        private val fullyComputed: MutableSet<FirClassId>,
         private val knownFirClassLikeDeclaration: FirClassLikeDeclaration? = null
     ) : FirAbstractTreeTransformerWithSuperTypes(reversedScopePriority = true) {
 
@@ -132,7 +132,7 @@ class FirSupertypeResolverTransformer : FirAbstractTreeTransformer() {
         }
 
         private fun resolveLoops(
-            classId: ClassId,
+            classId: FirClassId,
             resolvedTypesRefs: List<FirTypeRef>
         ): List<FirTypeRef> {
             currentlyComputing.add(classId)
@@ -205,7 +205,7 @@ class FirSupertypeResolverTransformer : FirAbstractTreeTransformer() {
     }
 }
 
-private fun isOuterClass(outerCandidate: ClassId, innerCandidate: ClassId) =
+private fun isOuterClass(outerCandidate: FirClassId, innerCandidate: FirClassId) =
     innerCandidate.outerClasses().any { outerCandidate == it }
 
-private fun ClassId.outerClasses() = generateSequence(this, ClassId::getOuterClassId)
+private fun FirClassId.outerClasses() = generateSequence(this, FirClassId::getOuterClassId)

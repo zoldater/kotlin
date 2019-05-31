@@ -10,15 +10,15 @@ import org.jetbrains.kotlin.fir.resolve.FirQualifierResolver
 import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
 import org.jetbrains.kotlin.fir.symbols.ConeClassifierSymbol
 import org.jetbrains.kotlin.fir.types.FirQualifierPart
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 
 class FirQualifierResolverImpl(val session: FirSession) : FirQualifierResolver {
 
-    override fun resolveSymbolWithPrefix(parts: List<FirQualifierPart>, prefix: ClassId): ConeClassifierSymbol? {
+    override fun resolveSymbolWithPrefix(parts: List<FirQualifierPart>, prefix: FirClassId): ConeClassifierSymbol? {
         val symbolProvider = FirSymbolProvider.getInstance(session)
 
-        val fqName = ClassId(
+        val fqName = FirClassId(
             prefix.packageFqName,
             parts.drop(1).fold(prefix.relativeClassName) { prefix, suffix -> prefix.child(suffix.name) },
             false
@@ -37,7 +37,7 @@ class FirQualifierResolverImpl(val session: FirSession) : FirQualifierResolver {
                 lastPart.add(0, firstPart.last())
                 firstPart.removeAt(firstPart.lastIndex)
 
-                val fqName = ClassId(firstPart.toFqName(), lastPart.toFqName(), false)
+                val fqName = FirClassId(firstPart.toFqName(), lastPart.toFqName(), false)
                 val foundSymbol = firProvider.getClassLikeSymbolByFqName(fqName)
                 if (foundSymbol != null) {
                     return foundSymbol
@@ -48,5 +48,5 @@ class FirQualifierResolverImpl(val session: FirSession) : FirQualifierResolver {
     }
 
     private fun List<FirQualifierPart>.toFqNameUnsafe() = toFqName().toUnsafe()
-    private fun List<FirQualifierPart>.toFqName() = fold(FqName.ROOT) { a, b -> a.child(b.name) }
+    private fun List<FirQualifierPart>.toFqName() = fold(FirFqName.ROOT) { a, b -> a.child(b.name) }
 }

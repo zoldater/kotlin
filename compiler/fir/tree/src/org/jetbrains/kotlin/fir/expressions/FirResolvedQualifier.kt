@@ -6,17 +6,17 @@
 package org.jetbrains.kotlin.fir.expressions
 
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 
 interface FirResolvedQualifier : FirExpression {
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitResolvedQualifier(this, data)
 
-    val packageFqName: FqName
-    val relativeClassFqName: FqName?
+    val packageFqName: FirFqName
+    val relativeClassFqName: FirFqName?
     val classId
         get() = relativeClassFqName?.let {
-            ClassId(packageFqName, it, false)
+            FirClassId(packageFqName, it, false)
         }
 }

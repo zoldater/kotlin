@@ -6,11 +6,11 @@
 package org.jetbrains.kotlin.fir
 
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 @BaseTransformedType
 interface FirNamedReference : FirReference {
-    val name: Name
+    val name: FirName
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R =
         visitor.visitNamedReference(this, data)

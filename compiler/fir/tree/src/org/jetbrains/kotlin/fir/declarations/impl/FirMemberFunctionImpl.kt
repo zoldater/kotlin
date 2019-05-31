@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.fir.transformInplace
 import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 open class FirMemberFunctionImpl : FirAbstractCallableMember, FirNamedFunction, FirModifiableFunction {
 
@@ -28,7 +28,7 @@ open class FirMemberFunctionImpl : FirAbstractCallableMember, FirNamedFunction, 
         session: FirSession,
         psi: PsiElement?,
         symbol: FirCallableSymbol,
-        name: Name,
+        name: FirName,
         receiverTypeRef: FirTypeRef?,
         returnTypeRef: FirTypeRef
     ) : super(session, psi, name, receiverTypeRef, returnTypeRef) {
@@ -40,7 +40,7 @@ open class FirMemberFunctionImpl : FirAbstractCallableMember, FirNamedFunction, 
         session: FirSession,
         psi: PsiElement?,
         symbol: FirFunctionSymbol,
-        name: Name,
+        name: FirName,
         visibility: Visibility,
         modality: Modality?,
         isExpect: Boolean,

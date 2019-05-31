@@ -11,7 +11,7 @@ class FirFqName {
 
     private val segments: Array<FirName>
 
-    private constructor(segments: Array<FirName>) {
+    constructor(segments: Array<FirName>) {
         this.segments = segments
     }
 

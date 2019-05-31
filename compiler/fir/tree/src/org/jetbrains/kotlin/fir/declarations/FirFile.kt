@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.VisitedSupertype
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirFqName
 
 @BaseTransformedType
 interface FirFile : @VisitedSupertype FirPackageFragment, FirDeclaration, FirAnnotationContainer {
@@ -21,7 +21,7 @@ interface FirFile : @VisitedSupertype FirPackageFragment, FirDeclaration, FirAnn
 
     val name: String
 
-    val packageFqName: FqName
+    val packageFqName: FirFqName
 
     val imports: List<FirImport>
 

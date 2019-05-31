@@ -11,13 +11,13 @@ import org.jetbrains.kotlin.fir.symbols.ConeCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
 
 abstract class AbstractFirSymbolProvider : FirSymbolProvider {
-    protected val classCache = mutableMapOf<ClassId, ConeClassLikeSymbol?>()
+    protected val classCache = mutableMapOf<FirClassId, ConeClassLikeSymbol?>()
     protected val topLevelCallableCache = mutableMapOf<CallableId, List<ConeCallableSymbol>>()
-    protected val packageCache = mutableMapOf<FqName, FqName?>()
+    protected val packageCache = mutableMapOf<FirFqName, FirFqName?>()
 
     protected inline fun <K, V : Any?> MutableMap<K, V>.lookupCacheOrCalculate(key: K, crossinline l: (K) -> V): V? {
         return if (key in this.keys) {

@@ -48,9 +48,9 @@ import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmMetadataVersion
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmNameResolver
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirClassId
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.resolve.constants.ClassLiteralValue
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import org.jetbrains.kotlin.serialization.deserialization.IncompatibleVersionErrorData
@@ -65,9 +65,9 @@ class KotlinDeserializedJvmSymbolsProvider(
     private val javaClassFinder: JavaClassFinder
 ) : AbstractFirSymbolProvider() {
 
-    private val classesCache = mutableMapOf<ClassId, FirClassSymbol>()
-    private val typeAliasCache = mutableMapOf<ClassId, FirTypeAliasSymbol?>()
-    private val packagePartsCache = mutableMapOf<FqName, Collection<PackagePartsCacheData>>()
+    private val classesCache = mutableMapOf<FirClassId, FirClassSymbol>()
+    private val typeAliasCache = mutableMapOf<FirClassId, FirTypeAliasSymbol?>()
+    private val packagePartsCache = mutableMapOf<FirFqName, Collection<PackagePartsCacheData>>()
 
     private class PackagePartsCacheData(
         val proto: ProtoBuf.Package,
@@ -88,19 +88,19 @@ class KotlinDeserializedJvmSymbolsProvider(
         }
     }
 
-    private val knownClassNamesInPackage = mutableMapOf<FqName, Set<String>?>()
+    private val knownClassNamesInPackage = mutableMapOf<FirFqName, Set<String>?>()
 
-    private fun hasTopLevelClassOf(classId: ClassId): Boolean {
+    private fun hasTopLevelClassOf(classId: FirClassId): Boolean {
         val knownNames = knownClassNamesInPackage.getOrPut(classId.packageFqName) {
             javaClassFinder.knownClassNamesInPackage(classId.packageFqName)
         } ?: return false
         return classId.relativeClassName.topLevelName() in knownNames
     }
 
-    private fun computePackagePartsInfos(packageFqName: FqName): List<PackagePartsCacheData> {
+    private fun computePackagePartsInfos(packageFqName: FirFqName): List<PackagePartsCacheData> {
 
         return packagePartProvider.findPackageParts(packageFqName.asString()).mapNotNull { partName ->
-            val classId = ClassId.topLevel(JvmClassName.byInternalName(partName).fqNameForTopLevelClassMaybeWithDollars)
+            val classId = FirClassId.topLevel(JvmClassName.byInternalName(partName).fqNameForTopLevelClassMaybeWithDollars)
             if (!hasTopLevelClassOf(classId)) return@mapNotNull null
             val kotlinJvmBinaryClass = kotlinClassFinder.findKotlinClass(classId) ?: return@mapNotNull null
 
@@ -141,7 +141,7 @@ class KotlinDeserializedJvmSymbolsProvider(
         get() = classHeader.isPreRelease
 
     override fun getClassUseSiteMemberScope(
-        classId: ClassId,
+        classId: FirClassId,
         useSiteSession: FirSession,
         scopeSession: ScopeSession
     ): FirScope? {
@@ -150,12 +150,12 @@ class KotlinDeserializedJvmSymbolsProvider(
         return symbol.firSafeNullable<FirRegularClass>()?.buildDefaultUseSiteScope(session, scopeSession)
     }
 
-    override fun getClassLikeSymbolByFqName(classId: ClassId): ConeClassLikeSymbol? {
+    override fun getClassLikeSymbolByFqName(classId: FirClassId): ConeClassLikeSymbol? {
         return findAndDeserializeClass(classId) ?: findAndDeserializeTypeAlias(classId)
     }
 
     private fun findAndDeserializeTypeAlias(
-        classId: ClassId
+        classId: FirClassId
     ): FirTypeAliasSymbol? {
         return typeAliasCache.getOrPut(classId) {
             getPackageParts(classId.packageFqName).firstNotNullResult { part ->
@@ -174,7 +174,7 @@ class KotlinDeserializedJvmSymbolsProvider(
         return JvmProtoBufUtil.readClassDataFrom(data, strings)
     }
 
-    private fun ConeClassifierSymbol?.toDefaultResolvedTypeRef(classId: ClassId): FirResolvedTypeRef {
+    private fun ConeClassifierSymbol?.toDefaultResolvedTypeRef(classId: FirClassId): FirResolvedTypeRef {
         return this?.let {
             FirResolvedTypeRefImpl(
                 session, null, it.constructType(emptyList(), isNullable = false),
@@ -185,15 +185,15 @@ class KotlinDeserializedJvmSymbolsProvider(
     }
 
     private fun loadAnnotation(
-        annotationClassId: ClassId, result: MutableList<FirAnnotationCall>
+        annotationClassId: FirClassId, result: MutableList<FirAnnotationCall>
     ): KotlinJvmBinaryClass.AnnotationArgumentVisitor? {
         val lookupTag = ConeClassLikeLookupTagImpl(annotationClassId)
         val symbol = lookupTag.toSymbol(session)
 
         return object : KotlinJvmBinaryClass.AnnotationArgumentVisitor {
-            private val argumentMap = mutableMapOf<Name, FirExpression>()
+            private val argumentMap = mutableMapOf<FirName, FirExpression>()
 
-            override fun visit(name: Name?, value: Any?) {
+            override fun visit(name: FirName?, value: Any?) {
                 if (name != null) {
                     argumentMap[name] = createConstant(value)
                 }
@@ -208,7 +208,7 @@ class KotlinDeserializedJvmSymbolsProvider(
                 )
             }
 
-            private fun ClassId.toEnumEntryReferenceExpression(name: Name): FirExpression {
+            private fun FirClassId.toEnumEntryReferenceExpression(name: FirName): FirExpression {
                 return FirFunctionCallImpl(session, null).apply {
                     val entryClassId = createNestedClassId(name)
                     val entryLookupTag = ConeClassLikeLookupTagImpl(entryClassId)
@@ -239,17 +239,17 @@ class KotlinDeserializedJvmSymbolsProvider(
                 }
             }
 
-            override fun visitClassLiteral(name: Name, value: ClassLiteralValue) {
+            override fun visitClassLiteral(name: FirName, value: ClassLiteralValue) {
                 argumentMap[name] = FirGetClassCallImpl(session, null).apply {
                     arguments += value.toFirClassReferenceExpression()
                 }
             }
 
-            override fun visitEnum(name: Name, enumClassId: ClassId, enumEntryName: Name) {
+            override fun visitEnum(name: FirName, enumClassId: FirClassId, enumEntryName: FirName) {
                 argumentMap[name] = enumClassId.toEnumEntryReferenceExpression(enumEntryName)
             }
 
-            override fun visitArray(name: Name): AnnotationArrayArgumentVisitor? {
+            override fun visitArray(name: FirName): AnnotationArrayArgumentVisitor? {
                 return object : AnnotationArrayArgumentVisitor {
                     private val elements = mutableListOf<FirExpression>()
 
@@ -257,7 +257,7 @@ class KotlinDeserializedJvmSymbolsProvider(
                         elements.add(createConstant(value))
                     }
 
-                    override fun visitEnum(enumClassId: ClassId, enumEntryName: Name) {
+                    override fun visitEnum(enumClassId: FirClassId, enumEntryName: FirName) {
                         elements.add(enumClassId.toEnumEntryReferenceExpression(enumEntryName))
                     }
 
@@ -273,7 +273,7 @@ class KotlinDeserializedJvmSymbolsProvider(
                 }
             }
 
-            override fun visitAnnotation(name: Name, classId: ClassId): KotlinJvmBinaryClass.AnnotationArgumentVisitor? {
+            override fun visitAnnotation(name: FirName, classId: FirClassId): KotlinJvmBinaryClass.AnnotationArgumentVisitor? {
                 val list = mutableListOf<FirAnnotationCall>()
                 val visitor = loadAnnotation(classId, list)!!
                 return object : KotlinJvmBinaryClass.AnnotationArgumentVisitor by visitor {
@@ -301,14 +301,14 @@ class KotlinDeserializedJvmSymbolsProvider(
     }
 
     private fun loadAnnotationIfNotSpecial(
-        annotationClassId: ClassId, result: MutableList<FirAnnotationCall>
+        annotationClassId: FirClassId, result: MutableList<FirAnnotationCall>
     ): KotlinJvmBinaryClass.AnnotationArgumentVisitor? {
         if (annotationClassId in AbstractBinaryClassAnnotationAndConstantLoader.SPECIAL_ANNOTATIONS) return null
         return loadAnnotation(annotationClassId, result)
     }
 
     private fun findAndDeserializeClass(
-        classId: ClassId,
+        classId: FirClassId,
         parentContext: FirDeserializationContext? = null
     ): FirClassSymbol? {
         if (!hasTopLevelClassOf(classId)) return null
@@ -350,7 +350,7 @@ class KotlinDeserializedJvmSymbolsProvider(
             classesCache[classId] = symbol
             val annotations = mutableListOf<FirAnnotationCall>()
             kotlinJvmBinaryClass.loadClassAnnotations(object : KotlinJvmBinaryClass.AnnotationVisitor {
-                override fun visitAnnotation(classId: ClassId, source: SourceElement): KotlinJvmBinaryClass.AnnotationArgumentVisitor? {
+                override fun visitAnnotation(classId: FirClassId, source: SourceElement): KotlinJvmBinaryClass.AnnotationArgumentVisitor? {
                     return loadAnnotationIfNotSpecial(classId, annotations)
                 }
 
@@ -366,7 +366,7 @@ class KotlinDeserializedJvmSymbolsProvider(
 //        }
     }
 
-    private fun loadFunctionsByName(part: PackagePartsCacheData, name: Name): List<FirCallableSymbol> {
+    private fun loadFunctionsByName(part: PackagePartsCacheData, name: FirName): List<FirCallableSymbol> {
         val functionIds = part.topLevelFunctionNameIndex[name] ?: return emptyList()
         return functionIds.map { part.proto.getFunction(it) }
             .map {
@@ -376,7 +376,7 @@ class KotlinDeserializedJvmSymbolsProvider(
             }
     }
 
-    private fun loadPropertiesByName(part: PackagePartsCacheData, name: Name): List<FirCallableSymbol> {
+    private fun loadPropertiesByName(part: PackagePartsCacheData, name: FirName): List<FirCallableSymbol> {
         val propertyIds = part.topLevelPropertyNameIndex[name] ?: return emptyList()
         return propertyIds.map { part.proto.getProperty(it) }
             .map {
@@ -386,51 +386,51 @@ class KotlinDeserializedJvmSymbolsProvider(
             }
     }
 
-    override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<ConeCallableSymbol> {
+    override fun getTopLevelCallableSymbols(packageFqName: FirFqName, name: FirName): List<ConeCallableSymbol> {
         return getPackageParts(packageFqName).flatMap { part ->
             loadFunctionsByName(part, name) + loadPropertiesByName(part, name)
         }
     }
 
-    override fun getClassDeclaredMemberScope(classId: ClassId) =
+    override fun getClassDeclaredMemberScope(classId: FirClassId) =
         findRegularClass(classId)?.let(::FirClassDeclaredMemberScope)
 
-    private fun getPackageParts(packageFqName: FqName): Collection<PackagePartsCacheData> {
+    private fun getPackageParts(packageFqName: FirFqName): Collection<PackagePartsCacheData> {
         return packagePartsCache.getOrPut(packageFqName) {
             computePackagePartsInfos(packageFqName)
         }
     }
 
-    override fun getAllCallableNamesInPackage(fqName: FqName): Set<Name> {
+    override fun getAllCallableNamesInPackage(fqName: FirFqName): Set<FirName> {
         return getPackageParts(fqName).flatMapTo(mutableSetOf()) { packagePart ->
             packagePart.proto.functionList.map { packagePart.context.nameResolver.getName(it.name) }
         }
     }
 
-    override fun getClassNamesInPackage(fqName: FqName): Set<Name> =
+    override fun getClassNamesInPackage(fqName: FirFqName): Set<FirName> =
         javaClassFinder.findPackage(fqName)
             ?.getClasses { true }.orEmpty()
             .mapTo(sortedSetOf(), JavaClass::name)
 
-    private fun getClassDeclarations(classId: ClassId): List<FirDeclaration> {
+    private fun getClassDeclarations(classId: FirClassId): List<FirDeclaration> {
         return findRegularClass(classId)?.declarations ?: emptyList()
     }
 
 
-    private fun findRegularClass(classId: ClassId): FirRegularClass? =
+    private fun findRegularClass(classId: FirClassId): FirRegularClass? =
         @Suppress("UNCHECKED_CAST")
         (getClassLikeSymbolByFqName(classId) as? FirBasedSymbol<FirRegularClass>)?.fir
 
-    override fun getAllCallableNamesInClass(classId: ClassId): Set<Name> =
+    override fun getAllCallableNamesInClass(classId: FirClassId): Set<FirName> =
         getClassDeclarations(classId)
             .filterIsInstance<FirNamedDeclaration>()
             .mapTo(mutableSetOf(), FirNamedDeclaration::name)
 
-    override fun getNestedClassesNamesInClass(classId: ClassId): Set<Name> {
+    override fun getNestedClassesNamesInClass(classId: FirClassId): Set<FirName> {
         return getClassDeclarations(classId).filterIsInstance<FirRegularClass>().mapTo(mutableSetOf()) { it.name }
     }
 
-    override fun getPackage(fqName: FqName): FqName? = null
+    override fun getPackage(fqName: FirFqName): FirFqName? = null
 
     companion object {
         private val KOTLIN_CLASS = setOf(KotlinClassHeader.Kind.CLASS)

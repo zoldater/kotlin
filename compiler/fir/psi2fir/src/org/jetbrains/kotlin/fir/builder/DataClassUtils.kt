@@ -20,20 +20,20 @@ import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitTypeRefImpl
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtTypeReference
 
 internal fun KtClassOrObject.generateComponentFunctions(
-    session: FirSession, firClass: FirClassImpl, packageFqName: FqName, classFqName: FqName
+    session: FirSession, firClass: FirClassImpl, packageFqName: FirFqName, classFqName: FirFqName
 ) {
     var componentIndex = 1
     val zippedParameters =
         primaryConstructorParameters.zip(firClass.declarations.filterIsInstance<FirProperty>())
     for ((ktParameter, firProperty) in zippedParameters) {
         if (!ktParameter.hasValOrVar()) continue
-        val name = Name.identifier("component$componentIndex")
+        val name = FirName.identifier("component$componentIndex")
         componentIndex++
         val symbol = FirFunctionSymbol(CallableId(packageFqName, classFqName, name))
         firClass.addDeclaration(
@@ -69,10 +69,10 @@ internal fun KtClassOrObject.generateComponentFunctions(
     }
 }
 
-private val copyName = Name.identifier("copy")
+private val copyName = FirName.identifier("copy")
 
 internal fun KtClassOrObject.generateCopyFunction(
-    session: FirSession, firClass: FirClassImpl, packageFqName: FqName, classFqName: FqName,
+    session: FirSession, firClass: FirClassImpl, packageFqName: FirFqName, classFqName: FirFqName,
     firPrimaryConstructor: FirConstructor,
     toFirOrErrorTypeRef: KtTypeReference?.() -> FirTypeRef
 ) {

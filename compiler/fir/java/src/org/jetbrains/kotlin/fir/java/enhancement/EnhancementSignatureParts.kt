@@ -23,8 +23,8 @@ import org.jetbrains.kotlin.load.java.MUTABLE_ANNOTATIONS
 import org.jetbrains.kotlin.load.java.READ_ONLY_ANNOTATIONS
 import org.jetbrains.kotlin.load.java.structure.JavaWildcardType
 import org.jetbrains.kotlin.load.java.typeEnhancement.*
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.FqNameUnsafe
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirFqNameUnsafe
 import org.jetbrains.kotlin.utils.Jsr305State
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -179,7 +179,7 @@ internal class EnhancementSignatureParts(
             else
                 this?.annotations.orEmpty()
 
-        fun <T : Any> List<FqName>.ifPresent(qualifier: T) =
+        fun <T : Any> List<FirFqName>.ifPresent(qualifier: T) =
             if (any { fqName ->
                     composedAnnotation.any { it.resolvedFqName == fqName }
                 }

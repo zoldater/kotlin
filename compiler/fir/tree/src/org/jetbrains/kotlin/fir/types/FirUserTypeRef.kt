@@ -6,10 +6,10 @@
 package org.jetbrains.kotlin.fir.types
 
 import org.jetbrains.kotlin.fir.visitors.FirVisitor
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 interface FirQualifierPart : FirTypeProjectionContainer {
-    val name: Name
+    val name: FirName
 }
 
 interface FirUserTypeRef : FirTypeRefWithNullability {

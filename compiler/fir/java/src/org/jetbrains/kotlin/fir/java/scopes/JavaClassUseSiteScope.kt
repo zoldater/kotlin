@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
-import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.fir.names.FirName
 
 class JavaClassUseSiteScope(
     klass: FirRegularClass,
@@ -110,7 +110,7 @@ class JavaClassUseSiteScope(
         }
     }
 
-    internal fun bindOverrides(name: Name) {
+    internal fun bindOverrides(name: FirName) {
         val overrideCandidates = mutableSetOf<ConeFunctionSymbol>()
         declaredMemberScope.processFunctionsByName(name) {
             overrideCandidates += it
@@ -167,7 +167,7 @@ class JavaClassUseSiteScope(
         return overriding
     }
 
-    override fun processFunctionsByName(name: Name, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: FirName, processor: (ConeFunctionSymbol) -> ProcessorAction): ProcessorAction {
         val overrideCandidates = mutableSetOf<ConeFunctionSymbol>()
         if (!declaredMemberScope.processFunctionsByName(name) {
                 overrideCandidates += it
@@ -187,8 +187,8 @@ class JavaClassUseSiteScope(
     }
 
     private fun processAccessorFunctionsAndPropertiesByName(
-        propertyName: Name,
-        accessorName: Name,
+        propertyName: FirName,
+        accessorName: FirName,
         isGetter: Boolean,
         processor: (ConeVariableSymbol) -> ProcessorAction
     ): ProcessorAction {
@@ -245,8 +245,8 @@ class JavaClassUseSiteScope(
         }
     }
 
-    override fun processPropertiesByName(name: Name, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
-        val getterName = Name.identifier(getterPrefix + name.asString().capitalize())
+    override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
+        val getterName = FirName.identifier(getterPrefix + name.asString().capitalize())
         return processAccessorFunctionsAndPropertiesByName(name, getterName, isGetter = true, processor = processor)
     }
 
