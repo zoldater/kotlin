@@ -52,7 +52,7 @@ import org.jetbrains.kotlin.resolve.scopes.LexicalWritableScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.SubstitutingScopeProvider
 import org.jetbrains.kotlin.types.WrappedTypeFactory
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 
 class LocalClassifierAnalyzer(
     private val globalContext: GlobalContext,
@@ -69,7 +69,7 @@ class LocalClassifierAnalyzer(
     private val delegationFilter: DelegationFilter,
     private val wrappedTypeFactory: WrappedTypeFactory,
     private val substitutingScopeProvider: SubstitutingScopeProvider,
-    private val refineKotlinTypeChecker: RefineKotlinTypeChecker
+    private val kotlinTypeChecker: NewKotlinTypeChecker
 ) {
     fun processClassOrObject(
         scope: LexicalWritableScope?,
@@ -104,7 +104,7 @@ class LocalClassifierAnalyzer(
                 delegationFilter,
                 wrappedTypeFactory,
                 substitutingScopeProvider,
-                refineKotlinTypeChecker
+                kotlinTypeChecker
             ),
             analyzerServices
         )
@@ -134,7 +134,7 @@ class LocalClassDescriptorHolder(
     val delegationFilter: DelegationFilter,
     val wrappedTypeFactory: WrappedTypeFactory,
     val substitutingScopeProvider: SubstitutingScopeProvider,
-    val refineKotlinTypeChecker: RefineKotlinTypeChecker
+    val kotlinTypeChecker: NewKotlinTypeChecker
 ) {
     // We do not need to synchronize here, because this code is used strictly from one thread
     private var classDescriptor: ClassDescriptor? = null
@@ -175,7 +175,7 @@ class LocalClassDescriptorHolder(
                     override val delegationFilter: DelegationFilter = this@LocalClassDescriptorHolder.delegationFilter
                     override val wrappedTypeFactory: WrappedTypeFactory = this@LocalClassDescriptorHolder.wrappedTypeFactory
                     override val substitutingScopeProvider: SubstitutingScopeProvider = this@LocalClassDescriptorHolder.substitutingScopeProvider
-                    override val refineKotlinTypeChecker: RefineKotlinTypeChecker = this@LocalClassDescriptorHolder.refineKotlinTypeChecker
+                    override val kotlinTypeChecker: NewKotlinTypeChecker = this@LocalClassDescriptorHolder.kotlinTypeChecker
                 },
                 containingDeclaration,
                 classOrObject.nameAsSafeName,

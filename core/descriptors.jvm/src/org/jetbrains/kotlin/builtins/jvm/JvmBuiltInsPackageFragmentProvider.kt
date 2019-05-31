@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.serialization.deserialization.*
 import org.jetbrains.kotlin.serialization.deserialization.builtins.BuiltInSerializerProtocol
 import org.jetbrains.kotlin.serialization.deserialization.builtins.BuiltInsPackageFragmentImpl
 import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 
 class JvmBuiltInsPackageFragmentProvider(
     storageManager: StorageManager,
@@ -27,7 +27,7 @@ class JvmBuiltInsPackageFragmentProvider(
     additionalClassPartsProvider: AdditionalClassPartsProvider,
     platformDependentDeclarationFilter: PlatformDependentDeclarationFilter,
     deserializationConfiguration: DeserializationConfiguration,
-    refineKotlinTypeChecker: RefineKotlinTypeChecker
+    kotlinTypeChecker: NewKotlinTypeChecker
 ) : AbstractDeserializedPackageFragmentProvider(storageManager, finder, moduleDescriptor) {
     init {
         components = DeserializationComponents(
@@ -49,7 +49,7 @@ class JvmBuiltInsPackageFragmentProvider(
             ContractDeserializer.DEFAULT,
             additionalClassPartsProvider, platformDependentDeclarationFilter,
             BuiltInSerializerProtocol.extensionRegistry,
-            refineKotlinTypeChecker
+            kotlinTypeChecker
         )
     }
 

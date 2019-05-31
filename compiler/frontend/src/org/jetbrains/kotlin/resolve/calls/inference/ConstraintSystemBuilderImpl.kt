@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.types.checker.*
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeParameterMarker
 import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContext
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 import org.jetbrains.kotlin.types.typeUtil.defaultProjections
 import org.jetbrains.kotlin.types.typeUtil.isDefaultBound
@@ -45,7 +46,8 @@ import java.util.*
 
 open class ConstraintSystemBuilderImpl(
     private val mode: Mode = ConstraintSystemBuilderImpl.Mode.INFERENCE,
-    private val refineKotlinTypeChecker: RefineKotlinTypeChecker = RefineKotlinTypeChecker.Default
+    private val kotlinTypeChecker: KotlinTypeChecker = NewKotlinTypeChecker.Default,
+    private val kotlinTypeRefiner: KotlinTypeRefiner = KotlinTypeRefiner.Default
 ) : ConstraintSystem.Builder {
     enum class Mode {
         INFERENCE,
@@ -141,8 +143,8 @@ open class ConstraintSystemBuilderImpl(
     ) {
         addConstraintWithoutRefinement(
             constraintKind,
-            subType?.let(refineKotlinTypeChecker::refineType),
-            superType?.let(refineKotlinTypeChecker::refineType),
+            subType?.let(kotlinTypeRefiner::refineType),
+            superType?.let(kotlinTypeRefiner::refineType),
             constraintContext
         )
     }
@@ -278,6 +280,8 @@ open class ConstraintSystemBuilderImpl(
             TypeUtils.makeNotNullable(type)
         }
 
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
     internal fun addBound(
         typeVariable: TypeVariable,
         constrainingType: KotlinType,
@@ -285,7 +289,7 @@ open class ConstraintSystemBuilderImpl(
         constraintContext: ConstraintContext
     ) {
         val bound = Bound(
-            typeVariable, refineKotlinTypeChecker.refineType(constrainingType), kind, constraintContext.position,
+            typeVariable, kotlinTypeRefiner.refineType(constrainingType), kind, constraintContext.position,
             constrainingType.isProper(), constraintContext.derivedFrom ?: emptySet()
         )
         val typeBounds = getTypeBounds(typeVariable)
@@ -439,7 +443,7 @@ open class ConstraintSystemBuilderImpl(
 
     override fun build(): ConstraintSystem {
         return ConstraintSystemImpl(
-            allTypeParameterBounds, usedInBounds, errors, initialConstraints, typeVariableSubstitutors, refineKotlinTypeChecker
+            allTypeParameterBounds, usedInBounds, errors, initialConstraints, typeVariableSubstitutors, kotlinTypeChecker, kotlinTypeRefiner
         )
     }
 

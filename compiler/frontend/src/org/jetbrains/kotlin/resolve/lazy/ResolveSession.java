@@ -46,7 +46,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope;
 import org.jetbrains.kotlin.storage.*;
 import org.jetbrains.kotlin.types.SubstitutingScopeProvider;
 import org.jetbrains.kotlin.types.WrappedTypeFactory;
-import org.jetbrains.kotlin.types.checker.RefineKotlinTypeChecker;
+import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker;
 import org.jetbrains.kotlin.utils.SmartList;
 
 import javax.inject.Inject;
@@ -87,7 +87,7 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
 
     private final SyntheticResolveExtension syntheticResolveExtension;
 
-    private final RefineKotlinTypeChecker refineKotlinTypeChecker;
+    private final NewKotlinTypeChecker kotlinTypeChecker;
 
     private Project project;
 
@@ -170,7 +170,7 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
             @NotNull ModuleDescriptor rootDescriptor,
             @NotNull DeclarationProviderFactory declarationProviderFactory,
             @NotNull BindingTrace delegationTrace,
-            @NotNull RefineKotlinTypeChecker refineKotlinTypeChecker
+            @NotNull NewKotlinTypeChecker kotlinTypeChecker
     ) {
         LockBasedLazyResolveStorageManager lockBasedLazyResolveStorageManager =
                 new LockBasedLazyResolveStorageManager(globalContext.getStorageManager());
@@ -211,7 +211,7 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
         syntheticResolveExtension = SyntheticResolveExtension.Companion.getInstance(project);
 
         this.project = project;
-        this.refineKotlinTypeChecker = refineKotlinTypeChecker;
+        this.kotlinTypeChecker = kotlinTypeChecker;
     }
 
     private LazyAnnotations createAnnotations(KtFile file, List<KtAnnotationEntry> annotationEntries) {
@@ -485,7 +485,7 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
 
     @NotNull
     @Override
-    public RefineKotlinTypeChecker getRefineKotlinTypeChecker() {
-        return refineKotlinTypeChecker;
+    public NewKotlinTypeChecker getKotlinTypeChecker() {
+        return kotlinTypeChecker;
     }
 }

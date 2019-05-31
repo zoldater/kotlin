@@ -40,14 +40,14 @@ internal class RefinementCacheImpl(moduleDescriptor: ModuleDescriptor, storageMa
     }
 }
 
+/**
+ * We can think that if there is no RefinementCache cache in module descriptor and EmptyRefinementCache
+ *   is using, then type refinement is disabled
+ */
 private class EmptyRefinementCache(moduleDescriptor: ModuleDescriptor) : RefinementCache(moduleDescriptor) {
-    override fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean {
-        return typeConstructor.areThereExpectSupertypesOrTypeArguments()
-    }
+    override fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean = false
 
-    override fun refineOrGetType(type: SimpleType, refinedTypeFactory: (ModuleDescriptor) -> SimpleType?): SimpleType {
-        return refinedTypeFactory(moduleDescriptor) ?: type
-    }
+    override fun refineOrGetType(type: SimpleType, refinedTypeFactory: (ModuleDescriptor) -> SimpleType?): SimpleType = type
 
     override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S = compute()
 }
