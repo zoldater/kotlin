@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler
+import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
@@ -74,6 +75,15 @@ class NonFirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
             }
 
         })
+
+        configuration.put(JVMConfigurationKeys.USE_FAST_CLASS_FILES_READING, true)
+        configuration.languageVersionSettings =
+            LanguageVersionSettingsImpl(
+                LanguageVersion.KOTLIN_1_4, ApiVersion.KOTLIN_1_3, specificFeatures = mapOf(
+                    LanguageFeature.NewInference to LanguageFeature.State.ENABLED
+                )
+            )
+
         val environment = KotlinCoreEnvironment.createForTests(disposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 
         runAnalysis(moduleData, environment)
