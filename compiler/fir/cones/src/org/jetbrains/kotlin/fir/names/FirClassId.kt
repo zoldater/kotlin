@@ -21,4 +21,12 @@ class FirClassId(val packageFqName: FirFqName, val relativeClassName: FirFqName)
         result = 31 * result + packageFqName.hashCode()
         return result
     }
+
+    fun asSingleFqName(): FirFqName {
+        return FirFqName.create(*packageFqName.segments(), *relativeClassName.segments())
+    }
+
+    fun createNestedClassId(name: FirName): FirClassId {
+        return FirClassId(packageFqName, relativeClassName.child(name))
+    }
 }

@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitBuiltinTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
-import org.jetbrains.kotlin.fir.names.FirSpecialNames
+import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.Printer
 
@@ -42,7 +42,7 @@ fun ConeKotlinType.render(): String {
         is ConeCapturedType -> "captured type: lowerType = ${lowerType?.render()}"
         is ConeClassLikeType -> {
             val sb = StringBuilder()
-            sb.append(lookupTag.classId.asString())
+            sb.append(lookupTag.classId.toString())
             if (typeArguments.isNotEmpty()) {
                 sb.append(typeArguments.joinToString(prefix = "<", postfix = ">") {
                     when (it) {
@@ -481,7 +481,7 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         if (valueParameter.isVararg) {
             print("vararg ")
         }
-        if (valueParameter.name != SpecialNames.NO_NAME_PROVIDED) {
+        if (valueParameter.name.asString() != SpecialNames.NO_NAME_PROVIDED.asString()) {
             print(valueParameter.name.toString() + ": ")
         }
         valueParameter.returnTypeRef.accept(this)
@@ -945,9 +945,9 @@ class FirRenderer(builder: StringBuilder) : FirVisitorVoid() {
         print("Q|")
         val classId = resolvedQualifier.classId
         if (classId != null) {
-            print(classId.asString())
+            print(classId.toString())
         } else {
-            print(resolvedQualifier.packageFqName.asString().replace(".", "/"))
+            print(resolvedQualifier.packageFqName.segments().joinToString("/"))
         }
         print("|")
     }

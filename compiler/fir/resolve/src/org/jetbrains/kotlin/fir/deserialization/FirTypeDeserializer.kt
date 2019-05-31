@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.deserialization
 
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.impl.FirTypeParameterImpl
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.resolve.toTypeProjection
 import org.jetbrains.kotlin.fir.resolve.transformers.firUnsafe
 import org.jetbrains.kotlin.fir.symbols.*
@@ -36,7 +37,7 @@ class FirTypeDeserializer(
 
     private fun computeClassifier(fqNameIndex: Int): ConeClassLikeLookupTag? {
         try {
-            val id = nameResolver.getClassId(fqNameIndex)
+            val id = nameResolver.getClassId(fqNameIndex).intern(session)
             return ConeClassLikeLookupTagImpl(id)
         } catch (e: Throwable) {
             throw RuntimeException("Looking up for ${nameResolver.getClassId(fqNameIndex)}", e)
@@ -75,7 +76,7 @@ class FirTypeDeserializer(
             val result = LinkedHashMap<Int, ConeTypeParameterSymbol>()
             for ((index, proto) in typeParameterProtos.withIndex()) {
                 if (!proto.hasId()) continue
-                val name = nameResolver.getName(proto.name)
+                val name = nameResolver.getName(proto.name).intern(session)
                 val symbol = FirTypeParameterSymbol()
                 FirTypeParameterImpl(
                     session,

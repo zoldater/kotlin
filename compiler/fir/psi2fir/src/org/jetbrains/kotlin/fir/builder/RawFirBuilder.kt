@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.fir.names.FirClassId
 import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
@@ -44,13 +45,8 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
 
     private val implicitAnnotationType = FirImplicitAnnotationTypeRef(session, null)
 
-    private fun Name.intern(): FirName {
-        return session.nameFactory.create(asString())
-    }
-
-    private fun FqName.intern(): FirFqName {
-        return FirFqName(Array(segments().size) { })
-    }
+    private fun Name.intern() = intern(session)
+    private fun FqName.intern() = intern(session)
 
     fun buildFirFile(file: KtFile): FirFile {
         return file.accept(Visitor(), Unit) as FirFile
@@ -437,7 +433,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 firFile.imports += FirImportImpl(
                     session,
                     importDirective,
-                    importDirective.importedFqName.intern(),
+                    importDirective.importedFqName?.intern(),
                     importDirective.isAllUnder,
                     importDirective.aliasName?.let { FirName.identifier(it) }
                 )
@@ -466,12 +462,12 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
         }
 
         override fun visitEnumEntry(enumEntry: KtEnumEntry, data: Unit): FirElement {
-            return withChildClassName(enumEntry.nameAsSafeName) {
+            return withChildClassName(enumEntry.nameAsSafeName.intern()) {
                 val firEnumEntry = FirEnumEntryImpl(
                     session,
                     enumEntry,
                     FirClassSymbol(currentClassId),
-                    enumEntry.nameAsSafeName
+                    enumEntry.nameAsSafeName.intern()
                 )
                 enumEntry.extractAnnotationsTo(firEnumEntry)
                 val delegatedSelfType = enumEntry.toDelegatedSelfType(firEnumEntry)
@@ -494,7 +490,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             return t
         }
 
-        val currentClassId get() = FirClassId(packageFqName, className, false)
+        val currentClassId get() = FirClassId(packageFqName, className/*, false*/)
 
         fun callableIdForName(name: FirName, local: Boolean = false) =
             when {
@@ -510,7 +506,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
         var className: FirFqName = FirFqName.ROOT
 
         override fun visitClassOrObject(classOrObject: KtClassOrObject, data: Unit): FirElement {
-            return withChildClassName(classOrObject.nameAsSafeName) {
+            return withChildClassName(classOrObject.nameAsSafeName.intern()) {
 
                 val classKind = when (classOrObject) {
                     is KtObjectDeclaration -> ClassKind.OBJECT
@@ -526,7 +522,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                     session,
                     classOrObject,
                     FirClassSymbol(currentClassId),
-                    classOrObject.nameAsSafeName,
+                    classOrObject.nameAsSafeName.intern(),
                     if (classOrObject.isLocal) Visibilities.LOCAL else classOrObject.visibility,
                     classOrObject.modality,
                     classOrObject.hasExpectModifier(),
@@ -588,12 +584,12 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
         }
 
         override fun visitTypeAlias(typeAlias: KtTypeAlias, data: Unit): FirElement {
-            return withChildClassName(typeAlias.nameAsSafeName) {
+            return withChildClassName(typeAlias.nameAsSafeName.intern()) {
                 val firTypeAlias = FirTypeAliasImpl(
                     session,
                     typeAlias,
                     FirTypeAliasSymbol(currentClassId),
-                    typeAlias.nameAsSafeName,
+                    typeAlias.nameAsSafeName.intern(),
                     typeAlias.visibility,
                     typeAlias.hasExpectModifier(),
                     typeAlias.hasActualModifier(),
@@ -634,8 +630,8 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 FirMemberFunctionImpl(
                     session,
                     function,
-                    FirFunctionSymbol(callableIdForName(function.nameAsSafeName, function.isLocal)),
-                    function.nameAsSafeName,
+                    FirFunctionSymbol(callableIdForName(function.nameAsSafeName.intern(), function.isLocal)),
+                    function.nameAsSafeName.intern(),
                     if (function.isLocal) Visibilities.LOCAL else function.visibility,
                     function.modality,
                     function.hasExpectModifier(),
@@ -786,7 +782,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 FirVariableImpl(
                     session,
                     property,
-                    name,
+                    name.intern(),
                     propertyType,
                     isVar,
                     initializer,
@@ -796,8 +792,8 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 FirMemberPropertyImpl(
                     session,
                     property,
-                    FirPropertySymbol(callableIdForName(name)),
-                    name,
+                    FirPropertySymbol(callableIdForName(name.intern())),
+                    name.intern(),
                     property.visibility,
                     property.modality,
                     property.hasExpectModifier(),
@@ -839,7 +835,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                         )
                         var qualifier: KtUserType? = unwrappedElement
                         do {
-                            val firQualifier = FirQualifierPartImpl(referenceExpression!!.getReferencedNameAsName())
+                            val firQualifier = FirQualifierPartImpl(referenceExpression!!.getReferencedNameAsName().intern())
                             for (typeArgument in qualifier!!.typeArguments) {
                                 firQualifier.typeArguments += typeArgument.convert<FirTypeProjection>()
                             }
@@ -897,7 +893,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 session,
                 parameter,
                 FirTypeParameterSymbol(),
-                parameterName,
+                parameterName.intern(),
                 parameter.variance,
                 parameter.hasModifier(REIFIED_KEYWORD)
             )
@@ -956,7 +952,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
         }
 
         override fun visitSimpleNameExpression(expression: KtSimpleNameExpression, data: Unit): FirElement {
-            return generateAccessExpression(session, expression, expression.getReferencedNameAsName())
+            return generateAccessExpression(session, expression, expression.getReferencedNameAsName().intern())
         }
 
         override fun visitConstantExpression(expression: KtConstantExpression, data: Unit): FirElement =
@@ -1008,7 +1004,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             }?.toFirExpression("Incorrect when subject expression: ${ktSubjectExpression?.text}")
             val subjectVariable = when (ktSubjectExpression) {
                 is KtVariableDeclaration -> FirVariableImpl(
-                    session, ktSubjectExpression, ktSubjectExpression.nameAsSafeName,
+                    session, ktSubjectExpression, ktSubjectExpression.nameAsSafeName.intern(),
                     ktSubjectExpression.typeReference.toFirOrImplicitType(),
                     isVar = false, initializer = subjectExpression
                 )
@@ -1105,7 +1101,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                         val multiDeclaration = parameter.destructuringDeclaration
                         val firLoopParameter = generateTemporaryVariable(
                             this@RawFirBuilder.session, expression.loopParameter,
-                            if (multiDeclaration != null) FirName.special("<destruct>") else parameter.nameAsSafeName,
+                            if (multiDeclaration != null) FirName.special("<destruct>") else parameter.nameAsSafeName.intern(),
                             FirFunctionCallImpl(this@RawFirBuilder.session, expression).apply {
                                 calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, FirName.identifier("next"))
                                 explicitReceiver = generateResolvedAccessExpression(this@RawFirBuilder.session, expression, iteratorVal)
@@ -1195,7 +1191,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 ).apply {
                     calleeReference = FirSimpleNamedReference(
                         this@RawFirBuilder.session, expression.operationReference,
-                        conventionCallName ?: expression.operationReference.getReferencedNameAsName()
+                        (conventionCallName ?: expression.operationReference.getReferencedNameAsName()).intern()
                     )
                     explicitReceiver = leftArgument
                     arguments += rightArgument
@@ -1239,7 +1235,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             if (operationToken == EXCLEXCL) {
                 return expression.bangBangToWhen()
             }
-            val conventionCallName = operationToken.toUnaryName()
+            val conventionCallName = operationToken.toUnaryName()?.intern()
             return if (conventionCallName != null) {
                 if (operationToken in OperatorConventions.INCREMENT_OPERATIONS) {
                     return generateIncrementOrDecrementBlock(
@@ -1273,7 +1269,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             return FirFunctionCallImpl(session, expression).apply {
                 val calleeReference = when (calleeExpression) {
                     is KtSimpleNameExpression -> FirSimpleNamedReference(
-                        this@RawFirBuilder.session, calleeExpression, calleeExpression.getReferencedNameAsName()
+                        this@RawFirBuilder.session, calleeExpression, calleeExpression.getReferencedNameAsName().intern()
                     )
                     null -> FirErrorNamedReference(
                         this@RawFirBuilder.session, calleeExpression, "Call has no callee"
@@ -1281,7 +1277,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                     else -> {
                         arguments += calleeExpression.toFirExpression("Incorrect invoke receiver")
                         FirSimpleNamedReference(
-                            this@RawFirBuilder.session, expression, OperatorNameConventions.INVOKE
+                            this@RawFirBuilder.session, expression, OperatorNameConventions.INVOKE.intern()
                         )
                     }
                 }
@@ -1298,7 +1294,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
         override fun visitArrayAccessExpression(expression: KtArrayAccessExpression, data: Unit): FirElement {
             val arrayExpression = expression.arrayExpression
             return FirFunctionCallImpl(session, expression).apply {
-                calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, OperatorNameConventions.GET)
+                calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, OperatorNameConventions.GET.intern())
                 explicitReceiver = arrayExpression.toFirExpression("No array expression")
                 for (indexExpression in expression.indexExpressions) {
                     arguments += indexExpression.toFirExpression("Incorrect index expression")
@@ -1388,7 +1384,9 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
         override fun visitCallableReferenceExpression(expression: KtCallableReferenceExpression, data: Unit): FirElement {
             return FirCallableReferenceAccessImpl(session, expression).apply {
                 calleeReference = FirSimpleNamedReference(
-                    this@RawFirBuilder.session, expression.callableReference, expression.callableReference.getReferencedNameAsName()
+                    this@RawFirBuilder.session,
+                    expression.callableReference,
+                    expression.callableReference.getReferencedNameAsName().intern()
                 )
                 explicitReceiver = expression.receiverExpression?.toFirExpression("Incorrect receiver expression")
             }

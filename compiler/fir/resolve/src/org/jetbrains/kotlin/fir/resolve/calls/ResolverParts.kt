@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.load.java.JavaVisibilities
-import org.jetbrains.kotlin.fir.names.FIRFqName
+import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind.*
 import java.lang.IllegalStateException

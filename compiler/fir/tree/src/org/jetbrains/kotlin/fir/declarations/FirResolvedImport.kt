@@ -14,7 +14,7 @@ interface FirResolvedImport : FirImport {
     val packageFqName: FirFqName
 
     val relativeClassName: FirFqName?
-    val resolvedClassId: FirClassId? get() = relativeClassName?.let { FirClassId(packageFqName, it, false) }
+    val resolvedClassId: FirClassId? get() = relativeClassName?.let { FirClassId(packageFqName, it) }
 
     val importedName: FirName? get() = importedFqName?.shortName()
 

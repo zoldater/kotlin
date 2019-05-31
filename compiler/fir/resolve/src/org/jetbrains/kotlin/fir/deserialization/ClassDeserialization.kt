@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.deserialization
 
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.impl.FirClassImpl
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.resolve.transformers.firUnsafe
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.types.impl.FirResolvedTypeRefImpl
@@ -87,7 +88,7 @@ fun deserializeClassToSymbol(
 
         addDeclarations(
             classProto.enumEntryList.mapNotNull { enumEntryProto ->
-                val enumEntryName = nameResolver.getName(enumEntryProto.name)
+                val enumEntryName = nameResolver.getName(enumEntryProto.name).intern(session)
                 val enumEntryId = classId.createNestedClassId(enumEntryName)
                 val deserializedClassSymbol = deserializeNestedClass(enumEntryId, context)
                 deserializedClassSymbol?.fir

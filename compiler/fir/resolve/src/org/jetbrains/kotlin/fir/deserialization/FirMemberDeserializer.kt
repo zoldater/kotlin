@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.*
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionStub
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.resolve.transformers.firUnsafe
 import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
@@ -129,7 +130,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
 
     fun loadTypeAlias(proto: ProtoBuf.TypeAlias): FirTypeAlias {
         val flags = proto.flags
-        val name = c.nameResolver.getName(proto.name)
+        val name = c.nameResolver.getName(proto.name).intern(c.session)
         val local = c.childContext(proto.typeParameterList)
         return FirTypeAliasImpl(
             c.session,
@@ -152,7 +153,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
 
     fun loadProperty(proto: ProtoBuf.Property): FirProperty {
         val flags = if (proto.hasFlags()) proto.flags else loadOldFlags(proto.oldFlags)
-        val callableName = c.nameResolver.getName(proto.name)
+        val callableName = c.nameResolver.getName(proto.name).intern(c.session)
         val symbol = FirPropertySymbol(CallableId(c.packageFqName, c.relativeClassName, callableName))
         val local = c.childContext(proto.typeParameterList)
         val returnTypeRef = proto.returnType(c.typeTable).toTypeRef(local)
@@ -199,7 +200,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
             // TODO: Support case for KOTLIN_SUSPEND_BUILT_IN_FUNCTION_FQ_NAME
             c.versionRequirementTable
 
-        val callableName = c.nameResolver.getName(proto.name)
+        val callableName = c.nameResolver.getName(proto.name).intern(c.session)
         val symbol = FirFunctionSymbol(CallableId(c.packageFqName, c.relativeClassName, callableName))
         val local = c.childContext(proto.typeParameterList)
 
@@ -295,7 +296,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
         return valueParameters.map { proto ->
             val flags = if (proto.hasFlags()) proto.flags else 0
             FirValueParameterImpl(
-                c.session, null, c.nameResolver.getName(proto.name),
+                c.session, null, c.nameResolver.getName(proto.name).intern(c.session),
                 proto.type(c.typeTable).toTypeRef(c),
                 defaultValue(flags),
                 Flags.IS_CROSSINLINE.get(flags),

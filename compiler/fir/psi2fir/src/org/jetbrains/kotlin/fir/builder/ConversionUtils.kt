@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.fir.FirWhenSubject
 import org.jetbrains.kotlin.fir.declarations.impl.FirVariableImpl
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.impl.*
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.references.FirErrorNamedReference
 import org.jetbrains.kotlin.fir.references.FirExplicitThisReference
 import org.jetbrains.kotlin.fir.references.FirResolvedCallableReferenceImpl
@@ -25,6 +26,7 @@ import org.jetbrains.kotlin.fir.types.impl.FirImplicitTypeRefImpl
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.constants.evaluate.*
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
@@ -144,11 +146,11 @@ internal fun generateConstantExpressionByLiteral(session: FirSession, expression
 
 }
 
-internal fun IElementType.toBinaryName(): FirName? {
+internal fun IElementType.toBinaryName(): Name? {
     return OperatorConventions.BINARY_OPERATION_NAMES[this]
 }
 
-internal fun IElementType.toUnaryName(): FirName? {
+internal fun IElementType.toUnaryName(): Name? {
     return OperatorConventions.UNARY_OPERATION_NAMES[this]
 }
 
@@ -336,13 +338,13 @@ internal fun FirExpression.generateContainsOperation(
     operationReference: KtOperationReferenceExpression
 ): FirFunctionCall {
     val containsCall = FirFunctionCallImpl(session, base).apply {
-        calleeReference = FirSimpleNamedReference(session, operationReference, OperatorNameConventions.CONTAINS)
+        calleeReference = FirSimpleNamedReference(session, operationReference, OperatorNameConventions.CONTAINS.intern(session))
         explicitReceiver = this@generateContainsOperation
         arguments += argument
     }
     if (!inverted) return containsCall
     return FirFunctionCallImpl(session, base).apply {
-        calleeReference = FirSimpleNamedReference(session, operationReference, OperatorNameConventions.NOT)
+        calleeReference = FirSimpleNamedReference(session, operationReference, OperatorNameConventions.NOT.intern(session))
         explicitReceiver = containsCall
     }
 }
@@ -417,7 +419,7 @@ internal fun generateIncrementOrDecrementBlock(
                 statements += generateResolvedAccessExpression(session, baseExpression, resultVar)
             } else {
                 appendAssignment()
-                statements += generateAccessExpression(session, baseExpression, argument.getReferencedNameAsName())
+                statements += generateAccessExpression(session, baseExpression, argument.getReferencedNameAsName().intern(session))
             }
         } else {
             appendAssignment()
@@ -450,11 +452,12 @@ internal fun generateDestructuringBlock(
         }
         val isVar = multiDeclaration.isVar
         for ((index, entry) in multiDeclaration.entries.withIndex()) {
+            val name = entry.nameAsSafeName.intern(session)
             statements += FirVariableImpl(
-                session, entry, entry.nameAsSafeName,
+                session, entry, name,
                 entry.typeReference.toFirOrImplicitTypeRef(), isVar,
                 FirComponentCallImpl(session, entry, index + 1, generateResolvedAccessExpression(session, entry, container)),
-                FirVariableSymbol(entry.nameAsSafeName) // TODO?
+                FirVariableSymbol(name) // TODO?
             ).apply {
                 entry.extractAnnotationsTo(this)
                 symbol.bind(this)
@@ -481,7 +484,7 @@ private fun FirModifiableQualifiedAccess.initializeLValue(
 ): FirReference {
     return when (left) {
         is KtSimpleNameExpression -> {
-            FirSimpleNamedReference(session, left, left.getReferencedNameAsName())
+            FirSimpleNamedReference(session, left, left.getReferencedNameAsName().intern(session))
         }
         is KtThisExpression -> {
             FirExplicitThisReference(session, left, left.getLabelName())
@@ -526,7 +529,7 @@ internal fun KtExpression?.generateAssignment(
             }
         } else {
             return FirFunctionCallImpl(session, psi).apply {
-                calleeReference = FirSimpleNamedReference(session, psi, OperatorNameConventions.SET)
+                calleeReference = FirSimpleNamedReference(session, psi, OperatorNameConventions.SET.intern(session))
                 explicitReceiver = firArrayExpression
                 for (indexExpression in indexExpressions) {
                     arguments += indexExpression.convert()

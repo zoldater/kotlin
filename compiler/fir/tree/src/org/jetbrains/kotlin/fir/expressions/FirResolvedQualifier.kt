@@ -17,6 +17,6 @@ interface FirResolvedQualifier : FirExpression {
     val relativeClassFqName: FirFqName?
     val classId
         get() = relativeClassFqName?.let {
-            FirClassId(packageFqName, it, false)
+            FirClassId(packageFqName, it)
         }
 }

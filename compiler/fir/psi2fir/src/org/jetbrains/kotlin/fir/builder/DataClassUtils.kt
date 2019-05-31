@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirClassImpl
 import org.jetbrains.kotlin.fir.declarations.impl.FirMemberFunctionImpl
 import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
 import org.jetbrains.kotlin.fir.expressions.impl.*
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.references.FirResolvedCallableReferenceImpl
 import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
@@ -53,7 +54,7 @@ internal fun KtClassOrObject.generateComponentFunctions(
                     FirReturnExpressionImpl(
                         session, ktParameter,
                         FirQualifiedAccessExpressionImpl(session, ktParameter).apply {
-                            val parameterName = ktParameter.nameAsSafeName
+                            val parameterName = ktParameter.nameAsSafeName.intern(session)
                             calleeReference = FirResolvedCallableReferenceImpl(
                                 session, ktParameter,
                                 parameterName, firProperty.symbol
@@ -92,7 +93,7 @@ internal fun KtClassOrObject.generateCopyFunction(
             val zippedParameters =
                 primaryConstructorParameters.zip(firClass.declarations.filterIsInstance<FirProperty>())
             for ((ktParameter, firProperty) in zippedParameters) {
-                val name = ktParameter.nameAsSafeName
+                val name = ktParameter.nameAsSafeName.intern(session)
                 valueParameters += FirValueParameterImpl(
                     session, ktParameter, name,
                     ktParameter.typeReference.toFirOrErrorTypeRef(),

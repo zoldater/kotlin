@@ -47,7 +47,7 @@ abstract class AbstractFirSymbolProvider : FirSymbolProvider {
         // TODO: do something with new symbols which can be found during transformation of another symbols
         for (symbol in symbols) {
             if (symbol !is FirClassSymbol) continue
-            if (symbol.classId.relativeClassName.parent().isRoot) {
+            if (symbol.classId.relativeClassName.parent().isRoot()) {
                 // Launch for top-level classes only
                 symbol.fir.transform<FirElement, D>(transformer, data)
             }

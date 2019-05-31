@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.declarations.FirConstructor
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.impl.*
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.references.FirErrorNamedReference
 import org.jetbrains.kotlin.fir.references.FirResolvedCallableReferenceImpl
 import org.jetbrains.kotlin.fir.resolve.constructType
@@ -67,7 +68,7 @@ abstract class AbstractAnnotationDeserializer(
     abstract fun loadTypeAnnotations(typeProto: ProtoBuf.Type, nameResolver: NameResolver): List<FirAnnotationCall>
 
     fun deserializeAnnotation(proto: ProtoBuf.Annotation, nameResolver: NameResolver): FirAnnotationCall {
-        val classId = nameResolver.getClassId(proto.id)
+        val classId = nameResolver.getClassId(proto.id).intern(session)
         val lookupTag = ConeClassLikeLookupTagImpl(classId)
         val symbol = lookupTag.toSymbol(session)
         val firAnnotationClass = (symbol as? FirClassSymbol)?.fir
@@ -83,7 +84,7 @@ abstract class AbstractAnnotationDeserializer(
                     val parameter = parameterByName[name] ?: return@mapNotNull null
                     val value = resolveValue(parameter.returnTypeRef, it.value, nameResolver) ?: return@mapNotNull null
                     FirNamedArgumentExpressionImpl(
-                        session, null, name, false, value
+                        session, null, name.intern(session), false, value
                     )
                 }
             }
@@ -118,7 +119,7 @@ abstract class AbstractAnnotationDeserializer(
             STRING -> const(IrConstKind.String, nameResolver.getString(value.stringValue))
             ANNOTATION -> deserializeAnnotation(value.annotation, nameResolver)
             CLASS -> FirGetClassCallImpl(session, null).apply {
-                val classId = nameResolver.getClassId(value.classId)
+                val classId = nameResolver.getClassId(value.classId).intern(session)
                 val lookupTag = ConeClassLikeLookupTagImpl(classId)
                 val referencedType = lookupTag.constructType(emptyArray(), isNullable = false)
                 arguments += FirClassReferenceExpressionImpl(
@@ -131,11 +132,11 @@ abstract class AbstractAnnotationDeserializer(
             ENUM -> FirFunctionCallImpl(session, null).apply {
                 val classId = nameResolver.getClassId(value.classId)
                 val entryName = nameResolver.getName(value.enumValueId)
-                val entryClassId = classId.createNestedClassId(entryName)
+                val entryClassId = classId.createNestedClassId(entryName).intern(session)
                 val entryLookupTag = ConeClassLikeLookupTagImpl(entryClassId)
                 val entrySymbol = entryLookupTag.toSymbol(this@AbstractAnnotationDeserializer.session)
                 this.calleeReference = entrySymbol?.let {
-                    FirResolvedCallableReferenceImpl(this@AbstractAnnotationDeserializer.session, null, entryName, it)
+                    FirResolvedCallableReferenceImpl(this@AbstractAnnotationDeserializer.session, null, entryName.intern(session), it)
                 } ?: FirErrorNamedReference(
                     this@AbstractAnnotationDeserializer.session, null,
                     errorReason = "Strange deserialized enum value: $classId.$entryName"

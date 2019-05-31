@@ -313,7 +313,7 @@ class QualifiedReceiverTowerLevel(session: FirSession) : SessionBasedTowerLevel(
             listOf(
                 FirResolvedImportImpl(
                     session,
-                    FirImportImpl(session, null, FirFqName.topLevel(name), false, null),
+                    FirImportImpl(session, null, FirFqName.create(name), false, null),
                     qualifiedReceiver.packageFqName,
                     qualifiedReceiver.relativeClassFqName
                 )
