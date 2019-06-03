@@ -246,7 +246,7 @@ internal fun ConeKotlinType.lexicalCastFrom(session: FirSession, value: String):
     val lookupTag = lookupTagBasedType.lookupTag
     val firElement = (lookupTag.toSymbol(session) as? FirBasedSymbol<*>)?.fir
     if (firElement is FirRegularClass && firElement.classKind == ClassKind.ENUM_CLASS) {
-        val name = FirName.identifier(value)
+        val name = value.intern(session)
         val firEnumEntry = firElement.declarations.filterIsInstance<FirEnumEntry>().find { it.name == name }
 
         return if (firEnumEntry != null) FirQualifiedAccessExpressionImpl(session, null).apply {

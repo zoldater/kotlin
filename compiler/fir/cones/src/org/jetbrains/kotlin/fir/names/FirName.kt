@@ -45,8 +45,7 @@ class FirName private constructor(private val name: String, val isSpecial: Boole
         @JvmStatic
         fun isValidIdentifier(name: String): Boolean {
             if (name.isEmpty() || name.startsWith("<")) return false
-            for (i in 0 until name.length) {
-                val ch = name[i]
+            for (ch in name) {
                 if (ch == '.' || ch == '/' || ch == '\\') {
                     return false
                 }

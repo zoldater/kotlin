@@ -197,7 +197,7 @@ internal fun JavaValueParameter.toFirValueParameters(
     session: FirSession, javaTypeParameterStack: JavaTypeParameterStack
 ): FirValueParameter {
     return FirJavaValueParameter(
-        session, name?.intern(session) ?: FirName.special("<anonymous Java parameter>"),
+        session, name?.intern(session) ?: "<anonymous Java parameter>".intern(session),
         returnTypeRef = type.toFirJavaTypeRef(session, javaTypeParameterStack),
         isVararg = isVararg
     ).apply {

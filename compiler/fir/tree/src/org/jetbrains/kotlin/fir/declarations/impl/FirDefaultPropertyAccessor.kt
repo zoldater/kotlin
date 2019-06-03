@@ -75,7 +75,7 @@ class FirDefaultPropertySetter(
         FirDefaultSetterValueParameter(
             session, psi, propertyTypeRef, FirVariableSymbol(
                 CallableId(
-                    FirFqName.ROOT, FirName.special("<default-setter-parameter>")
+                    FirFqName.ROOT, "<default-setter-parameter>".intern(session)
                 )
             )
         )

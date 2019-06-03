@@ -34,7 +34,7 @@ internal fun KtClassOrObject.generateComponentFunctions(
         primaryConstructorParameters.zip(firClass.declarations.filterIsInstance<FirProperty>())
     for ((ktParameter, firProperty) in zippedParameters) {
         if (!ktParameter.hasValOrVar()) continue
-        val name = FirName.identifier("component$componentIndex")
+        val name = "component$componentIndex".intern(session)
         componentIndex++
         val symbol = FirFunctionSymbol(CallableId(packageFqName, classFqName, name))
         firClass.addDeclaration(

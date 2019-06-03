@@ -435,7 +435,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                     importDirective,
                     importDirective.importedFqName?.intern(),
                     importDirective.isAllUnder,
-                    importDirective.aliasName?.let { FirName.identifier(it) }
+                    importDirective.aliasName?.let { it.intern(session) }
                 )
             }
             for (declaration in file.declarations) {
@@ -500,7 +500,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             }
 
         fun callableIdForClassConstructor() =
-            if (className == FirFqName.ROOT) CallableId(packageFqName, FirName.special("<anonymous-init>"))
+            if (className == FirFqName.ROOT) CallableId(packageFqName, "<anonymous-init>".intern(session))
             else CallableId(packageFqName, className, className.shortName())
 
         var className: FirFqName = FirFqName.ROOT
@@ -671,7 +671,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                     val multiDeclaration = valueParameter.destructuringDeclaration
                     valueParameters += if (multiDeclaration != null) {
                         val multiParameter = FirValueParameterImpl(
-                            this@RawFirBuilder.session, valueParameter, FirName.special("<destruct>"),
+                            this@RawFirBuilder.session, valueParameter, "<destruct>".intern(session),
                             FirImplicitTypeRefImpl(this@RawFirBuilder.session, multiDeclaration),
                             defaultValue = null, isCrossinline = false, isNoinline = false, isVararg = false
                         )
@@ -1074,12 +1074,12 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
             val parameter = expression.loopParameter
             return FirBlockImpl(session, expression).apply {
                 val rangeVal =
-                    generateTemporaryVariable(this@RawFirBuilder.session, expression.loopRange, FirName.special("<range>"), rangeExpression)
+                    generateTemporaryVariable(this@RawFirBuilder.session, expression.loopRange, "<range>".intern(session), rangeExpression)
                 statements += rangeVal
                 val iteratorVal = generateTemporaryVariable(
-                    this@RawFirBuilder.session, expression.loopRange, FirName.special("<iterator>"),
+                    this@RawFirBuilder.session, expression.loopRange, "<iterator>".intern(session),
                     FirFunctionCallImpl(this@RawFirBuilder.session, expression).apply {
-                        calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, FirName.identifier("iterator"))
+                        calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, "iterator".intern(session))
                         explicitReceiver = generateResolvedAccessExpression(this@RawFirBuilder.session, expression.loopRange, rangeVal)
                     }
                 )
@@ -1087,7 +1087,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 statements += FirWhileLoopImpl(
                     this@RawFirBuilder.session, expression,
                     FirFunctionCallImpl(this@RawFirBuilder.session, expression).apply {
-                        calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, FirName.identifier("hasNext"))
+                        calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, "hasNext".intern(session))
                         explicitReceiver = generateResolvedAccessExpression(this@RawFirBuilder.session, expression, iteratorVal)
                     }
                 ).configure {
@@ -1101,9 +1101,9 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                         val multiDeclaration = parameter.destructuringDeclaration
                         val firLoopParameter = generateTemporaryVariable(
                             this@RawFirBuilder.session, expression.loopParameter,
-                            if (multiDeclaration != null) FirName.special("<destruct>") else parameter.nameAsSafeName.intern(),
+                            if (multiDeclaration != null) "<destruct>".intern(session) else parameter.nameAsSafeName.intern(),
                             FirFunctionCallImpl(this@RawFirBuilder.session, expression).apply {
-                                calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, FirName.identifier("next"))
+                                calleeReference = FirSimpleNamedReference(this@RawFirBuilder.session, expression, "next".intern(session))
                                 explicitReceiver = generateResolvedAccessExpression(this@RawFirBuilder.session, expression, iteratorVal)
                             }
                         )

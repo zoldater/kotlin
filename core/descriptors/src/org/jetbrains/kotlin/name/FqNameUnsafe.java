@@ -21,6 +21,8 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -189,5 +191,22 @@ public final class FqNameUnsafe {
     @Override
     public int hashCode() {
         return fqName.hashCode();
+    }
+
+    public List<String> stringPathSegments() {
+        if (isRoot()) return Collections.emptyList();
+        //return Arrays.asList(fqName.split("\\."));
+        List<String> result = new ArrayList<String>();
+        StringBuilder sb = new StringBuilder();
+        for (char ch : fqName.toCharArray()) {
+            if (ch == '.') {
+                result.add(sb.toString());
+                sb.setLength(0);
+            } else {
+                sb.append(ch);
+            }
+        }
+        result.add(sb.toString());
+        return result;
     }
 }

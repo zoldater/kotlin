@@ -12,12 +12,16 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
+fun String.intern(session: FirSession): FirName {
+    return session.nameFactory.create(this)
+}
+
 fun Name.intern(session: FirSession): FirName {
     return session.nameFactory.create(asString())
 }
 
 fun FqName.intern(session: FirSession): FirFqName {
-    return FirFqName(this.pathSegments().map { it.intern(session) }.toTypedArray())
+    return FirFqName(this.stringPathSegments().map { it.intern(session) }.toTypedArray())
 }
 
 fun ClassId.intern(session: FirSession): FirClassId {

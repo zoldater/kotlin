@@ -502,7 +502,7 @@ class ExplicitReceiverTowerDataConsumer<T : ConeSymbol>(
 ) : TowerDataConsumer() {
 
     companion object {
-        val defaultPackage = FirName.identifier("kotlin")
+        val defaultPackage = StandardClassIds.BASE_KOTLIN_PACKAGE.segments().first()
     }
 
 

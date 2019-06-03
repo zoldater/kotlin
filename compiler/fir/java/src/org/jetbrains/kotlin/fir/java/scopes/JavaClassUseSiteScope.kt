@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.fir.java.scopes
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.java.JavaTypeParameterStack
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaClass
 import org.jetbrains.kotlin.fir.java.toNotNullConeKotlinType
@@ -246,7 +247,7 @@ class JavaClassUseSiteScope(
     }
 
     override fun processPropertiesByName(name: FirName, processor: (ConeVariableSymbol) -> ProcessorAction): ProcessorAction {
-        val getterName = FirName.identifier(getterPrefix + name.asString().capitalize())
+        val getterName = (getterPrefix + name.asString().capitalize()).intern(session)
         return processAccessorFunctionsAndPropertiesByName(name, getterName, isGetter = true, processor = processor)
     }
 

@@ -181,7 +181,7 @@ internal fun IElementType.toFirOperation(): FirOperation =
 internal fun FirExpression.generateNotNullOrOther(
     session: FirSession, other: FirExpression, caseId: String, basePsi: KtElement
 ): FirWhenExpression {
-    val subjectName = FirName.special("<$caseId>")
+    val subjectName = "<$caseId>".intern(session)
     val subjectVariable = generateTemporaryVariable(session, psi, subjectName, this)
     val subject = FirWhenSubject()
     val subjectExpression = FirWhenSubjectExpressionImpl(session, psi, subject)
@@ -386,10 +386,10 @@ internal fun generateIncrementOrDecrementBlock(
         return FirErrorExpressionImpl(session, argument, "Inc/dec without operand")
     }
     return FirBlockImpl(session, baseExpression).apply {
-        val tempName = FirName.special("<unary>")
+        val tempName = "<unary>".intern(session)
         val temporaryVariable = generateTemporaryVariable(session, baseExpression, tempName, argument.convert())
         statements += temporaryVariable
-        val resultName = FirName.special("<unary-result>")
+        val resultName = "<unary-result>".intern(session)
         val resultInitializer = FirFunctionCallImpl(session, baseExpression).apply {
             this.calleeReference = FirSimpleNamedReference(session, baseExpression.operationReference, callName)
             this.explicitReceiver = generateResolvedAccessExpression(session, baseExpression, temporaryVariable)
@@ -475,7 +475,7 @@ internal fun generateTemporaryVariable(
 
 internal fun generateTemporaryVariable(
     session: FirSession, psi: PsiElement?, specialName: String, initializer: FirExpression
-): FirVariable = generateTemporaryVariable(session, psi, FirName.special("<$specialName>"), initializer)
+): FirVariable = generateTemporaryVariable(session, psi, "<$specialName>".intern(session), initializer)
 
 private fun FirModifiableQualifiedAccess.initializeLValue(
     session: FirSession,
@@ -543,7 +543,7 @@ internal fun KtExpression?.generateAssignment(
             }
         }
         return FirBlockImpl(session, arrayExpression).apply {
-            val name = FirName.special("<array-set>")
+            val name = "<array-set>".intern(session)
             statements += generateTemporaryVariable(session, this@generateAssignment, name, firArrayExpression)
             statements += arraySet.apply { lValue = FirSimpleNamedReference(session, arrayExpression, name) }
         }
@@ -553,7 +553,7 @@ internal fun KtExpression?.generateAssignment(
         (this !is KtQualifiedExpression || selectorExpression !is KtSimpleNameExpression)
     ) {
         return FirBlockImpl(session, this).apply {
-            val name = FirName.special("<complex-set>")
+            val name = "<complex-set>".intern(session)
             statements += generateTemporaryVariable(
                 session, this@generateAssignment, name,
                 this@generateAssignment?.convert() ?: FirErrorExpressionImpl(session, this@generateAssignment, "No LValue in assignment")

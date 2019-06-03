@@ -9,11 +9,12 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirAbstractElement
 import org.jetbrains.kotlin.fir.FirNamedReference
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.names.FirName
 
 class FirErrorNamedReference(
     session: FirSession,
     psi: PsiElement?,
     val errorReason: String,
-    override val name: FirName = FirName.special("<$errorReason>")
+    override val name: FirName = "<$errorReason>".intern(session)
 ) : FirAbstractElement(session, psi), FirNamedReference

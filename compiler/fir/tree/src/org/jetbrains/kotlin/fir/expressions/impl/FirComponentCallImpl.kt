@@ -6,17 +6,13 @@
 package org.jetbrains.kotlin.fir.expressions.impl
 
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.fir.FirElement
-import org.jetbrains.kotlin.fir.FirNamedReference
-import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.expressions.FirComponentCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccess
 import org.jetbrains.kotlin.fir.references.FirSimpleNamedReference
-import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
-import org.jetbrains.kotlin.fir.names.FirName
 
 class FirComponentCallImpl(
     session: FirSession,
@@ -30,7 +26,7 @@ class FirComponentCallImpl(
     }
 
     override var calleeReference: FirNamedReference =
-        FirSimpleNamedReference(session, psi, FirName.identifier("component$componentIndex"))
+        FirSimpleNamedReference(session, psi, "component$componentIndex".intern(session))
 
     override val typeArguments: List<FirTypeProjection>
         get() = emptyList()
