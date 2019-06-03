@@ -31,7 +31,7 @@ object CommonIdePlatformKind : IdePlatformKind<CommonIdePlatformKind>() {
         return K2MetadataCompilerArguments() // TODO(dsavvinov): review that, as now MPP !== K2Metadata
     }
 
-    override val platforms get() = listOf(CommonPlatforms.defaultCommonPlatform)
+    override val platforms get() = CommonPlatforms.allCommonPlatforms
     override val defaultPlatform get() = CommonPlatforms.defaultCommonPlatform
 
     override val argumentsClass get() = K2MetadataCompilerArguments::class.java
