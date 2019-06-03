@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirEnumEntryImpl
 import org.jetbrains.kotlin.fir.deserialization.FirBuiltinAnnotationDeserializer
 import org.jetbrains.kotlin.fir.deserialization.FirDeserializationContext
 import org.jetbrains.kotlin.fir.deserialization.deserializeClassToSymbol
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.transformers.firUnsafe
 import org.jetbrains.kotlin.fir.scopes.FirScope
@@ -35,6 +36,9 @@ import org.jetbrains.kotlin.metadata.deserialization.NameResolverImpl
 import org.jetbrains.kotlin.fir.names.FirClassId
 import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.serialization.deserialization.ProtoBasedClassDataFinder
 import org.jetbrains.kotlin.serialization.deserialization.builtins.BuiltInSerializerProtocol
 import org.jetbrains.kotlin.serialization.deserialization.getName
@@ -75,10 +79,11 @@ class FirLibrarySymbolProviderImpl(val session: FirSession) : FirSymbolProvider 
         val lookup = mutableMapOf<FirClassId, FirClassSymbol>()
 
         fun getClassLikeSymbolByFqName(classId: FirClassId): ConeClassLikeSymbol? =
-            findAndDeserializeClass(classId)
+            findAndDeserializeClass(ClassId.fromString(classId.toString()), classId)
 
         private fun findAndDeserializeClass(
-            classId: FirClassId,
+            classId: ClassId,
+            firClassId: FirClassId,
             parentContext: FirDeserializationContext? = null
         ): FirClassSymbol? {
             val classIdExists = classId in classDataFinder.allClassIds
@@ -91,33 +96,34 @@ class FirLibrarySymbolProviderImpl(val session: FirSession) : FirSymbolProvider 
                     return null
                 }
             }
-            return lookup.getOrPut(classId, { FirClassSymbol(classId) }) { symbol ->
+            return lookup.getOrPut(firClassId, { FirClassSymbol(firClassId) }) { symbol ->
                 if (shouldBeEnumEntry) {
-                    FirEnumEntryImpl(session, null, symbol, classId.shortClassName)
+                    FirEnumEntryImpl(session, null, symbol, firClassId.shortClassName)
                 } else {
                     val classData = classDataFinder.findClassData(classId)!!
                     val classProto = classData.classProto
 
                     deserializeClassToSymbol(
-                        classId, classProto, symbol, nameResolver, session,
-                        null, parentContext,
-                        this::findAndDeserializeClass
-                    )
+                        classId, firClassId, classProto, symbol, nameResolver, session,
+                        null, parentContext
+                    ) { classId, firClassId, parentContext ->
+                        this.findAndDeserializeClass(classId, firClassId, parentContext)
+                    }
                 }
             }
         }
 
-        fun getTopLevelCallableSymbols(name: FirName): List<ConeCallableSymbol> {
+        fun getTopLevelCallableSymbols(name: Name): List<ConeCallableSymbol> {
             return packageProto.`package`.functionList.filter { nameResolver.getName(it.name) == name }.map {
                 memberDeserializer.loadFunction(it).symbol
             }
         }
 
-        fun getAllCallableNames(): Set<FirName> {
+        fun getAllCallableNames(): Set<Name> {
             return packageProto.`package`.functionList.mapTo(mutableSetOf()) { nameResolver.getName(it.name) }
         }
 
-        fun getAllClassNames(): Set<FirName> {
+        fun getAllClassNames(): Set<Name> {
             return classDataFinder.allClassIds.mapTo(mutableSetOf()) { it.shortClassName }
         }
     }
@@ -144,7 +150,7 @@ class FirLibrarySymbolProviderImpl(val session: FirSession) : FirSymbolProvider 
         return packageFqNames.map { fqName ->
             val resourcePath = BuiltInSerializerProtocol.getBuiltInsFilePath(fqName)
             val inputStream = streamProvider(resourcePath) ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")
-            BuiltInsPackageFragment(inputStream, fqName, session)
+            BuiltInsPackageFragment(inputStream, fqName.intern(session), session)
         }
     }
 
@@ -156,8 +162,11 @@ class FirLibrarySymbolProviderImpl(val session: FirSession) : FirSymbolProvider 
         return allPackageFragments[classId.packageFqName]?.firstNotNullResult {
             it.getClassLikeSymbolByFqName(classId)
         } ?: with(classId) {
-            val className = relativeClassName.asString()
-            val kind = FunctionClassDescriptor.Kind.byClassNamePrefix(packageFqName, className) ?: return@with null
+            val className = relativeClassName.toString()
+            val kind = FunctionClassDescriptor.Kind.byClassNamePrefix(
+                FqName.fromSegments(packageFqName.segments().map { it.asString() }),
+                className
+            ) ?: return@with null
             val prefix = kind.classNamePrefix
             val arity = className.substring(prefix.length).toIntOrNull() ?: return null
             fictitiousFunctionSymbols.getOrPut(arity) {
@@ -184,7 +193,7 @@ class FirLibrarySymbolProviderImpl(val session: FirSession) : FirSymbolProvider 
 
     override fun getTopLevelCallableSymbols(packageFqName: FirFqName, name: FirName): List<ConeCallableSymbol> {
         return allPackageFragments[packageFqName]?.flatMap {
-            it.getTopLevelCallableSymbols(name)
+            it.getTopLevelCallableSymbols(Name.guessByFirstCharacter(name.asString()))
         } ?: emptyList()
     }
 
@@ -192,14 +201,14 @@ class FirLibrarySymbolProviderImpl(val session: FirSession) : FirSymbolProvider 
         findRegularClass(classId)?.let(::FirClassDeclaredMemberScope)
 
     override fun getAllCallableNamesInPackage(fqName: FirFqName): Set<FirName> {
-        return allPackageFragments[fqName]?.flatMapTo(mutableSetOf()) {
-            it.getAllCallableNames()
+        return allPackageFragments[fqName]?.flatMapTo(mutableSetOf()) { builtInsPackageFragment ->
+            builtInsPackageFragment.getAllCallableNames().map { it.intern(session) }
         } ?: emptySet()
     }
 
     override fun getClassNamesInPackage(fqName: FirFqName): Set<FirName> {
-        return allPackageFragments[fqName]?.flatMapTo(mutableSetOf()) {
-            it.getAllClassNames()
+        return allPackageFragments[fqName]?.flatMapTo(mutableSetOf()) { builtInsPackageFragment ->
+            builtInsPackageFragment.getAllClassNames().map { it.intern(session) }
         } ?: emptySet()
     }
 
