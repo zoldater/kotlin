@@ -6,6 +6,8 @@ class FirClassId(val packageFqName: FirFqName, val relativeClassName: FirFqName)
 
     val shortClassName get() = relativeClassName.shortName()
 
+    val outerClassId get() = FirClassId(packageFqName, relativeClassName.parent())
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is FirClassId) return false

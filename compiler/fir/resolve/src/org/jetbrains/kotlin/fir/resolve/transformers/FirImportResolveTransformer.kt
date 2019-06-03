@@ -38,7 +38,7 @@ class FirImportResolveTransformer() : FirAbstractTreeTransformer() {
     }
 
     override fun transformImport(import: FirImport, data: Nothing?): CompositeTransformResult<FirImport> {
-        val fqName = import.importedFqName?.takeUnless { it.isRoot } ?: return import.compose()
+        val fqName = import.importedFqName?.takeUnless { it.isRoot() } ?: return import.compose()
 
         if (import.isAllUnder) {
             return transformImportForFqName(fqName, import)
@@ -59,9 +59,9 @@ class FirImportResolveTransformer() : FirAbstractTreeTransformer() {
 fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FirFqName): PackageOrClass? {
     var currentPackage = fqName
 
-    val pathSegments = fqName.pathSegments()
+    val pathSegments = fqName.segments()
     var prefixSize = pathSegments.size
-    while (!currentPackage.isRoot && prefixSize > 0) {
+    while (!currentPackage.isRoot() && prefixSize > 0) {
         if (symbolProvider.getPackage(currentPackage) != null) {
             break
         }
@@ -71,9 +71,9 @@ fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FirFqName
 
     if (currentPackage == fqName) return PackageOrClass(currentPackage, null)
     val relativeClassFqName =
-        FirFqName.fromSegments((prefixSize until pathSegments.size).map { pathSegments[it].asString() })
+        FirFqName((prefixSize until pathSegments.size).map { pathSegments[it] }.toTypedArray())
 
-    val classId = FirClassId(currentPackage, relativeClassFqName, false)
+    val classId = FirClassId(currentPackage, relativeClassFqName)
     if (symbolProvider.getClassLikeSymbolByFqName(classId) == null) return null
 
     return PackageOrClass(currentPackage, relativeClassFqName)

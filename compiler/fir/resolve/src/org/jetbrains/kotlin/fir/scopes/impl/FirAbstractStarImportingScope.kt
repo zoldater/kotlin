@@ -30,7 +30,7 @@ abstract class FirAbstractStarImportingScope(
             val classId = when {
                 !name.isSpecial && name.identifier.isEmpty() -> return true
                 relativeClassName == null -> FirClassId(import.packageFqName, name)
-                else -> FirClassId(import.packageFqName, relativeClassName.child(name), false)
+                else -> FirClassId(import.packageFqName, relativeClassName.child(name))
             }
             val symbol = provider.getClassLikeSymbolByFqName(classId) ?: continue
             if (!processor(symbol)) {

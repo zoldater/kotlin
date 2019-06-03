@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.fir.names.FirName
 
 object StandardClassIds {
 
-    private val BASE_KOTLIN_PACKAGE = FirFqName.create(FirName.identifier("kotlin"))
+    val BASE_KOTLIN_PACKAGE = FirFqName.create(FirName.identifier("kotlin"))
     private fun String.baseId() = FirClassId(BASE_KOTLIN_PACKAGE, FirName.identifier(this))
     private fun FirName.arrayId() = FirClassId(Array.packageFqName, FirName.identifier(identifier + Array.shortClassName.identifier))
 

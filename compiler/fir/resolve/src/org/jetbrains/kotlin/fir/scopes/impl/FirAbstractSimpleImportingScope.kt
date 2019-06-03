@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedImportImpl
 import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.calls.TowerScopeLevel
 import org.jetbrains.kotlin.fir.scopes.FirPosition
-import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.*
 import org.jetbrains.kotlin.fir.names.FirClassId
@@ -32,7 +31,7 @@ abstract class FirAbstractSimpleImportingScope(session: FirSession) : FirAbstrac
             val importedName = import.importedName ?: continue
             val classId =
                 import.resolvedClassId?.createNestedClassId(importedName)
-                    ?: FirClassId.topLevel(import.packageFqName.child(importedName))
+                    ?: FirClassId(import.packageFqName, importedName)
             val symbol = provider.getClassLikeSymbolByFqName(classId) ?: continue
             if (!processor(symbol)) {
                 return false

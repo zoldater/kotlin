@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.visitors.generator
 
-import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
@@ -64,7 +64,7 @@ class DataCollector {
     }
 
     private val references = mutableMapOf<NameWithTypeParameters, List<NameWithTypeParameters>>()
-    private val packagePerClass = mutableMapOf<NameWithTypeParameters, FirFqName>()
+    private val packagePerClass = mutableMapOf<NameWithTypeParameters, FqName>()
     private val baseTransformedTypes = mutableListOf<NameWithTypeParameters>()
 
     private fun KtSuperTypeListEntry.toNameWithTypeParameters(): NameWithTypeParameters? {
@@ -153,7 +153,7 @@ class DataCollector {
     data class ReferencesData(
         val direct: Map<NameWithTypeParameters, List<NameWithTypeParameters>>,
         val back: Map<NameWithTypeParameters, List<NameWithTypeParameters>>,
-        val usedPackages: List<FirFqName>,
+        val usedPackages: List<FqName>,
         val baseTransformedTypes: List<NameWithTypeParameters>
     )
 }

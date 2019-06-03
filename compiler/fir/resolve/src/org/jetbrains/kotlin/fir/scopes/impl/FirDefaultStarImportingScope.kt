@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.impl.FirImportImpl
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedImportImpl
+import org.jetbrains.kotlin.fir.intern
 
 class FirDefaultStarImportingScope(session: FirSession, lookupInFir: Boolean = false) :
     FirAbstractStarImportingScope(session, lookupInFir) {
@@ -19,8 +20,8 @@ class FirDefaultStarImportingScope(session: FirSession, lookupInFir: Boolean = f
         ?.map {
             FirResolvedImportImpl(
                 session,
-                FirImportImpl(session, null, it.fqName, isAllUnder = true, aliasName = null),
-                it.fqName,
+                FirImportImpl(session, null, it.fqName.intern(session), isAllUnder = true, aliasName = null),
+                it.fqName.intern(session),
                 null
             )
         } ?: emptyList()

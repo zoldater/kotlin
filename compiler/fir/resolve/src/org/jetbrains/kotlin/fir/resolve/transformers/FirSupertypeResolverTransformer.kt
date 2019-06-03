@@ -208,4 +208,4 @@ class FirSupertypeResolverTransformer : FirAbstractTreeTransformer() {
 private fun isOuterClass(outerCandidate: FirClassId, innerCandidate: FirClassId) =
     innerCandidate.outerClasses().any { outerCandidate == it }
 
-private fun FirClassId.outerClasses() = generateSequence(this, FirClassId::getOuterClassId)
+private fun FirClassId.outerClasses() = generateSequence(this, FirClassId::outerClassId)

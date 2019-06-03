@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
 import org.jetbrains.kotlin.fir.visitors.compose
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
-import org.jetbrains.kotlin.fir.names.FIRClassId
+import org.jetbrains.kotlin.fir.names.FirClassId
 import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.resolve.calls.NewCommonSuperTypeCalculator
@@ -263,12 +263,12 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
     private fun tryResolveAsQualifier(): FirStatement? {
 
         val symbolProvider = session.service<FirSymbolProvider>()
-        var qualifierParts = qualifierStack.asReversed().map { it.asString() }
+        var qualifierParts = qualifierStack.reversed()
         var resolved: PackageOrClass?
         do {
             resolved = resolveToPackageOrClass(
                 symbolProvider,
-                FirFqName.fromSegments(qualifierParts)
+                FirFqName.create(*qualifierParts.toTypedArray())
             )
             if (resolved == null)
                 qualifierParts = qualifierParts.dropLast(1)
@@ -725,7 +725,7 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
 
     private fun describeSymbol(symbol: ConeSymbol): String {
         return when (symbol) {
-            is ConeClassLikeSymbol -> symbol.classId.asString()
+            is ConeClassLikeSymbol -> symbol.classId.toString()
             is ConeCallableSymbol -> symbol.callableId.toString()
             else -> "$symbol"
         }
@@ -967,7 +967,10 @@ open class FirBodyResolveTransformer(val session: FirSession, val implicitTypeOn
 
     override fun transformGetClassCall(getClassCall: FirGetClassCall, data: Any?): CompositeTransformResult<FirStatement> {
         val transformedGetClassCall = super.transformGetClassCall(getClassCall, data).single as FirGetClassCall
-        val kClassSymbol = FirClassId.fromString("kotlin/reflect/KClass")(session.service())
+        val kClassSymbol = FirClassId(
+            FirFqName.create(FirName.identifier("kotlin"), FirName.identifier("reflect")),
+            FirFqName.create(FirName.identifier("KClass"))
+        )(session.service())
 
         val typeOfExpression = when (val lhs = transformedGetClassCall.argument) {
             is FirResolvedQualifier -> {

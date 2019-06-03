@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.impl.FirImportImpl
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedImportImpl
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.resolve.transformers.FirImportResolveTransformer
 
 class FirDefaultSimpleImportingScope(session: FirSession) : FirAbstractSimpleImportingScope(session) {
@@ -21,7 +22,7 @@ class FirDefaultSimpleImportingScope(session: FirSession) : FirAbstractSimpleImp
         session.moduleInfo?.analyzerServices?.getDefaultImports(LanguageVersionSettingsImpl.DEFAULT, true)
             ?.filter { !it.isAllUnder }
             ?.map {
-                FirImportImpl(session, null, it.fqName, isAllUnder = false, aliasName = null)
+                FirImportImpl(session, null, it.fqName.intern(session), isAllUnder = false, aliasName = null)
                     .resolve(importResolveTransformer)
             }?.groupBy { it.importedName!! } ?: emptyMap()
     }

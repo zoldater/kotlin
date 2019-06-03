@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.resolve.impl
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.FirQualifierResolver
 import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
@@ -91,7 +92,9 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver {
                     typeRef.valueParameters.map { it.returnTypeRef.coneTypeUnsafe<ConeKotlinType>() } +
                     listOf(typeRef.returnTypeRef.coneTypeUnsafe())
         return ConeClassTypeImpl(
-            resolveBuiltInQualified(KotlinBuiltIns.getFunctionClassId(typeRef.parametersCount), session).toLookupTag(),
+            resolveBuiltInQualified(
+                KotlinBuiltIns.getFunctionClassId(typeRef.parametersCount).intern(session), session
+            ).toLookupTag(),
             parameters.toTypedArray(),
             typeRef.isMarkedNullable
         )

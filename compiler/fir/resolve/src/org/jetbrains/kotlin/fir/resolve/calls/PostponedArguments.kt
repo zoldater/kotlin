@@ -44,10 +44,13 @@ fun preprocessLambdaArgument(
 
 
 private val ConeKotlinType.isBuiltinFunctionalType: Boolean
-    get () {
-        val type = this
-        return when (type) {
-            is ConeClassType -> type.lookupTag.classId.asString().startsWith("kotlin/Function")
+    get() {
+        return when (val type = this) {
+            is ConeClassType -> {
+                val classId = type.lookupTag.classId
+                classId.packageFqName == StandardClassIds.BASE_KOTLIN_PACKAGE &&
+                        classId.relativeClassName.toString().startsWith("Function")
+            }
             else -> false
         }
     }
@@ -55,11 +58,11 @@ private val ConeKotlinType.isBuiltinFunctionalType: Boolean
 
 private val ConeKotlinType.isSuspendFunctionType: Boolean
     get() {
-        val type = this
-        return when (type) {
+        return when (val type = this) {
             is ConeClassType -> {
                 val classId = type.lookupTag.classId
-                classId.packageFqName.asString() == "kotlin" && classId.relativeClassName.asString().startsWith("SuspendFunction")
+                classId.packageFqName == StandardClassIds.BASE_KOTLIN_PACKAGE &&
+                        classId.relativeClassName.toString().startsWith("SuspendFunction")
             }
             else -> false
         }
@@ -75,7 +78,9 @@ private fun ConeKotlinType.receiverType(expectedTypeRef: FirTypeRef): ConeKotlin
 private fun isFunctionalTypeWithReceiver(typeRef: FirTypeRef) =
     typeRef.annotations.any {
         val coneTypeSafe = it.annotationTypeRef.coneTypeSafe<ConeClassType>() ?: return@any false
-        coneTypeSafe.lookupTag.classId.asString() == "kotlin/ExtensionFunctionType"
+        val classId = coneTypeSafe.lookupTag.classId
+        classId.packageFqName == StandardClassIds.BASE_KOTLIN_PACKAGE &&
+                classId.relativeClassName.toString() == "ExtensionFunctionType"
     }
 
 private val ConeKotlinType.returnType: ConeKotlinType?
