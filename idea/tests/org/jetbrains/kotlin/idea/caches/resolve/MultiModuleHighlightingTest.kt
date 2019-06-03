@@ -235,6 +235,15 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
         checkHighlightingInProject()
     }
 
+    fun testTypeRefinementAliasesTypeMismatch() {
+        val common = moduleWithRefinement("common")
+        val jvm = moduleWithRefinement("jvm")
+        val main = moduleWithRefinement("main")
+
+        jvm.addDependency(common)
+        main.addDependency(jvm)
+    }
+
     fun testLanguageVersionsViaFacets() {
         val m1 = module("m1", FULL_JDK).setupKotlinFacet {
             settings.languageLevel = LanguageVersion.KOTLIN_1_1
@@ -356,6 +365,9 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
     }
 
     private fun moduleWithRefinement(name: String): Module = module(name).setupKotlinFacet {
-        settings.compilerArguments?.apply { multiPlatform = true }
+        settings.compilerArguments?.apply {
+            multiPlatform = true
+            newInference = true
+        }
     }
 }
