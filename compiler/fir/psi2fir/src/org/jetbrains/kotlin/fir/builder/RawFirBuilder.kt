@@ -435,7 +435,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                     importDirective,
                     importDirective.importedFqName?.intern(),
                     importDirective.isAllUnder,
-                    importDirective.aliasName?.let { it.intern(session) }
+                    importDirective.aliasName?.intern(session)
                 )
             }
             for (declaration in file.declarations) {
@@ -1406,6 +1406,6 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
     }
 
     companion object {
-        val KNPE = FirName.identifier("KotlinNullPointerException")
+        val KNPE = FirName.cached("KotlinNullPointerException")
     }
 }

@@ -42,7 +42,7 @@ abstract class AbstractFirLoadCompiledKotlin : AbstractFirResolveWithSessionTest
         prepareProjectExtensions(environment.project)
         val sessionWithDependency = createSession(environment, GlobalSearchScope.EMPTY_SCOPE)
 
-        checkPackageContent(sessionWithDependency, FirFqName.create(FirName.identifier("test")), path)
+        checkPackageContent(sessionWithDependency, FirFqName.create(FirName.cached("test")), path)
     }
 
     private fun compileKtFileToTmpDir(path: String) {

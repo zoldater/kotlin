@@ -89,7 +89,7 @@ class ConeClassErrorType(val reason: String) : ConeClassLikeType() {
     }
 
     companion object {
-        val errorClassId = FirClassId(ROOT, FirName.special("<error>"))
+        val errorClassId = FirClassId(ROOT, FirName.cached("<error>"))
     }
 }
 

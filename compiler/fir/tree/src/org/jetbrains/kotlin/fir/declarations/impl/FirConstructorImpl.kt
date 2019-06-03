@@ -72,6 +72,6 @@ open class FirConstructorImpl : FirAbstractCallableMember, FirConstructor {
     }
 
     companion object {
-        val NAME = FirName.special("<init>")
+        val NAME = FirName.cached("<init>")
     }
 }

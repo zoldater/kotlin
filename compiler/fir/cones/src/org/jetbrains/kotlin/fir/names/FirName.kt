@@ -66,5 +66,67 @@ class FirName private constructor(private val name: String, val isSpecial: Boole
         fun guessByFirstCharacter(name: String): FirName {
             return if (name.startsWith("<")) special(name) else identifier(name)
         }
+
+        fun cached(name: String): FirName {
+            return commonNameCache[name] ?: guessByFirstCharacter(name)
+        }
+
+        private val commonNames = listOf(
+            "component1",
+            "component2",
+            "component3",
+            "component4",
+            "component5",
+            "copy",
+            "hasNext",
+            "it",
+            "iterator",
+            "next",
+            "plus",
+            "reflect",
+            "value",
+            "test",
+            "KClass",
+            "Nothing",
+            "Unit",
+            "Any",
+            "Enum",
+            "Annotation",
+            "Array",
+            "Byte",
+            "Short",
+            "Int",
+            "Long",
+            "Float",
+            "Double",
+            "Char",
+            "Boolean",
+            "ByteArray",
+            "ShortArray",
+            "IntArray",
+            "LongArray",
+            "FloatArray",
+            "DoubleArray",
+            "CharArray",
+            "BooleanArray",
+            "KotlinNullPointerException",
+            "<anonymous-init>",
+            "<anonymous Java parameter>",
+            "<array-set>",
+            "<default-setter-parameter>",
+            "<destruct>",
+            "<error>",
+            "<init>",
+            "<local>",
+            "<range>",
+            "<unary>",
+            "<unary-result>"
+        )
+
+        internal val commonNameCache: Map<String, FirName> = mutableMapOf<String, FirName>().apply {
+            for (name in commonNames) {
+                this[name] = guessByFirstCharacter(name)
+            }
+        }
     }
 }

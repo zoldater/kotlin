@@ -56,6 +56,6 @@ class FirDefaultSetterValueParameter(
     }
 
     companion object {
-        val name = FirName.identifier("value")
+        val name = FirName.cached("value")
     }
 }

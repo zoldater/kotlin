@@ -70,7 +70,7 @@ internal fun KtClassOrObject.generateComponentFunctions(
     }
 }
 
-private val copyName = FirName.identifier("copy")
+private val copyName = FirName.cached("copy")
 
 internal fun KtClassOrObject.generateCopyFunction(
     session: FirSession, firClass: FirClassImpl, packageFqName: FirFqName, classFqName: FirFqName,

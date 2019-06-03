@@ -6,14 +6,9 @@
 package org.jetbrains.kotlin.fir.names
 
 import com.intellij.util.containers.SLRUCache
+import org.jetbrains.kotlin.fir.names.FirName.Companion.commonNameCache
 
 class FirNameFactory {
-
-    private val commonNameCache: Map<String, FirName> = mutableMapOf<String, FirName>().apply {
-        for (name in commonNames) {
-            this[name] = FirName.identifier(name)
-        }
-    }
 
     private val nameCache = object : SLRUCache<String, FirName>(512, 512) {
         override fun createValue(name: String): FirName {
@@ -26,11 +21,7 @@ class FirNameFactory {
     }
 
     companion object {
-        private val commonNames = listOf(
-            "plus"
-        )
-
-        val LOCAL = FirName.special("<local>")
+        val LOCAL = FirName.cached("<local>")
 
     }
 }
