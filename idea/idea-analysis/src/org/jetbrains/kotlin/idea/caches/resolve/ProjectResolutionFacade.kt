@@ -48,8 +48,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.CompositeBindingContext
 import org.jetbrains.kotlin.resolve.jvm.JvmPlatformParameters
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
-import org.jetbrains.kotlin.idea.project.findCompilerServices
-import org.jetbrains.kotlin.platform.toTargetPlatform
+import org.jetbrains.kotlin.platform.DefaultIdeTargetPlatformKindProvider
 
 internal class ProjectResolutionFacade(
     private val debugString: String,
@@ -143,17 +142,15 @@ internal class ProjectResolutionFacade(
             modulesContentFactory,
             moduleLanguageSettingsProvider = IDELanguageSettingsProvider,
             resolverForModuleFactoryByPlatform = { modulePlatform ->
-                val platform = modulePlatform ?: TODO()
-                platform.idePlatformKind.resolution.resolverForModuleFactory
-            },
-            platformParameters = { platform ->
-                when {
+                val platform = modulePlatform ?: DefaultIdeTargetPlatformKindProvider.defaultPlatform
+                val parameters = when {
                     platform.isJvm() -> jvmPlatformParameters
                     platform.isCommon() -> commonPlatformParameters
                     else -> PlatformAnalysisParameters.Empty
                 }
+
+                platform.idePlatformKind.resolution.createResolverForModuleFactory(parameters, IdeaEnvironment, platform)
             },
-            targetEnvironment = IdeaEnvironment,
             builtIns = builtIns,
             delegateResolver = delegateResolverForProject,
             firstDependency = settings.sdk?.let { SdkInfo(project, it) },
