@@ -41,7 +41,7 @@ class ReflectJavaClass(
                 // nested class constructor accessed from the outer class
                 it.simpleName.isEmpty()
             }
-            .mapNotNull { it.simpleName.takeIf(Name::isValidIdentifier)?.let(Name::identifier) }.toList()
+            .mapNotNull { it.simpleName.takeIf(Name.Companion::isValidIdentifier)?.let(Name.Companion::identifier) }.toList()
 
     override fun findInnerClass(name: Name) = klass.declaredClasses
         .asSequence()

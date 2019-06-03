@@ -36,7 +36,7 @@ class ReflectJavaValueParameter(
         get() = false
 
     override val name: Name?
-        get() = reflectName?.let(Name::guessByFirstCharacter)
+        get() = reflectName?.let(Name.Companion::guessByFirstCharacter)
 
     override fun toString() = this::class.java.name + ": " + (if (isVararg) "vararg " else "") + name + ": " + type
 }
