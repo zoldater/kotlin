@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.refinement.refineOrGetType
 
 object KotlinTypeFactory {
@@ -214,6 +215,8 @@ private class SimpleTypeImpl(
     }
 
     @TypeRefinement
+    @UseExperimental(TypeRefinementInternal::class)
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     override fun refine(moduleDescriptor: ModuleDescriptor): SimpleType {
         return moduleDescriptor.refineOrGetType(this, refinedTypeFactory)
     }
