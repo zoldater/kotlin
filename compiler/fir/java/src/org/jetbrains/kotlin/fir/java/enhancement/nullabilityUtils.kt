@@ -39,26 +39,31 @@ fun FirAnnotationCall.extractNullability(
     return typeQualifierAnnotation.extractNullabilityFromKnownAnnotations(jsr305State)?.copy(isForWarningOnly = jsr305ReportLevel.isWarning)
 }
 
+private val NULLABLE_ANNOTATIONS_AS_STRING = NULLABLE_ANNOTATIONS.map { it.asString() }
+
+private val NOT_NULL_ANNOTATIONS_AS_STRING = NOT_NULL_ANNOTATIONS.map { it.asString() }
+
 private fun FirAnnotationCall.extractNullabilityFromKnownAnnotations(jsr305State: Jsr305State): NullabilityQualifierWithMigrationStatus? {
     val annotationFqName = resolvedFqName ?: return null
 
+    val annotationFqNameAsString = annotationFqName.toString()
     return when {
-        annotationFqName in NULLABLE_ANNOTATIONS -> NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NULLABLE)
-        annotationFqName in NOT_NULL_ANNOTATIONS -> NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NOT_NULL)
-        annotationFqName == JAVAX_NONNULL_ANNOTATION -> extractNullabilityTypeFromArgument()
+        annotationFqNameAsString in NULLABLE_ANNOTATIONS_AS_STRING -> NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NULLABLE)
+        annotationFqNameAsString in NOT_NULL_ANNOTATIONS_AS_STRING -> NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NOT_NULL)
+        annotationFqNameAsString == JAVAX_NONNULL_ANNOTATION.asString() -> extractNullabilityTypeFromArgument()
 
-        annotationFqName == COMPATQUAL_NULLABLE_ANNOTATION && jsr305State.enableCompatqualCheckerFrameworkAnnotations ->
+        annotationFqNameAsString == COMPATQUAL_NULLABLE_ANNOTATION.asString() && jsr305State.enableCompatqualCheckerFrameworkAnnotations ->
             NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NULLABLE)
 
-        annotationFqName == COMPATQUAL_NONNULL_ANNOTATION && jsr305State.enableCompatqualCheckerFrameworkAnnotations ->
+        annotationFqNameAsString == COMPATQUAL_NONNULL_ANNOTATION.asString() && jsr305State.enableCompatqualCheckerFrameworkAnnotations ->
             NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NOT_NULL)
 
-        annotationFqName == ANDROIDX_RECENTLY_NON_NULL_ANNOTATION -> NullabilityQualifierWithMigrationStatus(
+        annotationFqNameAsString == ANDROIDX_RECENTLY_NON_NULL_ANNOTATION.asString() -> NullabilityQualifierWithMigrationStatus(
             NullabilityQualifier.NOT_NULL,
             isForWarningOnly = true
         )
 
-        annotationFqName == ANDROIDX_RECENTLY_NULLABLE_ANNOTATION -> NullabilityQualifierWithMigrationStatus(
+        annotationFqNameAsString == ANDROIDX_RECENTLY_NULLABLE_ANNOTATION.asString() -> NullabilityQualifierWithMigrationStatus(
             NullabilityQualifier.NULLABLE,
             isForWarningOnly = true
         )

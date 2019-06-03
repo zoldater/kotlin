@@ -111,9 +111,9 @@ abstract class AbstractFirTypeEnhancementTest : KtUsefulTestCase() {
                             text.split("\n").firstOrNull {
                                 it.startsWith("package")
                             }?.substringAfter("package")?.trim()?.substringBefore(";")?.let { name ->
-                                FirFqName(name)
+                                FirFqName.create(FirName.identifier(name))
                             } ?: FirFqName.ROOT
-                        for (segment in packageFqName.pathSegments()) {
+                        for (segment in packageFqName.segments()) {
                             currentDir = File(currentDir, segment.asString()).apply { mkdir() }
                         }
                     }
@@ -158,9 +158,9 @@ abstract class AbstractFirTypeEnhancementTest : KtUsefulTestCase() {
                 val packageStatement = psiFile.children.filterIsInstance<PsiPackageStatement>().firstOrNull()
                 val packageName = packageStatement?.packageName
                 val fqName = parentFqName.child(FirName.identifier(psiClass.name!!))
-                val classId = FirClassId(packageName?.let { FirFqName(it) } ?: FirFqName.ROOT, fqName, false)
+                val classId = FirClassId(packageName?.let { FirFqName.create(FirName.identifier(it)) } ?: FirFqName.ROOT, fqName)
                 javaProvider.getClassLikeSymbolByFqName(classId)
-                    ?: throw AssertionError(classId.asString())
+                    ?: throw AssertionError(classId.toString())
                 psiClass.innerClasses.forEach {
                     processClassWithChildren(psiClass = it, parentFqName = fqName)
                 }

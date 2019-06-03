@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.fir.backend
 
 import org.jetbrains.kotlin.fir.*
+import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassifierSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.*
@@ -16,6 +18,8 @@ import org.jetbrains.kotlin.ir.types.IrErrorType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeArgument
 import org.jetbrains.kotlin.ir.types.impl.*
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
 import org.jetbrains.kotlin.types.Variance
@@ -131,3 +135,7 @@ fun FirPropertySymbol.toPropertyOrFieldSymbol(declarationStorage: Fir2IrDeclarat
 fun FirVariableSymbol.toValueSymbol(declarationStorage: Fir2IrDeclarationStorage): IrValueSymbol {
     return declarationStorage.getIrValueSymbol(this)
 }
+
+fun FirName.asName(): Name = Name.guessByFirstCharacter(asString())
+
+fun FirFqName.asFqName(): FqName = FqName.fromSegments(segments().map { it.toString() })

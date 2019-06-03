@@ -6,13 +6,12 @@
 package org.jetbrains.kotlin.fir.names
 
 import com.intellij.util.containers.SLRUCache
-import org.jetbrains.kotlin.fir.names.FirName
 
 class FirNameFactory {
 
     private val commonNameCache: Map<String, FirName> = mutableMapOf<String, FirName>().apply {
         for (name in commonNames) {
-            this[name] = create(name)
+            this[name] = FirName.identifier(name)
         }
     }
 

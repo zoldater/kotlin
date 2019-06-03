@@ -1,12 +1,19 @@
 package org.jetbrains.kotlin.fir.names
 
+import org.jetbrains.kotlin.name.ClassId
+
 class FirClassId(val packageFqName: FirFqName, val relativeClassName: FirFqName) {
 
     constructor(packageFqName: FirFqName, shortName: FirName) : this(packageFqName, FirFqName.create(shortName))
 
     val shortClassName get() = relativeClassName.shortName()
 
-    val outerClassId get() = FirClassId(packageFqName, relativeClassName.parent())
+    val outerClassId: FirClassId?
+        get() {
+            val parentFqName = relativeClassName.parent()
+            if (parentFqName.isRoot()) return null
+            return FirClassId(packageFqName, parentFqName)
+        }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -24,6 +31,16 @@ class FirClassId(val packageFqName: FirFqName, val relativeClassName: FirFqName)
         return result
     }
 
+    override fun toString(): String {
+        return buildString {
+            append(packageFqName.segments().joinToString(separator = "/"))
+            if (!packageFqName.isRoot()) {
+                append("/")
+            }
+            append(relativeClassName)
+        }
+    }
+
     fun asSingleFqName(): FirFqName {
         return FirFqName.create(*packageFqName.segments(), *relativeClassName.segments())
     }
@@ -31,4 +48,6 @@ class FirClassId(val packageFqName: FirFqName, val relativeClassName: FirFqName)
     fun createNestedClassId(name: FirName): FirClassId {
         return FirClassId(packageFqName, relativeClassName.child(name))
     }
+
+    fun asClassId() = ClassId.fromString(toString())
 }

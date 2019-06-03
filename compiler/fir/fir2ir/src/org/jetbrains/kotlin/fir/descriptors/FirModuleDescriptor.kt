@@ -13,9 +13,10 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.resolve.FirSymbolProvider
-import org.jetbrains.kotlin.fir.names.FirFqName
-import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
 
 class FirModuleDescriptor(val session: FirSession) : ModuleDescriptor {
@@ -29,15 +30,16 @@ class FirModuleDescriptor(val session: FirSession) : ModuleDescriptor {
     override val platform: TargetPlatform?
         get() = null
 
-    override fun getPackage(fqName: FirFqName): PackageViewDescriptor {
+    override fun getPackage(fqName: FqName): PackageViewDescriptor {
         val symbolProvider = FirSymbolProvider.getInstance(session)
-        if (symbolProvider.getPackage(fqName) != null) {
+        val firFqName = fqName.intern(session)
+        if (symbolProvider.getPackage(firFqName) != null) {
             return FirPackageViewDescriptor(fqName, this)
         }
         TODO("Missing package reporting")
     }
 
-    override fun getSubPackagesOf(fqName: FirFqName, nameFilter: (FirName) -> Boolean): Collection<FirFqName> {
+    override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
         TODO("not implemented")
     }
 
@@ -61,11 +63,11 @@ class FirModuleDescriptor(val session: FirSession) : ModuleDescriptor {
         return this
     }
 
-    override fun getName(): FirName {
-        return FirName.identifier("module for FIR session")
+    override fun getName(): Name {
+        return Name.identifier("module for FIR session")
     }
 
-    override val stableName: FirName?
+    override val stableName: Name?
         get() = name
 
     override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>?) {

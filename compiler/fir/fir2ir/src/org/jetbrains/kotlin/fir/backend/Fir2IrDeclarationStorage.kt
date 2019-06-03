@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 
 class Fir2IrDeclarationStorage(
@@ -76,7 +77,7 @@ class Fir2IrDeclarationStorage(
     private fun getIrExternalPackageFragment(fqName: FirFqName): IrExternalPackageFragment {
         return fragmentCache.getOrPut(fqName) {
             // TODO: module descriptor is wrong here
-            return irSymbolTable.declareExternalPackageFragment(FirPackageFragmentDescriptor(fqName, moduleDescriptor))
+            return irSymbolTable.declareExternalPackageFragment(FirPackageFragmentDescriptor(fqName.asFqName(), moduleDescriptor))
         }
     }
 
@@ -90,7 +91,7 @@ class Fir2IrDeclarationStorage(
         ) { symbol ->
             IrValueParameterImpl(
                 startOffset, endOffset, thisOrigin, symbol,
-                FirName.special("<this>"), -1, thisType,
+                Name.special("<this>"), -1, thisType,
                 varargElementType = null, isCrossinline = false, isNoinline = false
             ).apply { this.parent = parent }
         }
@@ -120,7 +121,7 @@ class Fir2IrDeclarationStorage(
                 irSymbolTable.declareClass(startOffset, endOffset, origin, descriptor, modality) { symbol ->
                     IrClassImpl(
                         startOffset, endOffset, origin, symbol,
-                        regularClass.name, regularClass.classKind,
+                        regularClass.name.asName(), regularClass.classKind,
                         regularClass.visibility, modality,
                         regularClass.isCompanion, regularClass.isInner,
                         regularClass.isData, false, regularClass.isInline
@@ -167,7 +168,7 @@ class Fir2IrDeclarationStorage(
             irSymbolTable.declareClass(startOffset, endOffset, origin, descriptor, modality) { symbol ->
                 IrClassImpl(
                     startOffset, endOffset, origin, symbol,
-                    FirName.special("<no name provided>"), anonymousObject.classKind,
+                    Name.special("<no name provided>"), anonymousObject.classKind,
                     Visibilities.LOCAL, modality,
                     isCompanion = false, isInner = false, isData = false, isExternal = false, isInline = false
                 ).apply {
@@ -186,7 +187,7 @@ class Fir2IrDeclarationStorage(
                 irSymbolTable.declareGlobalTypeParameter(startOffset, endOffset, origin, descriptor) { symbol ->
                     IrTypeParameterImpl(
                         startOffset, endOffset, origin, symbol,
-                        typeParameter.name, index,
+                        typeParameter.name.asName(), index,
                         typeParameter.isReified,
                         typeParameter.variance
                     ).apply {
@@ -240,7 +241,7 @@ class Fir2IrDeclarationStorage(
             ) { symbol ->
                 IrValueParameterImpl(
                     startOffset, endOffset, thisOrigin, symbol,
-                    FirName.special("<this>"), -1, thisType,
+                    Name.special("<this>"), -1, thisType,
                     varargElementType = null, isCrossinline = false, isNoinline = false
                 ).apply { this.parent = parent }
             }
@@ -284,7 +285,7 @@ class Fir2IrDeclarationStorage(
                 irSymbolTable.declareSimpleFunction(startOffset, endOffset, origin, descriptor) { symbol ->
                     IrFunctionImpl(
                         startOffset, endOffset, origin, symbol,
-                        function.name, function.visibility, function.modality!!,
+                        function.name.asName(), function.visibility, function.modality!!,
                         function.returnTypeRef.toIrType(session, this),
                         function.isInline, function.isExternal,
                         function.isTailRec, function.isSuspend
@@ -319,7 +320,7 @@ class Fir2IrDeclarationStorage(
             irSymbolTable.declareSimpleFunction(startOffset, endOffset, origin, descriptor) { symbol ->
                 IrFunctionImpl(
                     startOffset, endOffset, origin, symbol,
-                    if (isLambda) FirName.special("<anonymous>") else FirName.special("<no name provided>"),
+                    if (isLambda) Name.special("<anonymous>") else Name.special("<no name provided>"),
                     Visibilities.LOCAL, Modality.FINAL,
                     function.returnTypeRef.toIrType(session, this),
                     isInline = false, isExternal = false, isTailrec = false,
@@ -345,7 +346,7 @@ class Fir2IrDeclarationStorage(
                 irSymbolTable.declareConstructor(startOffset, endOffset, origin, descriptor) { symbol ->
                     IrConstructorImpl(
                         startOffset, endOffset, origin, symbol,
-                        constructor.name, constructor.visibility,
+                        constructor.name.asName(), constructor.visibility,
                         constructor.returnTypeRef.toIrType(session, this),
                         isInline = false, isExternal = false, isPrimary = isPrimary
                     ).bindAndDeclareParameters(constructor, descriptor, irParent, shouldLeaveScope)
@@ -367,7 +368,7 @@ class Fir2IrDeclarationStorage(
                 ) { symbol ->
                     IrPropertyImpl(
                         startOffset, endOffset, origin, symbol,
-                        property.name, property.visibility, property.modality!!,
+                        property.name.asName(), property.visibility, property.modality!!,
                         property.isVar, property.isConst, property.isLateInit,
                         property.delegate != null,
                         // TODO
@@ -392,7 +393,7 @@ class Fir2IrDeclarationStorage(
                 ) { symbol ->
                     IrFieldImpl(
                         startOffset, endOffset, origin, symbol,
-                        field.name, type, field.visibility,
+                        field.name.asName(), type, field.visibility,
                         isFinal = field.modality == Modality.FINAL,
                         isExternal = false,
                         isStatic = field.isStatic
@@ -414,7 +415,7 @@ class Fir2IrDeclarationStorage(
             ) { symbol ->
                 IrValueParameterImpl(
                     startOffset, endOffset, origin, symbol,
-                    valueParameter.name, index, type,
+                    valueParameter.name.asName(), index, type,
                     null, valueParameter.isCrossinline, valueParameter.isNoinline
                 ).apply {
                     descriptor.bind(this)
@@ -441,7 +442,7 @@ class Fir2IrDeclarationStorage(
         val descriptor = WrappedVariableDescriptor()
         return irSymbolTable.declareVariable(startOffset, endOffset, origin, descriptor, type) { symbol ->
             IrVariableImpl(
-                startOffset, endOffset, origin, symbol, name, type,
+                startOffset, endOffset, origin, symbol, name.asName(), type,
                 isVar, isConst, isLateinit
             ).apply {
                 descriptor.bind(this)

@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.names.FirClassId
 import org.jetbrains.kotlin.fir.names.FirFqName
+import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.TestJdkKind
@@ -29,7 +31,7 @@ class BuiltInsDeserializationForFirTestCase : AbstractFirResolveWithSessionTestC
             KotlinBuiltIns.COLLECTIONS_PACKAGE_FQ_NAME,
             KotlinBuiltIns.RANGES_PACKAGE_FQ_NAME
         )) {
-            checkPackageContent(packageFqName)
+            checkPackageContent(FirFqName(packageFqName.pathSegments().map { FirName.identifier(it.identifier) }.toTypedArray() ))
         }
     }
 
@@ -49,7 +51,7 @@ class BuiltInsDeserializationForFirTestCase : AbstractFirResolveWithSessionTestC
 
         for (name in provider.getClassNamesInPackage(packageFqName)) {
             val classLikeSymbol =
-                provider.getClassLikeSymbolByFqName(FirClassId.topLevel(packageFqName.child(name))) as FirClassSymbol?
+                provider.getClassLikeSymbolByFqName(FirClassId(packageFqName, name)) as FirClassSymbol?
                     ?: continue
             classLikeSymbol.fir.accept(firRenderer)
             builder.appendln()
@@ -57,7 +59,7 @@ class BuiltInsDeserializationForFirTestCase : AbstractFirResolveWithSessionTestC
 
 
         KotlinTestUtils.assertEqualsToFile(
-            File("compiler/fir/resolve/testData/builtIns/" + packageFqName.asString().replace('.', '-') + ".txt"),
+            File("compiler/fir/resolve/testData/builtIns/" + packageFqName.toString().replace('.', '-') + ".txt"),
             builder.toString()
         )
     }

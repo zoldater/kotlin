@@ -21,9 +21,7 @@ import org.jetbrains.kotlin.fir.resolve.buildUseSiteScope
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.scopes.impl.FirClassSubstitutionScope
-import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTagImpl
-import org.jetbrains.kotlin.fir.symbols.ConeClassifierLookupTag
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
@@ -49,9 +47,9 @@ import org.jetbrains.kotlin.ir.types.impl.IrErrorTypeImpl
 import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.fir.names.FirClassId
-import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.fir.symbols.StandardClassIds
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi2ir.PsiSourceManager
 import org.jetbrains.kotlin.types.AbstractStrictEqualityTypeChecker
@@ -85,7 +83,7 @@ internal class Fir2IrVisitor(
     private val stringType = FirImplicitStringTypeRef(session, null).toIrType(session, declarationStorage)
 
     private fun ModuleDescriptor.findPackageFragmentForFile(file: FirFile): PackageFragmentDescriptor =
-        getPackage(file.packageFqName).fragments.first()
+        getPackage(file.packageFqName.asFqName()).fragments.first()
 
     private val parentStack = mutableListOf<IrDeclarationParent>()
 
@@ -314,7 +312,7 @@ internal class Fir2IrVisitor(
                 ) { symbol ->
                     IrValueParameterImpl(
                         startOffset, endOffset, thisOrigin, symbol,
-                        FirName.special("<this>"), -1, thisType,
+                        Name.special("<this>"), -1, thisType,
                         varargElementType = null, isCrossinline = false, isNoinline = false
                     ).setParentByParentStack()
                 }
@@ -483,7 +481,7 @@ internal class Fir2IrVisitor(
                 ) { symbol ->
                     IrFieldImpl(
                         startOffset, endOffset, backingOrigin, symbol,
-                        property.name, type, property.visibility,
+                        property.name.asName(), type, property.visibility,
                         isFinal = property.isVal, isExternal = false,
                         isStatic = property.isStatic || irParent !is IrClass
                     )
@@ -538,7 +536,7 @@ internal class Fir2IrVisitor(
             val accessorReturnType = propertyAccessor.returnTypeRef.toIrType(session, declarationStorage)
             IrFunctionImpl(
                 startOffset, endOffset, origin, symbol,
-                FirName.special("<$prefix-${correspondingProperty.name}>"),
+                Name.special("<$prefix-${correspondingProperty.name}>"),
                 propertyAccessor.visibility, correspondingProperty.modality, accessorReturnType,
                 isInline = false, isExternal = false, isTailrec = false, isSuspend = false
             ).withFunction {
@@ -559,7 +557,7 @@ internal class Fir2IrVisitor(
                                 ) { symbol ->
                                     IrValueParameterImpl(
                                         startOffset, endOffset, IrDeclarationOrigin.DEFINED, symbol,
-                                        FirName.special("<set-?>"), 0, propertyType,
+                                        Name.special("<set-?>"), 0, propertyType,
                                         varargElementType = null,
                                         isCrossinline = false, isNoinline = false
                                     ).setParentByParentStack()
@@ -609,7 +607,7 @@ internal class Fir2IrVisitor(
         var irTarget = functionStack.last()
         for (potentialTarget in functionStack.asReversed()) {
             // TODO: remove comparison by name
-            if (potentialTarget.name == (firTarget as? FirNamedFunction)?.name) {
+            if (potentialTarget.name == (firTarget as? FirNamedFunction)?.name?.asName()) {
                 irTarget = potentialTarget
                 break
             }
@@ -1056,10 +1054,10 @@ internal class Fir2IrVisitor(
         }
         // TODO: it's temporary hack which should be refactored
         val simpleType = when (val classId = (firstType.type as? ConeClassLikeType)?.lookupTag?.classId) {
-            FirClassId(FirFqName("kotlin"), FirFqName("Long"), false) -> irBuiltIns.builtIns.longType
-            FirClassId(FirFqName("kotlin"), FirFqName("Int"), false) -> irBuiltIns.builtIns.intType
-            FirClassId(FirFqName("kotlin"), FirFqName("Float"), false) -> irBuiltIns.builtIns.floatType
-            FirClassId(FirFqName("kotlin"), FirFqName("Double"), false) -> irBuiltIns.builtIns.doubleType
+            StandardClassIds.Long -> irBuiltIns.builtIns.longType
+            StandardClassIds.Int -> irBuiltIns.builtIns.intType
+            StandardClassIds.Float -> irBuiltIns.builtIns.floatType
+            StandardClassIds.Double -> irBuiltIns.builtIns.doubleType
             else -> {
                 return IrErrorCallExpressionImpl(
                     startOffset, endOffset, booleanType, "Comparison of arguments with unsupported type: $classId"

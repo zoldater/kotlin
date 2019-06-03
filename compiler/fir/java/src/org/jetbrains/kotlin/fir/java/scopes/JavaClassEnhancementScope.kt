@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.load.java.typeEnhancement.PREDEFINED_FUNCTION_ENHANC
 import org.jetbrains.kotlin.load.java.typeEnhancement.PredefinedFunctionEnhancementInfo
 import org.jetbrains.kotlin.load.kotlin.SignatureBuildingComponents
 import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.utils.Jsr305State
 
 class JavaClassEnhancementScope(
@@ -136,7 +137,7 @@ class JavaClassEnhancementScope(
         val memberContext = context.copyWithNewDefaultTypeQualifiers(typeQualifierResolver, jsr305State, firMethod.annotations)
 
         val predefinedEnhancementInfo =
-            SignatureBuildingComponents.signature(owner.symbol.classId, firMethod.computeJvmDescriptor()).let { signature ->
+            SignatureBuildingComponents.signature(ClassId.fromString(owner.symbol.classId.toString()), firMethod.computeJvmDescriptor()).let { signature ->
                 PREDEFINED_FUNCTION_ENHANCEMENT_INFO_BY_SIGNATURE[signature]
             }
 
@@ -238,7 +239,7 @@ class JavaClassEnhancementScope(
         when (coneType) {
             is ConeClassLikeType -> {
                 val classId = coneType.lookupTag.classId
-                append(classId.packageFqName.asString().replace(".", "/"))
+                append(classId.packageFqName.toString().replace(".", "/"))
                 append("/")
                 append(classId.relativeClassName)
             }

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.expressions.resolvedFqName
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.java.JavaTypeParameterStack
 import org.jetbrains.kotlin.fir.java.toConeKotlinTypeWithNullability
 import org.jetbrains.kotlin.fir.java.toFirJavaTypeRef
@@ -23,8 +24,8 @@ import org.jetbrains.kotlin.load.java.MUTABLE_ANNOTATIONS
 import org.jetbrains.kotlin.load.java.READ_ONLY_ANNOTATIONS
 import org.jetbrains.kotlin.load.java.structure.JavaWildcardType
 import org.jetbrains.kotlin.load.java.typeEnhancement.*
-import org.jetbrains.kotlin.fir.names.FirFqName
-import org.jetbrains.kotlin.fir.names.FirFqNameUnsafe
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.utils.Jsr305State
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -41,7 +42,7 @@ internal class EnhancementSignatureParts(
     private val isForVarargParameter get() = typeContainer.safeAs<FirValueParameter>()?.isVararg == true
 
     private fun ConeKotlinType.toFqNameUnsafe(): FqNameUnsafe? =
-        ((this as? ConeLookupTagBasedType)?.lookupTag as? ConeClassLikeLookupTag)?.classId?.asSingleFqName()?.toUnsafe()
+        ((this as? ConeLookupTagBasedType)?.lookupTag as? ConeClassLikeLookupTag)?.classId?.asClassId()?.asSingleFqName()?.toUnsafe()
 
     internal fun enhance(
         session: FirSession,
@@ -60,8 +61,8 @@ internal class EnhancementSignatureParts(
             if (it is ConeClassErrorType) false
             else {
                 val classId = it.lookupTag.classId
-                classId.shortClassName == JavaToKotlinClassMap.FUNCTION_N_FQ_NAME.shortName() &&
-                        classId.asSingleFqName() == JavaToKotlinClassMap.FUNCTION_N_FQ_NAME
+                classId.shortClassName == JavaToKotlinClassMap.FUNCTION_N_FQ_NAME.shortName().intern(session) &&
+                        classId.asSingleFqName() == JavaToKotlinClassMap.FUNCTION_N_FQ_NAME.intern(session)
             }
         }
 
@@ -179,9 +180,9 @@ internal class EnhancementSignatureParts(
             else
                 this?.annotations.orEmpty()
 
-        fun <T : Any> List<FirFqName>.ifPresent(qualifier: T) =
+        fun <T : Any> List<FqName>.ifPresent(qualifier: T) =
             if (any { fqName ->
-                    composedAnnotation.any { it.resolvedFqName == fqName }
+                    composedAnnotation.any { it.resolvedFqName?.toString() == fqName.asString() }
                 }
             ) qualifier else null
 

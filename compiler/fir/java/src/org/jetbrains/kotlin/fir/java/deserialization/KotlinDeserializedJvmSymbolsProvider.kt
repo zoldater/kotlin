@@ -338,7 +338,7 @@ class KotlinDeserializedJvmSymbolsProvider(
                 superTypeRefs += FirResolvedTypeRefImpl(
                     session,
                     null,
-                    ConeClassTypeImpl(ConeClassLikeLookupTagImpl(firClassId.outerClassId), emptyArray(), false),
+                    ConeClassTypeImpl(ConeClassLikeLookupTagImpl(firClassId.outerClassId!!), emptyArray(), false),
                     emptyList()
                 )
             }

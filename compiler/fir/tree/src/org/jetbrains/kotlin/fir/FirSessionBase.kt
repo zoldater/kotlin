@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir
 
 import org.jetbrains.kotlin.analyzer.ModuleInfo
+import org.jetbrains.kotlin.fir.names.FirNameFactory
 import kotlin.reflect.KClass
 
 abstract class FirSessionBase : FirSession {
@@ -13,6 +14,8 @@ abstract class FirSessionBase : FirSession {
 
     override val moduleInfo: ModuleInfo?
         get() = null
+
+    override val nameFactory = FirNameFactory()
 
     protected fun <T : Any> registerComponent(tClass: KClass<T>, t: T) {
         assert(tClass !in components) { "Already registered component" }

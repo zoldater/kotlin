@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
 import org.jetbrains.kotlin.fir.declarations.impl.FirTypeParameterImpl
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaClass
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaConstructor
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaField
@@ -42,6 +43,9 @@ import org.jetbrains.kotlin.load.java.structure.JavaTypeParameter
 import org.jetbrains.kotlin.fir.names.FirClassId
 import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade
 import org.jetbrains.kotlin.types.Variance.INVARIANT
 
@@ -53,7 +57,7 @@ class JavaSymbolProvider(
 
     private val facade: KotlinJavaPsiFacade get() = KotlinJavaPsiFacade.getInstance(project)
 
-    private fun findClass(classId: FirClassId): JavaClass? = facade.findClass(JavaClassFinder.Request(classId), searchScope)
+    private fun findClass(classId: ClassId): JavaClass? = facade.findClass(JavaClassFinder.Request(classId), searchScope)
 
     override fun getTopLevelCallableSymbols(packageFqName: FirFqName, name: FirName): List<ConeCallableSymbol> =
         emptyList()
@@ -111,7 +115,7 @@ class JavaSymbolProvider(
         val stored = javaTypeParameterStack.safeGet(this)
         if (stored != null) return stored.fir
         val firSymbol = FirTypeParameterSymbol()
-        val result = FirTypeParameterImpl(session, null, firSymbol, name, variance = INVARIANT, isReified = false)
+        val result = FirTypeParameterImpl(session, null, firSymbol, name.intern(session), variance = INVARIANT, isReified = false)
         javaTypeParameterStack.add(this, result)
         return result
     }
@@ -137,9 +141,9 @@ class JavaSymbolProvider(
     }
 
     override fun getClassLikeSymbolByFqName(classId: FirClassId): ConeClassLikeSymbol? {
-        if (!hasTopLevelClassOf(classId)) return null
+        if (!hasTopLevelClassOf(classId.asClassId())) return null
         return classCache.lookupCacheOrCalculateWithPostCompute(classId, {
-            val foundClass = findClass(classId)
+            val foundClass = findClass(classId.asClassId())
             if (foundClass == null || foundClass.annotations.any { it.classId?.asSingleFqName() == JvmAnnotationNames.METADATA_FQ_NAME }) {
                 null to null
             } else {
@@ -149,9 +153,9 @@ class JavaSymbolProvider(
             foundClass?.let { javaClass ->
                 val javaTypeParameterStack = JavaTypeParameterStack()
                 val parentFqName = classId.relativeClassName.parent()
-                val isTopLevel = parentFqName.isRoot
+                val isTopLevel = parentFqName.isRoot()
                 if (!isTopLevel) {
-                    val parentId = FirClassId(classId.packageFqName, parentFqName, false)
+                    val parentId = FirClassId(classId.packageFqName, parentFqName)
                     val parentClassSymbol = getClassLikeSymbolByFqName(parentId) as? FirClassSymbol
                     val parentClass = parentClassSymbol?.fir
                     if (parentClass is FirJavaClass) {
@@ -159,7 +163,7 @@ class JavaSymbolProvider(
                     }
                 }
                 FirJavaClass(
-                    session, firSymbol as FirClassSymbol, javaClass.name,
+                    session, firSymbol as FirClassSymbol, javaClass.name.intern(session),
                     javaClass.visibility, javaClass.modality,
                     javaClass.classKind, isTopLevel = isTopLevel,
                     isStatic = javaClass.isStatic,
@@ -173,7 +177,7 @@ class JavaSymbolProvider(
                     // TODO: may be we can process fields & methods later.
                     // However, they should be built up to override resolve stage
                     for (javaField in javaClass.fields) {
-                        val fieldName = javaField.name
+                        val fieldName = javaField.name.intern(session)
                         val fieldId = CallableId(classId.packageFqName, classId.relativeClassName, fieldName)
                         val fieldSymbol = FirFieldSymbol(fieldId)
                         val returnType = javaField.type
@@ -189,7 +193,7 @@ class JavaSymbolProvider(
                         declarations += firJavaField
                     }
                     for (javaMethod in javaClass.methods) {
-                        val methodName = javaMethod.name
+                        val methodName = javaMethod.name.intern(session)
                         val methodId = CallableId(classId.packageFqName, classId.relativeClassName, methodName)
                         val methodSymbol = FirFunctionSymbol(methodId)
                         val returnType = javaMethod.returnType
@@ -252,27 +256,30 @@ class JavaSymbolProvider(
     override fun getPackage(fqName: FirFqName): FirFqName? {
         return packageCache.lookupCacheOrCalculate(fqName) {
             val facade = KotlinJavaPsiFacade.getInstance(project)
-            val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return@lookupCacheOrCalculate null
-            FirFqName(javaPackage.qualifiedName)
+            val javaPackage = facade.findPackage(fqName.toString(), searchScope) ?: return@lookupCacheOrCalculate null
+            FirFqName(javaPackage.qualifiedName.split(".").map { Name.identifier(it).intern(session)}.toTypedArray() )
         }
     }
 
     fun getJavaTopLevelClasses(): List<FirRegularClass> {
         return classCache.values
             .filterIsInstance<FirClassSymbol>()
-            .filter { it.classId.relativeClassName.parent().isRoot }
+            .filter { it.classId.relativeClassName.parent().isRoot() }
             .map { it.fir }
     }
 
-    private val knownClassNamesInPackage = mutableMapOf<FirFqName, Set<String>?>()
+    private val knownClassNamesInPackage = mutableMapOf<FqName, Set<String>?>()
 
-    private fun hasTopLevelClassOf(classId: FirClassId): Boolean {
+    private fun hasTopLevelClassOf(classId: ClassId): Boolean {
         val knownNames = knownClassNamesInPackage.getOrPut(classId.packageFqName) {
             facade.knownClassNamesInPackage(classId.packageFqName)
         } ?: return true
         return classId.relativeClassName.topLevelName() in knownNames
     }
 }
+
+fun FqName.topLevelName() =
+    asString().substringBefore(".")
 
 fun FirFqName.topLevelName() =
     segments().first()//asString().substringBefore(".")

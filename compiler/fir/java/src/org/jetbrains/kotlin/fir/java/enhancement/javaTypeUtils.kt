@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.impl.FirConstExpressionImpl
 import org.jetbrains.kotlin.fir.expressions.impl.FirQualifiedAccessExpressionImpl
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.java.JavaTypeParameterStack
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaClass
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaField
@@ -38,6 +39,8 @@ import org.jetbrains.kotlin.load.java.typeEnhancement.*
 import org.jetbrains.kotlin.fir.names.FirClassId
 import org.jetbrains.kotlin.fir.names.FirFqName
 import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.types.AbstractStrictEqualityTypeChecker
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -110,21 +113,21 @@ private fun coneFlexibleOrSimpleType(
     return ConeFlexibleType(lowerBound, upperBound)
 }
 
-private val KOTLIN_COLLECTIONS = FirFqName("kotlin.collections")
+private val KOTLIN_COLLECTIONS = FqName("kotlin.collections")
 
 private val KOTLIN_COLLECTIONS_PREFIX_LENGTH = KOTLIN_COLLECTIONS.asString().length + 1
 
-internal fun FirClassId.readOnlyToMutable(): FirClassId? {
+internal fun ClassId.readOnlyToMutable(): ClassId? {
     val mutableFqName = JavaToKotlinClassMap.readOnlyToMutable(asSingleFqName().toUnsafe())
     return mutableFqName?.let {
-        FirClassId(KOTLIN_COLLECTIONS, FirFqName(it.asString().substring(KOTLIN_COLLECTIONS_PREFIX_LENGTH)), false)
+        ClassId(KOTLIN_COLLECTIONS, FqName(it.asString().substring(KOTLIN_COLLECTIONS_PREFIX_LENGTH)), false)
     }
 }
 
-private fun FirClassId.mutableToReadOnly(): FirClassId? {
+private fun ClassId.mutableToReadOnly(): ClassId? {
     val readOnlyFqName = JavaToKotlinClassMap.mutableToReadOnly(asSingleFqName().toUnsafe())
     return readOnlyFqName?.let {
-        FirClassId(KOTLIN_COLLECTIONS, FirFqName(it.asString().substring(KOTLIN_COLLECTIONS_PREFIX_LENGTH)), false)
+        ClassId(KOTLIN_COLLECTIONS, FqName(it.asString().substring(KOTLIN_COLLECTIONS_PREFIX_LENGTH)), false)
     }
 }
 
@@ -147,14 +150,14 @@ private fun JavaClassifierType.enhanceInflexibleType(
                 }
             }
             val kotlinClassId = mappedId ?: classId
-            ConeClassLikeLookupTagImpl(kotlinClassId)
+            ConeClassLikeLookupTagImpl(kotlinClassId.intern(session))
         }
         is JavaTypeParameter -> javaTypeParameterStack[classifier]
         else -> return toNotNullConeKotlinType(session, javaTypeParameterStack)
     }
 
     val effectiveQualifiers = qualifiers(index)
-    val enhancedTag = originalTag.enhanceMutability(effectiveQualifiers, position)
+    val enhancedTag = originalTag.enhanceMutability(session, effectiveQualifiers, position)
 
     var globalArgIndex = index + 1
     val enhancedArguments = arguments.mapIndexed { localArgIndex, arg ->
@@ -198,6 +201,7 @@ private fun getEnhancedNullability(
 }
 
 private fun ConeClassifierLookupTag.enhanceMutability(
+    session: FirSession,
     qualifiers: JavaTypeQualifiers,
     position: TypeComponentPosition
 ): ConeClassifierLookupTag {
@@ -206,15 +210,15 @@ private fun ConeClassifierLookupTag.enhanceMutability(
 
     when (qualifiers.mutability) {
         MutabilityQualifier.READ_ONLY -> {
-            val readOnlyId = classId.mutableToReadOnly()
+            val readOnlyId = classId.asClassId().mutableToReadOnly()
             if (position == TypeComponentPosition.FLEXIBLE_LOWER && readOnlyId != null) {
-                return ConeClassLikeLookupTagImpl(readOnlyId)
+                return ConeClassLikeLookupTagImpl(readOnlyId.intern(session))
             }
         }
         MutabilityQualifier.MUTABLE -> {
-            val mutableId = classId.readOnlyToMutable()
+            val mutableId = classId.asClassId().readOnlyToMutable()
             if (position == TypeComponentPosition.FLEXIBLE_UPPER && mutableId != null) {
-                return ConeClassLikeLookupTagImpl(mutableId)
+                return ConeClassLikeLookupTagImpl(mutableId.intern(session))
             }
         }
     }
@@ -265,10 +269,10 @@ internal fun ConeKotlinType.lexicalCastFrom(session: FirSession, value: String):
 
     if (lookupTag !is ConeClassLikeLookupTag) return null
     val classId = lookupTag.classId
-    if (classId.packageFqName != FirFqName("kotlin")) return null
+    if (classId.packageFqName != StandardClassIds.BASE_KOTLIN_PACKAGE) return null
 
     val (number, radix) = extractRadix(value)
-    return when (classId.relativeClassName.asString()) {
+    return when (classId.relativeClassName.toString()) {
         "Boolean" -> FirConstExpressionImpl(session, null, IrConstKind.Boolean, value.toBoolean())
         "Char" -> FirConstExpressionImpl(session, null, IrConstKind.Char, value.singleOrNull() ?: return null)
         "Byte" -> FirConstExpressionImpl(session, null, IrConstKind.Byte, number.toByteOrNull(radix) ?: return null)
@@ -283,12 +287,12 @@ internal fun ConeKotlinType.lexicalCastFrom(session: FirSession, value: String):
 }
 
 internal fun FirValueParameter.getDefaultValueFromAnnotation(): AnnotationDefaultValue? {
-    annotations.find { it.resolvedFqName == JvmAnnotationNames.DEFAULT_VALUE_FQ_NAME }
+    annotations.find { it.resolvedFqName?.toString() == JvmAnnotationNames.DEFAULT_VALUE_FQ_NAME.asString() }
         ?.arguments?.firstOrNull()
         ?.safeAs<FirConstExpression<*>>()?.value?.safeAs<String>()
         ?.let { return StringDefaultValue(it) }
 
-    if (annotations.any { it.resolvedFqName == JvmAnnotationNames.DEFAULT_NULL_FQ_NAME }) {
+    if (annotations.any { it.resolvedFqName?.toString() == JvmAnnotationNames.DEFAULT_NULL_FQ_NAME.asString() }) {
         return NullDefaultValue
     }
 

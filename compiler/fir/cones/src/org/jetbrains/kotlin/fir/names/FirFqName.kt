@@ -35,6 +35,8 @@ class FirFqName {
 
     fun shortName(): FirName = segments.lastOrNull() ?: error("root")
 
+    fun startsWith(segment: FirName): Boolean = segments.firstOrNull() == segment
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is FirFqName) return false

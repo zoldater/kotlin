@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirArrayOfCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.impl.*
+import org.jetbrains.kotlin.fir.intern
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaValueParameter
 import org.jetbrains.kotlin.fir.java.enhancement.readOnlyToMutable
 import org.jetbrains.kotlin.fir.java.types.FirJavaTypeRef
@@ -148,7 +149,7 @@ internal fun JavaClassifierType.toConeKotlinTypeWithNullability(
             var classId = JavaToKotlinClassMap.mapJavaToKotlin(classifier.fqName!!) ?: classifier.classId!!
             classId = classId.readOnlyToMutable() ?: classId
 
-            val lookupTag = ConeClassLikeLookupTagImpl(classId)
+            val lookupTag = ConeClassLikeLookupTagImpl(classId.intern(session))
             lookupTag.constructClassType(
                 typeArguments.mapIndexed { index, argument ->
                     argument.toConeProjection(
@@ -174,7 +175,7 @@ internal fun JavaAnnotation.toFirAnnotationCall(
         annotationTypeRef = FirResolvedTypeRefImpl(
             session,
             psi = null,
-            type = ConeClassTypeImpl(FirClassSymbol(classId!!).toLookupTag(), emptyArray(), isNullable = false),
+            type = ConeClassTypeImpl(FirClassSymbol(classId!!.intern(session)).toLookupTag(), emptyArray(), isNullable = false),
             annotations = emptyList()
         )
     ).apply {
@@ -196,7 +197,7 @@ internal fun JavaValueParameter.toFirValueParameters(
     session: FirSession, javaTypeParameterStack: JavaTypeParameterStack
 ): FirValueParameter {
     return FirJavaValueParameter(
-        session, name ?: FirName.special("<anonymous Java parameter>"),
+        session, name?.intern(session) ?: FirName.special("<anonymous Java parameter>"),
         returnTypeRef = type.toFirJavaTypeRef(session, javaTypeParameterStack),
         isVararg = isVararg
     ).apply {
@@ -244,8 +245,8 @@ private fun JavaAnnotationArgument.toFirExpression(
         }
         is JavaEnumValueAnnotationArgument -> {
             FirFunctionCallImpl(session, null).apply {
-                val classId = this@toFirExpression.enumClassId
-                val entryName = this@toFirExpression.entryName
+                val classId = this@toFirExpression.enumClassId?.intern(session)
+                val entryName = this@toFirExpression.entryName?.intern(session)
                 val calleeReference = if (classId != null && entryName != null) {
                     val callableSymbol = session.service<FirSymbolProvider>().getClassDeclaredCallableSymbols(
                         classId, entryName

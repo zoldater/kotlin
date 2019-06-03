@@ -7,11 +7,11 @@ package org.jetbrains.kotlin.fir.descriptors
 
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.fir.names.FirFqName
-import org.jetbrains.kotlin.fir.names.FirName
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 
-class FirPackageFragmentDescriptor(override val fqName: FirFqName, val moduleDescriptor: ModuleDescriptor) : PackageFragmentDescriptor {
+class FirPackageFragmentDescriptor(override val fqName: FqName, val moduleDescriptor: ModuleDescriptor) : PackageFragmentDescriptor {
     override fun getContainingDeclaration(): ModuleDescriptor {
         return moduleDescriptor
     }
@@ -25,7 +25,7 @@ class FirPackageFragmentDescriptor(override val fqName: FirFqName, val moduleDes
         return this
     }
 
-    override fun getName(): FirName {
+    override fun getName(): Name {
         return fqName.shortName()
     }
 

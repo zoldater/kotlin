@@ -17,6 +17,10 @@ import org.jetbrains.kotlin.utils.Jsr305State
 import org.jetbrains.kotlin.utils.ReportLevel
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
+private val BUILT_IN_TYPE_QUALIFIER_DEFAULT_ANNOTATIONS_AS_STRING = BUILT_IN_TYPE_QUALIFIER_DEFAULT_ANNOTATIONS.mapKeys { (key, _) ->
+    key.asString()
+}
+
 class FirAnnotationTypeQualifierResolver(private val session: FirSession, private val jsr305State: Jsr305State) {
 
     class TypeQualifierWithApplicability(
@@ -37,7 +41,7 @@ class FirAnnotationTypeQualifierResolver(private val session: FirSession, privat
 
     // TODO: memoize this function
     private fun computeTypeQualifierNickname(klass: FirRegularClass): FirAnnotationCall? {
-        if (klass.annotations.none { it.resolvedFqName == TYPE_QUALIFIER_NICKNAME_FQNAME }) return null
+        if (klass.annotations.none { it.resolvedFqName?.toString() == TYPE_QUALIFIER_NICKNAME_FQNAME.asString() }) return null
 
         return klass.annotations.firstNotNullResult(this::resolveTypeQualifierAnnotation)
     }
@@ -67,10 +71,11 @@ class FirAnnotationTypeQualifierResolver(private val session: FirSession, privat
             return null
         }
 
-        return BUILT_IN_TYPE_QUALIFIER_DEFAULT_ANNOTATIONS[annotationCall.resolvedFqName]?.let { (qualifier, applicability) ->
-            val state = resolveJsr305ReportLevel(annotationCall).takeIf { it != ReportLevel.IGNORE } ?: return null
-            return NullabilityQualifierWithApplicability(qualifier.copy(isForWarningOnly = state.isWarning), applicability)
-        }
+        return BUILT_IN_TYPE_QUALIFIER_DEFAULT_ANNOTATIONS_AS_STRING[annotationCall.resolvedFqName?.toString()]
+            ?.let { (qualifier, applicability) ->
+                val state = resolveJsr305ReportLevel(annotationCall).takeIf { it != ReportLevel.IGNORE } ?: return null
+                return NullabilityQualifierWithApplicability(qualifier.copy(isForWarningOnly = state.isWarning), applicability)
+            }
     }
 
     fun resolveTypeQualifierDefaultAnnotation(annotationCall: FirAnnotationCall): TypeQualifierWithApplicability? {
@@ -80,15 +85,17 @@ class FirAnnotationTypeQualifierResolver(private val session: FirSession, privat
 
         val typeQualifierDefaultAnnotatedClass =
             annotationCall.resolvedClass?.takeIf { klass ->
-                klass.annotations.any { it.resolvedFqName == TYPE_QUALIFIER_DEFAULT_FQNAME }
+                klass.annotations.any { it.resolvedFqName?.toString() == TYPE_QUALIFIER_DEFAULT_FQNAME.asString() }
             } ?: return null
 
         val elementTypesMask =
             annotationCall.resolvedClass!!
-                .annotations.find { it.resolvedFqName == TYPE_QUALIFIER_DEFAULT_FQNAME }!!
+                .annotations.find { it.resolvedFqName?.toString() == TYPE_QUALIFIER_DEFAULT_FQNAME.asString() }!!
                 .arguments
                 .flatMap { argument ->
-                    if (argument !is FirNamedArgumentExpression || argument.name == JvmAnnotationNames.DEFAULT_ANNOTATION_MEMBER_NAME)
+                    if (argument !is FirNamedArgumentExpression ||
+                        argument.name.asString() == JvmAnnotationNames.DEFAULT_ANNOTATION_MEMBER_NAME.toString()
+                    )
                         argument.mapConstantToQualifierApplicabilityTypes()
                     else
                         emptyList()
@@ -110,13 +117,13 @@ class FirAnnotationTypeQualifierResolver(private val session: FirSession, privat
     }
 
     fun resolveJsr305CustomLevel(annotationCall: FirAnnotationCall): ReportLevel? {
-        jsr305State.user[annotationCall.resolvedFqName?.asString()]?.let { return it }
+        jsr305State.user[annotationCall.resolvedFqName?.toString()]?.let { return it }
         return annotationCall.resolvedClass?.migrationAnnotationStatus()
     }
 
     private fun FirRegularClass.migrationAnnotationStatus(): ReportLevel? {
         val enumEntryName = annotations.find {
-            it.resolvedFqName == MIGRATION_ANNOTATION_FQNAME
+            it.resolvedFqName?.toString() == MIGRATION_ANNOTATION_FQNAME.asString()
         }?.arguments?.firstOrNull()?.toResolvedCallableSymbol()?.callableId?.callableName ?: return null
 
         jsr305State.migration?.let { return it }
@@ -147,6 +154,8 @@ class FirAnnotationTypeQualifierResolver(private val session: FirSession, privat
 
 }
 
+private val BUILT_IN_TYPE_QUALIFIER_FQ_NAMES_AS_STRING = BUILT_IN_TYPE_QUALIFIER_FQ_NAMES.map { it.asString() }
+
 private val FirRegularClass.isAnnotatedWithTypeQualifier: Boolean
-    get() = this.symbol.classId.asSingleFqName() in BUILT_IN_TYPE_QUALIFIER_FQ_NAMES ||
-            annotations.any { it.resolvedFqName == TYPE_QUALIFIER_FQNAME }
+    get() = this.symbol.classId.asSingleFqName().toString() in BUILT_IN_TYPE_QUALIFIER_FQ_NAMES_AS_STRING ||
+            annotations.any { it.resolvedFqName?.toString() == TYPE_QUALIFIER_FQNAME.asString() }
