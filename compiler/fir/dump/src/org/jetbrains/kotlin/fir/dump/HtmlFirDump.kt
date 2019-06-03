@@ -66,7 +66,7 @@ private fun HEAD.commonHead() {
 
 private class PackageInfo(val fqName: FirFqName, val moduleInfo: ModuleInfo) {
     val contents = LinkedHashSet<String>()
-    val packageRoot = fqName.pathSegments().fold(moduleInfo.moduleRoot) { dir, segment -> dir.resolve(segment.asString()) }.also {
+    val packageRoot = fqName.segments().fold(moduleInfo.moduleRoot) { dir, segment -> dir.resolve(segment.asString()) }.also {
         it.mkdirs()
     }
 
@@ -104,7 +104,7 @@ private class SupplementaryGenerator(val outputRoot: File) {
                                 href = linkToIndex(packageInfo, moduleInfo.moduleRoot),
                                 classes = "container-ref"
                             ) {
-                                +packageInfo.fqName.asString()
+                                +packageInfo.fqName.toString()
                             }
                         }
                     }
@@ -128,7 +128,7 @@ private class SupplementaryGenerator(val outputRoot: File) {
     fun generateIndex(packageInfo: PackageInfo, writer: Writer) {
         writer.appendHTML().html {
             head {
-                title { +packageInfo.fqName.asString() }
+                title { +packageInfo.fqName.toString() }
                 commonHead()
                 supplementary(this, packageInfo.packageRoot)
             }
@@ -142,7 +142,7 @@ private class SupplementaryGenerator(val outputRoot: File) {
                         +packageInfo.moduleInfo.name
                     }
                 }
-                h2 { +packageInfo.fqName.asString() }
+                h2 { +packageInfo.fqName.toString() }
 
                 ul {
                     for (file in packageInfo.contents) {
@@ -420,14 +420,14 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
             keyword("package")
             ws
             val link = linkResolver.nearPackage(fqName)!!
-            a(href = link, classes = "package-fqn") { +fqName.asString() }
+            a(href = link, classes = "package-fqn") { +fqName.toString() }
         }
     }
 
     private val FlowContent.ws get() = +" "
 
     private fun FlowContent.fqn(name: FirFqName) {
-        +name.asString()
+        +name.toString()
     }
 
     private fun FlowContent.inlineUnsupported(element: Any) {
@@ -568,7 +568,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
             ClassKind.OBJECT -> keyword("object")
         }
         ws
-        anchoredName(klass.name, klass.classId.asString())
+        anchoredName(klass.name, klass.classId.toString())
         if (klass.superTypeRefs.isNotEmpty()) {
             +": "
             generateList(klass.superTypeRefs) {
@@ -912,7 +912,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
 
     private fun ConeSymbol.describe(): String {
         return when (this) {
-            is ConeClassLikeSymbol -> classId.asString()
+            is ConeClassLikeSymbol -> classId.toString()
             is ConeCallableSymbol -> callableId.toString()
             else -> ""
         }
@@ -1407,7 +1407,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
                             error { +"no fqn" }
                         }
                     } else {
-                        +classId.asString()
+                        +classId.toString()
                     }
                     if (import.isAllUnder) {
                         +".*"
