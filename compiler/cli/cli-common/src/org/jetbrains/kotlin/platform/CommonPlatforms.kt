@@ -30,7 +30,24 @@ object CommonPlatforms {
     val defaultCommonPlatform: TargetPlatform
         get() = CompatCommonPlatform
 
+    val allCommonPlatforms: List<TargetPlatform> by lazy {
+        fun allSubsets(list: List<TargetPlatform>, fromIndex: Int): Collection<Set<SimplePlatform>> {
+            return if (list.size <= fromIndex) {
+                listOf(emptySet<SimplePlatform>())
+            } else {
+                val allSubsets = allSubsets(list, fromIndex + 1)
+                allSubsets.flatMap {
+                    listOf(it, HashSet(it).apply { addAll(list[fromIndex].componentPlatforms) })
+                }
+
+            }
+        }
+
+        allSubsets(allSimplePlatforms, 0).filter { it.size > 1 }.map { TargetPlatform(it) }.distinct()
+    }
+
     val allSimplePlatforms: List<TargetPlatform>
+        // TODO(auskov): migrate to SimplePlatform?
         get() = sequence {
             yieldAll(JvmPlatforms.allJvmPlatforms)
             yieldAll(KonanPlatforms.allKonanPlatforms)

@@ -15,7 +15,7 @@ data class KotlinSourceSetImpl(
     override val resourceDirs: Set<File>,
     override val dependencies: Set<KotlinDependency>,
     override val dependsOnSourceSets: Set<String>,
-    val defaultPlatform: KotlinPlatform = KotlinPlatform.COMMON,
+    val defaultPlatform: KotlinPlatformContainerImpl = KotlinPlatformContainerImpl(),
     val defaultIsTestModule: Boolean = false
 ) : KotlinSourceSet {
 
@@ -26,11 +26,11 @@ data class KotlinSourceSetImpl(
         HashSet(kotlinSourceSet.resourceDirs),
         kotlinSourceSet.dependencies.map { it.deepCopy(cloningCache) }.toSet(),
         HashSet(kotlinSourceSet.dependsOnSourceSets),
-        kotlinSourceSet.platform,
+        KotlinPlatformContainerImpl(kotlinSourceSet.actualPlatforms),
         kotlinSourceSet.isTestModule
     )
 
-    override var platform: KotlinPlatform = defaultPlatform
+    override var actualPlatforms: KotlinPlatformContainer = defaultPlatform
         internal set
 
     override var isTestModule: Boolean = defaultIsTestModule
@@ -171,4 +171,26 @@ data class KotlinMPPGradleModelImpl(
         ExtraFeaturesImpl(mppModel.extraFeatures.coroutinesState),
         mppModel.kotlinNativeHome
     )
+}
+
+class KotlinPlatformContainerImpl() : KotlinPlatformContainer {
+    private val myPlatforms = HashSet<KotlinPlatform>()
+
+    //This property is required in order to support NMPP common platform and distinguish from HMPP
+    private var isLegacyNMPPCommonPlatform = true
+
+    constructor(platform: KotlinPlatformContainer) : this() {
+        myPlatforms.addAll(platform.platforms)
+        isLegacyNMPPCommonPlatform  = false
+    }
+
+    override val platforms: Collection<KotlinPlatform>
+        get() = if (isLegacyNMPPCommonPlatform) setOf(KotlinPlatform.COMMON) else myPlatforms
+
+    override fun supports(simplePlatform: KotlinPlatform): Boolean = myPlatforms.contains(simplePlatform)
+
+    override fun addSimplePlatforms(platforms: Collection<KotlinPlatform>) {
+        myPlatforms.addAll(platforms)
+        isLegacyNMPPCommonPlatform = false
+    }
 }

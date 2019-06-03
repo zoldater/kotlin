@@ -90,6 +90,7 @@ fun KotlinFacetSettings.initializeIfNeeded(
             targetPlatform.idePlatformKind.tooling.compilerArgumentsForProject(module.project)?.let { mergeBeans(it, this) }
             mergeBeans(commonArguments, this)
         }
+        this.targetPlatform = targetPlatform
     }
 
     if (shouldInferLanguageLevel) {

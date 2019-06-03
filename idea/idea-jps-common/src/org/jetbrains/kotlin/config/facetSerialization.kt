@@ -119,6 +119,14 @@ private fun readV1Config(element: Element): KotlinFacetSettings {
 }
 
 fun Element.getFacetPlatformByConfigurationElement(): TargetPlatform {
+    val platformNames = getAttributeValue("allPlatforms")?.split('/')?.toSet()
+    if (platformNames != null) {
+        return TargetPlatform(IdePlatformKind.All_PLATFORMS
+                                  .flatMap { it.componentPlatforms }
+                                  .filter {platformNames.contains(it.platformName)}
+                                  .toSet())
+    }
+    // failed to read list of all platforms. Fallback to legacy algorythm
     val platformName = getAttributeValue("platform")
     return IdePlatformKind.All_PLATFORMS
         .firstOrNull { it.oldFashionedDescription == platformName }
@@ -129,6 +137,7 @@ private fun readV2AndLaterConfig(element: Element): KotlinFacetSettings {
     return KotlinFacetSettings().apply {
         element.getAttributeValue("useProjectSettings")?.let { useProjectSettings = it.toBoolean() }
         val targetPlatform = element.getFacetPlatformByConfigurationElement()
+        this.targetPlatform = targetPlatform
         element.getChild("implements")?.let {
             val items = it.getChildren("implement")
             implementedModuleNames = if (items.isNotEmpty()) {
@@ -288,7 +297,8 @@ private fun KotlinFacetSettings.writeLatestConfig(element: Element) {
     val filter = SkipDefaultsSerializationFilter()
 
     targetPlatform?.let {
-        element.setAttribute("platform", it.oldFashionedDescription)
+        element.setAttribute("platform", it.oldFashionedDescription)//legacy
+        element.setAttribute("allPlatforms", it.componentPlatforms.map { it.platformName }.joinToString(separator = "/"))
     }
     if (!useProjectSettings) {
         element.setAttribute("useProjectSettings", useProjectSettings.toString())

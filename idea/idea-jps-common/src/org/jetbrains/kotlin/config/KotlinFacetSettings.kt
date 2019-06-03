@@ -189,8 +189,12 @@ class KotlinFacetSettings {
             compilerArguments!!.apiVersion = value?.versionString
         }
 
-    val targetPlatform: TargetPlatform?
+    var targetPlatform: TargetPlatform? = null
         get() {
+            if (field != null) {
+                return field
+            }
+            // Fallback to the legacy algorythm.
             val compilerArguments = this.compilerArguments ?: return null
             return IdePlatformKind.platformByCompilerArguments(compilerArguments)
         }
