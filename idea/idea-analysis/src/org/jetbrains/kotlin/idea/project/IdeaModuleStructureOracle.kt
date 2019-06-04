@@ -5,12 +5,8 @@
 
 package org.jetbrains.kotlin.idea.project
 
-import com.intellij.openapi.module.Module
-import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.idea.caches.project.*
-import org.jetbrains.kotlin.idea.caches.project.sourceType
-import org.jetbrains.kotlin.idea.core.unwrapModuleSourceInfo
+import org.jetbrains.kotlin.idea.caches.project.implementingDescriptors
 import org.jetbrains.kotlin.resolve.ModulePath
 import org.jetbrains.kotlin.resolve.ModuleStructureOracle
 import java.util.*
@@ -21,53 +17,31 @@ class IdeaModuleStructureOracle : ModuleStructureOracle {
     }
 
     override fun findAllReversedDependsOnPaths(module: ModuleDescriptor): List<ModulePath> {
-        val currentPath: Stack<ModuleInfo> = Stack()
+        val currentPath: Stack<ModuleDescriptor> = Stack()
 
-        return sequence<ModuleInfoPath> {
-            val root = module.moduleInfo
-            if (root != null) {
-                yieldPathsFromSubgraph(
-                    root,
-                    currentPath,
-                    getChilds = {
-                        with(DependsOnGraphHelper) { it.unwrapModuleSourceInfo()?.predecessorsInDependsOnGraph() ?: emptyList() }
-                    }
-                )
-            }
-        }.map {
-            it.toModulePath()
+        return sequence<ModulePath> {
+            yieldPathsFromSubgraph(module, currentPath, getChilds = { it.implementingDescriptors })
         }.toList()
     }
 
     override fun findAllDependsOnPaths(module: ModuleDescriptor): List<ModulePath> {
-        val currentPath: Stack<ModuleInfo> = Stack()
+        val currentPath: Stack<ModuleDescriptor> = Stack()
 
-        return sequence<ModuleInfoPath> {
-            val root = module.moduleInfo
-            if (root != null) {
-                yieldPathsFromSubgraph(
-                    root,
-                    currentPath,
-                    getChilds = {
-                        with(DependsOnGraphHelper) { it.unwrapModuleSourceInfo()?.successorsInDependsOnGraph() ?: emptyList() }
-                    }
-                )
-            }
-        }.map {
-            it.toModulePath()
+        return sequence<ModulePath> {
+            yieldPathsFromSubgraph(module, currentPath, getChilds = { it.expectedByModules })
         }.toList()
     }
 
-    private suspend fun SequenceScope<ModuleInfoPath>.yieldPathsFromSubgraph(
-        root: ModuleInfo,
-        currentPath: Stack<ModuleInfo>,
-        getChilds: (ModuleInfo) -> List<ModuleInfo>
+    private suspend fun SequenceScope<ModulePath>.yieldPathsFromSubgraph(
+        root: ModuleDescriptor,
+        currentPath: Stack<ModuleDescriptor>,
+        getChilds: (ModuleDescriptor) -> List<ModuleDescriptor>
     ) {
         currentPath.push(root)
 
         val childs = getChilds(root)
         if (childs.isEmpty()) {
-            yield(ModuleInfoPath(currentPath.toList()))
+            yield(ModulePath(currentPath.toList()))
         } else {
             childs.forEach {
                 yieldPathsFromSubgraph(it, currentPath, getChilds)
@@ -76,47 +50,4 @@ class IdeaModuleStructureOracle : ModuleStructureOracle {
 
         currentPath.pop()
     }
-
-    private class ModuleInfoPath(val nodes: List<ModuleInfo>)
-
-    private fun ModuleInfoPath.toModulePath(): ModulePath =
-        ModulePath(nodes.mapNotNull { it.unwrapModuleSourceInfo()?.toDescriptor() })
 }
-
-object DependsOnGraphHelper {
-    fun ModuleDescriptor.predecessorsInDependsOnGraph(): List<ModuleDescriptor> {
-        return moduleSourceInfo
-            ?.predecessorsInDependsOnGraph()
-            ?.mapNotNull { it.toDescriptor() }
-            ?: emptyList()
-    }
-
-    fun ModuleSourceInfo.predecessorsInDependsOnGraph(): List<ModuleSourceInfo> {
-        return this.module.predecessorsInDependsOnGraph().mapNotNull { it.toInfo(sourceType) }
-    }
-
-    fun Module.predecessorsInDependsOnGraph(): List<Module> {
-        return implementingModules
-    }
-
-    fun ModuleDescriptor.successorsInDependsOnGraph(): List<ModuleDescriptor> {
-        return moduleSourceInfo
-            ?.successorsInDependsOnGraph()
-            ?.mapNotNull { it.toDescriptor() }
-            ?: emptyList()
-    }
-
-    fun ModuleSourceInfo.successorsInDependsOnGraph(): List<ModuleSourceInfo> {
-        return module.successorsInDependsOnGraph().mapNotNull { it.toInfo(sourceType) }
-    }
-
-    fun Module.successorsInDependsOnGraph(): List<Module> {
-        return implementedModules
-    }
-}
-
-private val ModuleDescriptor.moduleInfo: ModuleInfo?
-    get() = getCapability(ModuleInfo.Capability)?.unwrapModuleSourceInfo()
-
-private val ModuleDescriptor.moduleSourceInfo: ModuleSourceInfo?
-    get() = moduleInfo as? ModuleSourceInfo
