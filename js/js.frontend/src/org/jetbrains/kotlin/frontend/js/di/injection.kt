@@ -56,7 +56,6 @@ fun createTopDownAnalyzerForJs(
 
         configureIncrementalCompilation(lookupTracker, expectActualTracker)
         configureStandardResolveComponents()
-        useImpl<SubstitutingScopeProviderImpl>()
 
         useInstance(declarationProviderFactory)
         CompilerEnvironment.configure(this)

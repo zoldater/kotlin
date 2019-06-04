@@ -184,7 +184,6 @@ private fun createContainerToResolveCommonCode(
 
         configureCommonSpecificComponents()
         useInstance(metadataPartProvider)
-        useImpl<SubstitutingScopeProviderImpl>()
 
         val metadataFinderFactory = ServiceManager.getService(
             moduleContext.project,

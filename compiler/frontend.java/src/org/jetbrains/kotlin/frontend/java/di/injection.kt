@@ -128,7 +128,6 @@ fun StorageComponentContainer.configureJavaSpecificComponents(
     )
 
     useImpl<FilesByFacadeFqNameIndexer>()
-    useImpl<SubstitutingScopeProviderImpl>()
 }
 
 fun ComponentProvider.initJvmBuiltInsForTopDownAnalysis() {

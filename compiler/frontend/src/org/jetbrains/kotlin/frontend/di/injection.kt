@@ -102,6 +102,7 @@ fun StorageComponentContainer.configureStandardResolveComponents() {
     useImpl<ResolveSession>()
     useImpl<LazyTopDownAnalyzer>()
     useImpl<AnnotationResolverImpl>()
+    useImpl<SubstitutingScopeProviderImpl>()
 }
 
 fun StorageComponentContainer.configureIncrementalCompilation(lookupTracker: LookupTracker, expectActualTracker: ExpectActualTracker) {
@@ -204,7 +205,6 @@ fun createContainerForLazyResolve(
     configureStandardResolveComponents()
 
     useInstance(declarationProviderFactory)
-    useImpl<SubstitutingScopeProviderImpl>()
 
     targetEnvironment.configure(this)
 
