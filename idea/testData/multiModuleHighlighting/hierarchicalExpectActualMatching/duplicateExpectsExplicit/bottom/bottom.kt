@@ -1,1 +1,1 @@
-actual class <!AMBIGUOUS_EXPECTS("Actual class 'A'", "right, left")!>A<!>
+actual class <!AMBIGUOUS_EXPECTS("Actual class 'A'", "right.kt, left.kt")!>A<!>

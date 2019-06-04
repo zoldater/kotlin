@@ -21,6 +21,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.container.PlatformSpecificExtension
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
@@ -46,7 +47,7 @@ import java.io.File
 class ExpectedActualDeclarationChecker(
     val moduleStructureOracle: ModuleStructureOracle,
     val argumentExtractors: Iterable<ActualAnnotationArgumentExtractor>
-) : DeclarationChecker {
+) : DeclarationChecker, PlatformSpecificExtension<ExpectedActualDeclarationChecker> {
     interface ActualAnnotationArgumentExtractor {
         fun extractDefaultValue(parameter: ValueParameterDescriptor, expectedType: KotlinType): ConstantValue<*>?
     }
