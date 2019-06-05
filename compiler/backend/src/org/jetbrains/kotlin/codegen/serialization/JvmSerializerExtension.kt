@@ -12,7 +12,9 @@ import org.jetbrains.kotlin.codegen.serialization.JvmSerializationBindings.*
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.Annotated
 import org.jetbrains.kotlin.load.java.JvmAbi
+import org.jetbrains.kotlin.load.java.components.ThrowsAnnotationDescriptor
 import org.jetbrains.kotlin.load.java.lazy.types.RawTypeImpl
 import org.jetbrains.kotlin.load.kotlin.NON_EXISTENT_CLASS_NAME
 import org.jetbrains.kotlin.metadata.ProtoBuf
@@ -324,7 +326,8 @@ class JvmSerializerExtension(private val bindings: JvmSerializationBindings, sta
         }
     }
 
-    override fun releaseCoroutines(): Boolean {
-        return isReleaseCoroutines
-    }
+    override fun releaseCoroutines(): Boolean = isReleaseCoroutines
+
+    override fun hasAnnotations(descriptor: Annotated): Boolean =
+        super.hasAnnotations(descriptor) || descriptor.annotations.hasAnnotation(ThrowsAnnotationDescriptor.FQ_NAME)
 }
