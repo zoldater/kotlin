@@ -32,10 +32,9 @@ import com.intellij.pom.tree.TreeAspect
 import com.intellij.pom.tree.events.TreeChangeEvent
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.PsiModificationTrackerImpl
-import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.CommonProcessors
-import org.jetbrains.kotlin.idea.caches.project.cached
+import org.jetbrains.kotlin.caches.project.cacheByClassInvalidatingOnRootModifications
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getTopmostParentOfType
 import org.jetbrains.kotlin.psi.psiUtil.isAncestor
@@ -183,19 +182,15 @@ private val FILE_OUT_OF_BLOCK_MODIFICATION_COUNT = Key<Long>("FILE_OUT_OF_BLOCK_
 val KtFile.outOfBlockModificationCount: Long
     get() = getUserData(FILE_OUT_OF_BLOCK_MODIFICATION_COUNT) ?: 0
 
-class KotlinModuleModificationTracker(val module: Module): ModificationTracker {
+class KotlinModuleModificationTracker(val module: Module) : ModificationTracker {
     private val kotlinModCountListener = KotlinCodeBlockModificationListener.getInstance(module.project)
     private val psiModificationTracker = PsiModificationTracker.SERVICE.getInstance(module.project)
     private val dependencies by lazy {
-        module.cached(CachedValueProvider {
-            CachedValueProvider.Result.create(
-                    HashSet<Module>().apply {
-                        ModuleRootManager.getInstance(module).orderEntries().recursively().forEachModule(
-                                CommonProcessors.CollectProcessor(this))
-                    },
-                    ProjectRootModificationTracker.getInstance(module.project)
-            )
-        })
+        module.cacheByClassInvalidatingOnRootModifications(KotlinModuleModificationTracker::class.java) {
+            HashSet<Module>().apply {
+                ModuleRootManager.getInstance(module).orderEntries().recursively().forEachModule(CommonProcessors.CollectProcessor(this))
+            }
+        }
     }
 
     override fun getModificationCount(): Long {
