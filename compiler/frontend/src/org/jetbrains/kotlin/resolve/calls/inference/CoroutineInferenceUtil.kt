@@ -45,7 +45,7 @@ import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.*
 import javax.inject.Inject
 
@@ -67,7 +67,7 @@ class TypeTemplate(
     override fun render(renderer: DescriptorRenderer, options: DescriptorRendererOptions) =
         "~${renderer.renderType(typeVariable.type)}"
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor) = this
 }
 

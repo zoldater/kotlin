@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.types;
 
-import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +36,7 @@ import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter;
 import org.jetbrains.kotlin.resolve.scopes.MemberScope;
 import org.jetbrains.kotlin.storage.LockBasedStorageManager;
 import org.jetbrains.kotlin.types.error.ErrorSimpleFunctionDescriptorImpl;
-import org.jetbrains.kotlin.types.refinement.TypeRefinement;
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal;
 import org.jetbrains.kotlin.utils.Printer;
 
 import java.util.Collection;
@@ -525,7 +524,7 @@ public class ErrorUtils {
             }
 
             @Nullable
-            @TypeRefinement
+            @TypeRefinementInternal
             @Override
             public TypeConstructor refine(@NotNull ModuleDescriptor moduleDescriptor) {
                 return null;

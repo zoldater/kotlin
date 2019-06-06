@@ -22,17 +22,17 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.SupertypeLoopChecker
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 abstract class AbstractTypeConstructor(private val storageManager: StorageManager) : TypeConstructor {
     override fun getSupertypes() = supertypes().supertypesWithoutCycles
 
     abstract override fun getDeclarationDescriptor(): ClassifierDescriptor
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor): TypeConstructor = ModuleViewTypeConstructor(moduleDescriptor)
 
-    @TypeRefinement
+    @TypeRefinementInternal
     private inner class ModuleViewTypeConstructor(
         private val moduleDescriptor: ModuleDescriptor
     ) : TypeConstructor {

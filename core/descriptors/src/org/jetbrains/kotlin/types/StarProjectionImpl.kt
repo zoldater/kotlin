@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.descriptors.ClassifierDescriptorWithTypeParameters
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 class StarProjectionImpl(private val typeParameter: TypeParameterDescriptor) : TypeProjectionBase() {
     override fun isStarProjection() = true
@@ -34,11 +34,11 @@ class StarProjectionImpl(private val typeParameter: TypeParameterDescriptor) : T
 
     override fun getType() = _type
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor): TypeProjection = refineIfNeeded(moduleDescriptor)
 }
 
-@TypeRefinement
+@TypeRefinementInternal
 private fun TypeProjectionBase.refineIfNeeded(moduleDescriptor: ModuleDescriptor): TypeProjectionBase {
     return RefinedStarProjection(type.refine(moduleDescriptor))
 }
@@ -50,7 +50,7 @@ private class RefinedStarProjection(private val _type: KotlinType) : TypeProject
 
     override fun isStarProjection(): Boolean = true
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor): TypeProjection = refineIfNeeded(moduleDescriptor)
 }
 
@@ -77,6 +77,6 @@ class TypeBasedStarProjectionImpl(
 
     override fun getType() = _type
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor): TypeProjection = TypeBasedStarProjectionImpl(_type.refine(moduleDescriptor!!))
 }

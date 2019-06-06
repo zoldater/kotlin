@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.types.model.FlexibleTypeMarker
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 import org.jetbrains.kotlin.types.model.TypeArgumentListMarker
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 /**
  * [KotlinType] has only two direct subclasses: [WrappedType] and [UnwrappedType].
@@ -56,7 +56,7 @@ sealed class KotlinType : Annotated, KotlinTypeMarker {
 
     abstract fun unwrap(): UnwrappedType
 
-    @TypeRefinement
+    @TypeRefinementInternal
     abstract fun refine(moduleDescriptor: ModuleDescriptor): KotlinType
 
     private val _hashCode: Int by lazy {
@@ -126,7 +126,7 @@ sealed class UnwrappedType : KotlinType() {
 
     final override fun unwrap(): UnwrappedType = this
 
-    @TypeRefinement
+    @TypeRefinementInternal
     abstract override fun refine(moduleDescriptor: ModuleDescriptor): UnwrappedType
 }
 
@@ -139,7 +139,7 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
     abstract override fun replaceAnnotations(newAnnotations: Annotations): SimpleType
     abstract override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType
 
-    @TypeRefinement
+    @TypeRefinementInternal
     abstract override fun refine(moduleDescriptor: ModuleDescriptor): SimpleType
 
     override fun toString(): String {
@@ -178,7 +178,7 @@ abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleTy
 
     override fun toString(): String = DescriptorRenderer.DEBUG_TEXT.renderType(this)
 
-    @TypeRefinement
+    @TypeRefinementInternal
     abstract override fun refine(moduleDescriptor: ModuleDescriptor): FlexibleType
 }
 

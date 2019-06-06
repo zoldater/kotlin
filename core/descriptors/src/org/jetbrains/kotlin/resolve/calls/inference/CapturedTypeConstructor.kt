@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.types.Variance.IN_VARIANCE
 import org.jetbrains.kotlin.types.Variance.OUT_VARIANCE
 import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
 import org.jetbrains.kotlin.types.model.CapturedTypeMarker
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
 interface CapturedTypeConstructor : TypeConstructor {
@@ -65,7 +65,7 @@ class CapturedTypeConstructorImpl(
 
     override fun getBuiltIns(): KotlinBuiltIns = projection.type.constructor.builtIns
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor) = CapturedTypeConstructorImpl(projection.refine(moduleDescriptor))
 }
 
@@ -104,7 +104,7 @@ class CapturedType(
     override fun replaceAnnotations(newAnnotations: Annotations): CapturedType =
         CapturedType(typeProjection, constructor, isMarkedNullable, newAnnotations)
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor) =
         CapturedType(typeProjection.refine(moduleDescriptor), constructor, isMarkedNullable, annotations)
 }
