@@ -179,71 +179,6 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
         checkHighlightingInProject()
     }
 
-    fun testTypeRefinementTypeAliases() {
-        val common = moduleWithRefinement("common")
-        val platform = moduleWithRefinement("platform")
-        val main = moduleWithRefinement("main")
-
-        platform.addDependency(common)
-        main.addDependency(common)
-        main.addDependency(platform)
-
-        checkHighlightingInProject()
-    }
-
-    fun testTypeRefinementTypeParameters() {
-        val common = moduleWithRefinement("common")
-        val platform = moduleWithRefinement("platform")
-        val main = moduleWithRefinement("main")
-
-        platform.addDependency(common)
-        main.addDependency(common)
-        main.addDependency(platform)
-
-        checkHighlightingInProject()
-    }
-
-    fun testTypesRefinement() {
-        val d1 = moduleWithRefinement("d1")
-        val d2 = moduleWithRefinement("d2")
-        val d3 = moduleWithRefinement("d3")
-        val d4 = moduleWithRefinement("d4")
-
-        d3.addDependency(d1)
-        d4.addDependency(d2)
-        d4.addDependency(d3)
-
-        checkHighlightingInProject()
-    }
-
-    fun testTypesRefinementSupertypes() {
-        val d0 = moduleWithRefinement("d0")
-        val d1 = moduleWithRefinement("d1")
-        val d2 = moduleWithRefinement("d2")
-        val d3 = moduleWithRefinement("d3")
-        val d4 = moduleWithRefinement("d4")
-
-        d3.addDependency(d1)
-
-        d2.addDependency(d0)
-
-        d4.addDependency(d0)
-        d4.addDependency(d2)
-        d4.addDependency(d3)
-        d4.addDependency(d1)
-
-        checkHighlightingInProject()
-    }
-
-    fun testTypeRefinementAliasesTypeMismatch() {
-        val common = moduleWithRefinement("common")
-        val jvm = moduleWithRefinement("jvm")
-        val main = moduleWithRefinement("main")
-
-        jvm.addDependency(common)
-        main.addDependency(jvm)
-    }
-
     fun testLanguageVersionsViaFacets() {
         val m1 = module("m1", FULL_JDK).setupKotlinFacet {
             settings.languageLevel = LanguageVersion.KOTLIN_1_1
@@ -361,13 +296,6 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
     private fun Module.makeJsModule() {
         setupKotlinFacet {
             settings.compilerArguments = K2JSCompilerArguments()
-        }
-    }
-
-    private fun moduleWithRefinement(name: String): Module = module(name).setupKotlinFacet {
-        settings.compilerArguments?.apply {
-            multiPlatform = true
-            newInference = true
         }
     }
 }

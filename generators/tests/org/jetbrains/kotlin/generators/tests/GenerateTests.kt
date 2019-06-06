@@ -678,6 +678,7 @@ fun main(args: Array<String>) {
 
         testClass<AbstractMultiplatformAnalysisTest> {
             model("multiplatform", recursive = false, extension = null)
+            model("multiplatformTypeRefinement", recursive = false, extension = null)
         }
 
         testClass<AbstractQuickFixMultiModuleTest> {
