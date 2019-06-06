@@ -17,14 +17,17 @@
 package org.jetbrains.kotlin.descriptors.impl
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.InvalidModuleException
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
+import org.jetbrains.kotlin.descriptors.PackageViewDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
-import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.types.refinement.RefinementCacheImpl
+import org.jetbrains.kotlin.types.refinement.RefinedScopeCacheImpl
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.refinement.refinementCacheCapability
 import org.jetbrains.kotlin.utils.sure
 
@@ -44,7 +47,9 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
             throw IllegalArgumentException("Module name must be special: $moduleName")
         }
         this.capabilities = capabilities.toMutableMap()
-        this.capabilities[refinementCacheCapability] = RefinementCacheImpl(this, storageManager)
+        @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+        @UseExperimental(TypeRefinementInternal::class)
+        this.capabilities[refinementCacheCapability] = RefinedScopeCacheImpl(this, storageManager)
     }
 
     private var dependencies: ModuleDependencies? = null

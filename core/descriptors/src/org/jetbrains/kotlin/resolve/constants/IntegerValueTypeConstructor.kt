@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import java.util.*
 
 class IntegerValueTypeConstructor(
@@ -92,7 +92,7 @@ class IntegerValueTypeConstructor(
         return module.builtIns
     }
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor) =
         IntegerValueTypeConstructor(value, moduleDescriptor, parameters)
 

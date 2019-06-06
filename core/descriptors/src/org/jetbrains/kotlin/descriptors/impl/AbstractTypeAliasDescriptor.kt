@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.*
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 abstract class AbstractTypeAliasDescriptor(
@@ -123,7 +123,8 @@ abstract class AbstractTypeAliasDescriptor(
 
         // There must be @TypeRefinement, but there is a bug with anonymous objects and experimental annotations
         // See KT-31728
-        @UseExperimental(TypeRefinement::class)
+        @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+        @UseExperimental(TypeRefinementInternal::class)
         override fun refine(moduleDescriptor: ModuleDescriptor) =
             classId?.let(moduleDescriptor::findClassifierAcrossModuleDependencies)?.typeConstructor
     }

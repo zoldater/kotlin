@@ -10,17 +10,17 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
 
-interface KotlinTypeRefiner {
+abstract class KotlinTypeRefiner {
     @TypeRefinement
-    fun refineType(type: KotlinType): KotlinType
+    abstract fun refineType(type: KotlinType): KotlinType
 
     @TypeRefinement
-    fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<KotlinType>
+    abstract fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<KotlinType>
 
     @TypeRefinement
-    fun refineSupertypes(classDescriptor: ClassDescriptor, moduleDescriptor: ModuleDescriptor): Collection<KotlinType>
+    abstract fun refineSupertypes(classDescriptor: ClassDescriptor, moduleDescriptor: ModuleDescriptor): Collection<KotlinType>
 
-    object Default : KotlinTypeRefiner {
+    object Default : KotlinTypeRefiner() {
         @TypeRefinement
         override fun refineType(type: KotlinType): KotlinType = type
 
