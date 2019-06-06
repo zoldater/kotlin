@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
 class RawTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : FlexibleType(lowerBound, upperBound), RawType {
@@ -85,7 +85,7 @@ class RawTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : FlexibleType
         return renderer.renderFlexibleType(newLower, newUpper, builtIns)
     }
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor): FlexibleType {
         return RawTypeImpl(lowerBound.refine(moduleDescriptor), upperBound.refine(moduleDescriptor))
     }

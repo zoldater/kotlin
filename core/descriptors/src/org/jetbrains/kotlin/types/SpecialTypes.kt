@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.checker.NewTypeVariableConstructor
 import org.jetbrains.kotlin.types.checker.NullabilityChecker
 import org.jetbrains.kotlin.types.model.DefinitelyNotNullTypeMarker
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.canHaveUndefinedNullability
 
 abstract class DelegatingSimpleType : SimpleType() {
@@ -38,7 +38,7 @@ abstract class DelegatingSimpleType : SimpleType() {
 
     abstract fun replaceDelegate(delegate: SimpleType): DelegatingSimpleType
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor) = replaceDelegate(delegate.refine(moduleDescriptor))
 }
 
@@ -53,7 +53,7 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
 
     override fun replaceDelegate(delegate: SimpleType) = AbbreviatedType(delegate, abbreviation)
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor): AbbreviatedType =
         AbbreviatedType(delegate.refine(moduleDescriptor), abbreviation.refine(moduleDescriptor))
 }
@@ -76,7 +76,7 @@ class LazyWrappedType(
 
     override fun isComputed(): Boolean = lazyValue.isComputed()
 
-    @TypeRefinement
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor) = LazyWrappedType(storageManager) {
         computation().refine(moduleDescriptor)
     }

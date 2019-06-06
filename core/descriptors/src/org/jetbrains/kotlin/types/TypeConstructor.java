@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.descriptors.ClassifierDescriptor;
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor;
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor;
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker;
-import org.jetbrains.kotlin.types.refinement.TypeRefinement;
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal;
 
 import java.util.Collection;
 import java.util.List;
@@ -62,6 +62,6 @@ public interface TypeConstructor extends TypeConstructorMarker {
     KotlinBuiltIns getBuiltIns();
 
     @Nullable
-    @TypeRefinement
+    @TypeRefinementInternal
     TypeConstructor refine(@NotNull ModuleDescriptor moduleDescriptor);
 }

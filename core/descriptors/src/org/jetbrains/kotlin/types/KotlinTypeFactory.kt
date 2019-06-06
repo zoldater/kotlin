@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
-import org.jetbrains.kotlin.types.refinement.refineOrGetType
 
 object KotlinTypeFactory {
     private fun computeMemberScope(
@@ -57,7 +56,7 @@ object KotlinTypeFactory {
     @JvmStatic
     @JvmOverloads
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
-    @UseExperimental(TypeRefinement::class)
+    @UseExperimental(TypeRefinementInternal::class)
     fun simpleType(
         annotations: Annotations,
         constructor: TypeConstructor,
@@ -88,8 +87,7 @@ object KotlinTypeFactory {
         )
     }
 
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
-    @UseExperimental(TypeRefinement::class)
+    @TypeRefinementInternal
     private fun refineConstructor(
         constructor: TypeConstructor,
         moduleDescriptor: ModuleDescriptor,
@@ -117,6 +115,8 @@ object KotlinTypeFactory {
         memberScope: MemberScope
     ): SimpleType =
         SimpleTypeImpl(constructor, arguments, nullable, memberScope) { module ->
+            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+            @UseExperimental(TypeRefinementInternal::class)
             val expandedTypeOrRefinedConstructor = refineConstructor(constructor, module, arguments) ?: return@SimpleTypeImpl null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@SimpleTypeImpl it }
 
@@ -214,11 +214,9 @@ private class SimpleTypeImpl(
         }
     }
 
-    @TypeRefinement
-    @UseExperimental(TypeRefinementInternal::class)
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @TypeRefinementInternal
     override fun refine(moduleDescriptor: ModuleDescriptor): SimpleType {
-        return moduleDescriptor.refineOrGetType(this, refinedTypeFactory)
+        return refinedTypeFactory(moduleDescriptor) ?: this
     }
 }
 

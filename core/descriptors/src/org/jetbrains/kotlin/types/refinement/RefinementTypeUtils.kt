@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
 import org.jetbrains.kotlin.utils.DFS
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-internal fun TypeConstructor.areThereExpectSupertypesOrTypeArguments(): Boolean {
+fun TypeConstructor.areThereExpectSupertypesOrTypeArguments(): Boolean {
     var result = false
     DFS.dfs(
         listOf(this),

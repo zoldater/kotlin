@@ -7,20 +7,32 @@ package org.jetbrains.kotlin.config
 
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
+@Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+@UseExperimental(TypeRefinementInternal::class)
 class KotlinTypeRefinerImpl(
     private val moduleDescriptor: ModuleDescriptor,
+    storageManager: StorageManager,
     languageVersionSettings: LanguageVersionSettings
-) : KotlinTypeRefiner {
+) : KotlinTypeRefiner() {
     private val isRefinementDisabled = !languageVersionSettings.isTypeRefinementEnabled
+    /*
+     * TODO: Dangerous place, because actually we refine only SimpleTypes, but here we cache all kotlin types
+     *   that may greatly increase memory consumption
+     */
+    private val refinedTypeCache = storageManager.createCacheWithNotNullValues<KotlinType, KotlinType>()
 
     @TypeRefinement
     override fun refineType(type: KotlinType): KotlinType {
         if (isRefinementDisabled) return type
-        return type.refine(moduleDescriptor)
+        return refinedTypeCache.computeIfAbsent(type) {
+            type.refine(moduleDescriptor)
+        }
     }
 
     @TypeRefinement
