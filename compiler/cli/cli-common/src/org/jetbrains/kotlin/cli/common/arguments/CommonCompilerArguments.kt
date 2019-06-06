@@ -292,6 +292,12 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     )
     var useFir: Boolean by FreezableVar(false)
 
+    @Argument(
+        value = "-XXtype-refinement",
+        description = "Enable type refinement for multiplatform projects"
+    )
+    var useTypeRefinement: Boolean by FreezableVar(false)
+
     open fun configureAnalysisFlags(collector: MessageCollector): MutableMap<AnalysisFlag<*>, Any> {
         return HashMap<AnalysisFlag<*>, Any>().apply {
             put(AnalysisFlags.skipMetadataVersionCheck, skipMetadataVersionCheck)
@@ -301,6 +307,9 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
             put(AnalysisFlags.useExperimental, useExperimental?.toList().orEmpty())
             put(AnalysisFlags.explicitApiVersion, apiVersion != null)
             put(AnalysisFlags.allowResultReturnType, allowResultReturnType)
+            if (multiPlatform) {
+                put(AnalysisFlags.useTypeRefinement, useTypeRefinement)
+            }
         }
     }
 
