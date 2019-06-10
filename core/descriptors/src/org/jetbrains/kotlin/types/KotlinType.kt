@@ -59,6 +59,9 @@ sealed class KotlinType : Annotated, KotlinTypeMarker {
     @TypeRefinementInternal
     abstract fun refine(moduleDescriptor: ModuleDescriptor): KotlinType
 
+    @TypeRefinementInternal
+    open val hasNotTrivialRefinementFactory: Boolean get() = false
+
     private val _hashCode: Int by lazy {
         if (isError) return@lazy super.hashCode()
 
