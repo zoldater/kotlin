@@ -79,6 +79,11 @@ public class MultiplatformAnalysisTestGenerated extends AbstractMultiplatformAna
             runTest("idea/testData/multiplatformTypeRefinement/diamondModuleDependency2/");
         }
 
+        @TestMetadata("languageConstructions")
+        public void testLanguageConstructions() throws Exception {
+            runTest("idea/testData/multiplatformTypeRefinement/languageConstructions/");
+        }
+
         @TestMetadata("multilevelParents")
         public void testMultilevelParents() throws Exception {
             runTest("idea/testData/multiplatformTypeRefinement/multilevelParents/");
