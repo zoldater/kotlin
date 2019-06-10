@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.descriptors.impl.getRefinedUnsubstitutedMemberScopeI
 import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 object KotlinTypeFactory {
@@ -120,10 +119,14 @@ object KotlinTypeFactory {
             val expandedTypeOrRefinedConstructor = refineConstructor(constructor, module, arguments) ?: return@SimpleTypeImpl null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@SimpleTypeImpl it }
 
+            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+            @UseExperimental(TypeRefinementInternal::class)
+            val refinedArguments = arguments.map { it.refine(module) }
+
             simpleTypeWithNonTrivialMemberScope(
                 annotations,
                 expandedTypeOrRefinedConstructor.refinedConstructor!!,
-                arguments,
+                refinedArguments,
                 nullable,
                 memberScope
             )
@@ -194,6 +197,9 @@ private class SimpleTypeImpl(
     override val memberScope: MemberScope,
     private val refinedTypeFactory: (ModuleDescriptor) -> SimpleType?
 ) : SimpleType() {
+    @TypeRefinementInternal
+    override val hasNotTrivialRefinementFactory: Boolean get() = true
+
     override val annotations: Annotations get() = Annotations.EMPTY
 
     override fun replaceAnnotations(newAnnotations: Annotations) =
