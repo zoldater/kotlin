@@ -724,6 +724,7 @@ class PSICallResolver(
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     private fun ReceiverValueWithSmartCastInfo.refine(): ReceiverValueWithSmartCastInfo {
+        if (receiverValue is ImplicitReceiver) return this
         val refinedType = kotlinTypeRefiner.refineType(receiverValue.type)
         return ReceiverValueWithSmartCastInfo(
             receiverValue.replaceType(refinedType),
