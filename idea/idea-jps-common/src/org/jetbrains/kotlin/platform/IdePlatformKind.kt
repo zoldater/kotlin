@@ -6,6 +6,7 @@
 @file:JvmName("IdePlatformKindUtil")
 package org.jetbrains.kotlin.platform
 
+import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.extensions.ApplicationExtensionDescriptor
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.isJps
@@ -16,7 +17,7 @@ import org.jetbrains.kotlin.platform.impl.NativeIdePlatformKind
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 abstract class IdePlatformKind<Kind : IdePlatformKind<Kind>> {
-    abstract val platforms: List<TargetPlatform>
+    abstract fun supportsTargetPlatform(platform: TargetPlatform): Boolean
 
     abstract val defaultPlatform: TargetPlatform
 
@@ -62,13 +63,6 @@ abstract class IdePlatformKind<Kind : IdePlatformKind<Kind>> {
             kinds
         }
 
-        val All_PLATFORMS by lazy { ALL_KINDS.flatMap { it.platforms } }
-
-        val IDE_PLATFORMS_BY_COMPILER_PLATFORMS by lazy {
-            ALL_KINDS.flatMap { idePlatformKind ->
-                idePlatformKind.platforms.map { compilerPlatform -> compilerPlatform to idePlatformKind }
-            }.toMap()
-        }
 
         fun <Args : CommonCompilerArguments> platformByCompilerArguments(arguments: Args): TargetPlatform? =
             ALL_KINDS.firstNotNullResult { it.platformByCompilerArguments(arguments) }
@@ -77,4 +71,10 @@ abstract class IdePlatformKind<Kind : IdePlatformKind<Kind>> {
 }
 
 val TargetPlatform.idePlatformKind: IdePlatformKind<*>
-        get() = IdePlatformKind.IDE_PLATFORMS_BY_COMPILER_PLATFORMS[this] ?: error("Unknown platform $this")
+    get() = IdePlatformKind.ALL_KINDS.filter { it.supportsTargetPlatform(this) }.let { list ->
+        when {
+            list.size == 1 -> list.first()
+            list.size > 1 -> list.first().also { Logger.getInstance(IdePlatformKind.javaClass).warn("Found more than one IdePlatformKind [$list] for target [$this].") }
+            else -> error("Unknown platform $this")
+        }
+    }

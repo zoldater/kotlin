@@ -190,14 +190,6 @@ class KotlinFacetSettings {
         }
 
     var targetPlatform: TargetPlatform? = null
-        get() {
-            if (field != null) {
-                return field
-            }
-            // Fallback to the legacy algorythm.
-            val compilerArguments = this.compilerArguments ?: return null
-            return IdePlatformKind.platformByCompilerArguments(compilerArguments)
-        }
 
     @Suppress("DEPRECATION_ERROR")
     @Deprecated(

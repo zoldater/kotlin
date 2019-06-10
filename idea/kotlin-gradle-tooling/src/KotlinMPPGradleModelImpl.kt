@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.gradle
 
 import java.io.File
 import java.util.*
+import kotlin.collections.HashSet
 
 data class KotlinSourceSetImpl(
     override val name: String,
@@ -174,23 +175,20 @@ data class KotlinMPPGradleModelImpl(
 }
 
 class KotlinPlatformContainerImpl() : KotlinPlatformContainer {
-    private val myPlatforms = HashSet<KotlinPlatform>()
+    private val defaultCommonPlatform = setOf(KotlinPlatform.COMMON)
+    private var myPlatforms: MutableSet<KotlinPlatform>? = null
 
-    //This property is required in order to support NMPP common platform and distinguish from HMPP
-    private var isLegacyNMPPCommonPlatform = true
 
     constructor(platform: KotlinPlatformContainer) : this() {
-        myPlatforms.addAll(platform.platforms)
-        isLegacyNMPPCommonPlatform  = false
+        myPlatforms = HashSet<KotlinPlatform>(platform.platforms)
     }
 
     override val platforms: Collection<KotlinPlatform>
-        get() = if (isLegacyNMPPCommonPlatform) setOf(KotlinPlatform.COMMON) else myPlatforms
+        get() = myPlatforms ?: defaultCommonPlatform
 
-    override fun supports(simplePlatform: KotlinPlatform): Boolean = myPlatforms.contains(simplePlatform)
+    override fun supports(simplePlatform: KotlinPlatform): Boolean = platforms.contains(simplePlatform)
 
     override fun addSimplePlatforms(platforms: Collection<KotlinPlatform>) {
-        myPlatforms.addAll(platforms)
-        isLegacyNMPPCommonPlatform = false
+        (myPlatforms ?: HashSet<KotlinPlatform>().apply { myPlatforms = this }).addAll(platforms)
     }
 }

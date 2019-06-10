@@ -153,6 +153,7 @@ fun KotlinFacet.configureFacet(
     val module = module
     with(configuration.settings) {
         compilerArguments = null
+        targetPlatform = null
         compilerSettings = null
         initializeIfNeeded(
             module,
