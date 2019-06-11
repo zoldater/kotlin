@@ -168,7 +168,7 @@ private fun readV2AndLaterConfig(element: Element): KotlinFacetSettings {
             compilerArguments = targetPlatform.createArguments {
                 freeArgs = mutableListOf()
                 internalArguments = mutableListOf()
-            }//TODO target platform
+            }
             XmlSerializer.deserializeInto(compilerArguments!!, it)
             compilerArguments!!.detectVersionAutoAdvance()
         }
