@@ -79,6 +79,11 @@ public class MultiplatformAnalysisTestGenerated extends AbstractMultiplatformAna
             runTest("idea/testData/multiplatformTypeRefinement/diamondModuleDependency2/");
         }
 
+        @TestMetadata("jsNameClash")
+        public void testJsNameClash() throws Exception {
+            runTest("idea/testData/multiplatformTypeRefinement/jsNameClash/");
+        }
+
         @TestMetadata("lambdas")
         public void testLambdas() throws Exception {
             runTest("idea/testData/multiplatformTypeRefinement/lambdas/");
