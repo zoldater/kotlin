@@ -293,8 +293,8 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     var useFir: Boolean by FreezableVar(false)
 
     @Argument(
-        value = "-XXtype-refinement",
-        description = "Enable type refinement for multiplatform projects"
+        value = "-Xtype-refinement",
+        description = "Enable type refinement for multiplatform projects. Works only with enabled MPP. Experimental feature"
     )
     var useTypeRefinement: Boolean by FreezableVar(false)
 
