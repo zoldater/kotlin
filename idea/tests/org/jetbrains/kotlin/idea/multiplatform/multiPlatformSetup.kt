@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
 import org.jetbrains.kotlin.idea.test.PluginTestCaseBase
 import org.jetbrains.kotlin.test.TestJdkKind
 import org.jetbrains.kotlin.platform.*
+import org.jetbrains.kotlin.platform.compat.toOldPlatform
 import org.jetbrains.kotlin.platform.js.JsPlatforms
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.platform.js.isJs
@@ -90,12 +91,18 @@ fun AbstractMultiModuleTest.doSetup(projectModel: ProjectResolveModel) {
     for ((resolveModule, ideaModule) in resolveModulesToIdeaModules.entries) {
         val platform = resolveModule.platform
         ideaModule.createFacet(
-            platform,
+            // FIXME(dsavvinov): this is needed to not create facade on each combination of common platform (e.g., JVM/JS)
+            //   actually, that test should just use enable composite resolve, but it's available yet, and old resovle
+            //   isn't fine working with semi-common platforms.
+            //   So, we coerce semi-common platforms to completely common for now.
+            //   This conversion should be removed as soon as we'll have composite resolve
+            platform.toOldPlatform() as TargetPlatform,
             implementedModuleNames = resolveModule.dependencies.filter { it.kind == ResolveDependency.Kind.DEPENDS_ON }.map { it.to.name }
         )
         ideaModule.enableMultiPlatform()
     }
 }
+
 
 private fun AbstractMultiModuleTest.doSetupProject(rootInfos: List<RootInfo>) {
     val infosByModuleId = rootInfos.groupBy { it.moduleId }
