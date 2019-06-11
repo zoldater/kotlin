@@ -79,6 +79,7 @@ internal class NpmResolver private constructor(val rootProject: Project) {
         get() = nodeJs.packageManager
 
     private val allNpmPackages = mutableListOf<NpmProjectPackage>()
+    internal val npmProjectsByName = mutableMapOf<String, NpmProjectPackage>()
 
     class ProjectData(var visit: NpmProjects? = null) {
         companion object {
@@ -121,8 +122,9 @@ internal class NpmResolver private constructor(val rootProject: Project) {
             getOrResolve(it)
         }
 
-        val visited = NpmProjectVisitor(this, project).visitProject()
+        val visited = NpmProjectVisitor(this, project)
         data.visit = visited
+        visited.visitProject()
 
         allNpmPackages.addAll(visited.npmProjects)
 

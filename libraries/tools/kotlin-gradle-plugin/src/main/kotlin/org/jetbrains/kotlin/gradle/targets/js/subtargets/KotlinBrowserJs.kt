@@ -39,38 +39,38 @@ class KotlinBrowserJs(target: KotlinJsTarget) :
     }
 
     override fun configureRun(compilation: KotlinJsCompilation) {
-        val project = compilation.target.project
-
-        project.createOrRegisterTask<KotlinWebpack>(disambiguateCamelCased("webpack")) {
-            val compileKotlinTask = compilation.compileKotlinTask
-            it.dependsOn(target.project.nodeJs.root.npmResolveTask, compileKotlinTask)
-
-            it.compilation = compilation
-            it.description = "build webpack bundle"
-
-            project.tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(it)
-        }
-
-        val run = project.createOrRegisterTask<KotlinWebpack>(disambiguateCamelCased("run")) {
-            val compileKotlinTask = compilation.compileKotlinTask
-            it.dependsOn(
-                target.project.nodeJs.root.npmResolveTask,
-                compileKotlinTask,
-                project.getTasksByName(compilation.processResourcesTaskName, false)
-            )
-
-            it.bin = "webpack-dev-server"
-            it.compilation = compilation
-            it.description = "start webpack dev server"
-
-            it.devServer = KotlinWebpackConfigWriter.DevServer(
-                open = true,
-                contentBase = listOf(compilation.output.resourcesDir.canonicalPath)
-            )
-
-            it.outputs.upToDateWhen { false }
-        }
-
-        target.runTask.dependsOn(run.getTaskOrProvider())
+//        val project = compilation.target.project
+//
+//        project.createOrRegisterTask<KotlinWebpack>(disambiguateCamelCased("webpack")) {
+//            val compileKotlinTask = compilation.compileKotlinTask
+//            it.dependsOn(target.project.nodeJs.root.npmResolveTask, compileKotlinTask)
+//
+//            it.compilation = compilation
+//            it.description = "build webpack bundle"
+//
+//            project.tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(it)
+//        }
+//
+//        val run = project.tasks.create(disambiguateCamelCased("run"), KotlinWebpack::class.java) {
+//            val compileKotlinTask = compilation.compileKotlinTask
+//            it.dependsOn(
+//                target.project.nodeJs.root.npmResolveTask,
+//                compileKotlinTask,
+//                project.getTasksByName(compilation.processResourcesTaskName, false)
+//            )
+//
+//            it.bin = "webpack-dev-server"
+//            it.compilation = compilation
+//            it.description = "start webpack dev server"
+//
+//            it.devServer = KotlinWebpackConfigWriter.DevServer(
+//                open = true,
+//                contentBase = listOf(compilation.output.resourcesDir.canonicalPath)
+//            )
+//
+//            it.outputs.upToDateWhen { false }
+//        }
+//
+//        target.runTask.dependsOn(run)
     }
 }

@@ -12,12 +12,12 @@ import org.jetbrains.kotlin.gradle.targets.js.RequiredKotlinJsDependency
 /**
  * Info about NPM projects inside particular gradle [project].
  */
-class NpmProjects(
-    val project: Project,
+interface NpmProjects {
+    val project: Project
 
-    val npmProjects: List<NpmProjectPackage>,
-    val npmProjectsByCompilation: Map<KotlinJsCompilation, NpmProjectPackage>,
-    val npmProjectsByNpmDependency: Map<NpmDependency, NpmProjectPackage>,
+    val npmProjects: List<NpmProjectPackage>
+    val npmProjectsByCompilation: Map<KotlinJsCompilation, NpmProjectPackage>
+    val npmProjectsByNpmDependency: Map<NpmDependency, NpmProjectPackage>
 
     val taskRequirements: Map<RequiresNpmDependencies, Collection<RequiredKotlinJsDependency>>
-)
+}

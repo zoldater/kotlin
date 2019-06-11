@@ -75,12 +75,12 @@ open class NpmProject(val compilation: KotlinJsCompilation) {
         val project = target.project
         val name = StringBuilder()
 
-        name.append(project.rootProject.name)
+//        name.append(project.rootProject.name)
 
-        if (project != project.rootProject) {
-            name.append("-")
+//        if (project != project.rootProject) {
+//            name.append("-")
             name.append(project.name)
-        }
+//        }
 
         if (target.name.isNotEmpty() && target.name.toLowerCase() != "js") {
             name.append("-").append(target.name)
