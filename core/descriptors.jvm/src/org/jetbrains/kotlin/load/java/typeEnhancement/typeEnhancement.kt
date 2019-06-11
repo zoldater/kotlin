@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.createProjection
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 
@@ -248,5 +249,6 @@ internal class NotNullTypeParameter(override val delegate: SimpleType) : NotNull
     override fun makeNullableAsSpecified(newNullability: Boolean) =
         if (newNullability) delegate.makeNullableAsSpecified(true) else this
 
+    @TypeRefinementInternal
     override fun replaceDelegate(delegate: SimpleType) = NotNullTypeParameter(delegate)
 }

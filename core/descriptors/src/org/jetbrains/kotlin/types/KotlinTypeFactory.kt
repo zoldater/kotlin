@@ -243,6 +243,7 @@ private class AnnotatedSimpleType(
     delegate: SimpleType,
     override val annotations: Annotations
 ) : DelegatingSimpleTypeImpl(delegate) {
+    @TypeRefinementInternal
     override fun replaceDelegate(delegate: SimpleType) = AnnotatedSimpleType(delegate, annotations)
 }
 
@@ -250,6 +251,7 @@ private class NullableSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImp
     override val isMarkedNullable: Boolean
         get() = true
 
+    @TypeRefinementInternal
     override fun replaceDelegate(delegate: SimpleType) = NullableSimpleType(delegate)
 }
 
@@ -257,5 +259,6 @@ private class NotNullSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl
     override val isMarkedNullable: Boolean
         get() = false
 
+    @TypeRefinementInternal
     override fun replaceDelegate(delegate: SimpleType) = NotNullSimpleType(delegate)
 }

@@ -36,6 +36,7 @@ abstract class DelegatingSimpleType : SimpleType() {
     override val isMarkedNullable: Boolean get() = delegate.isMarkedNullable
     override val memberScope: MemberScope get() = delegate.memberScope
 
+    @TypeRefinementInternal
     abstract fun replaceDelegate(delegate: SimpleType): DelegatingSimpleType
 
     @TypeRefinementInternal
@@ -51,6 +52,7 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
     override fun makeNullableAsSpecified(newNullability: Boolean)
             = AbbreviatedType(delegate.makeNullableAsSpecified(newNullability), abbreviation.makeNullableAsSpecified(newNullability))
 
+    @TypeRefinementInternal
     override fun replaceDelegate(delegate: SimpleType) = AbbreviatedType(delegate, abbreviation)
 
     @TypeRefinementInternal
@@ -130,6 +132,7 @@ class DefinitelyNotNullType private constructor(val original: SimpleType) : Dele
 
     override fun toString(): String = "$delegate!!"
 
+    @TypeRefinementInternal
     override fun replaceDelegate(delegate: SimpleType) = DefinitelyNotNullType(delegate)
 }
 
