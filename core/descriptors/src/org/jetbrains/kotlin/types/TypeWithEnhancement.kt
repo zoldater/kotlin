@@ -41,6 +41,7 @@ class SimpleTypeWithEnhancement(
     override fun makeNullableAsSpecified(newNullability: Boolean): SimpleType
             = origin.makeNullableAsSpecified(newNullability).wrapEnhancement(enhancement.unwrap().makeNullableAsSpecified(newNullability)) as SimpleType
 
+    @TypeRefinementInternal
     override fun replaceDelegate(delegate: SimpleType) = SimpleTypeWithEnhancement(delegate, enhancement)
 
     @TypeRefinementInternal
