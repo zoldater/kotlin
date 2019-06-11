@@ -22,12 +22,17 @@ import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintKind.LOWER
 import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintKind.UPPER
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallDiagnostic
 import org.jetbrains.kotlin.types.*
-import org.jetbrains.kotlin.types.checker.NewCapturedType
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.model.*
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import java.util.*
 import kotlin.math.max
 
-class ConstraintInjector(val constraintIncorporator: ConstraintIncorporator, val typeApproximator: AbstractTypeApproximator) {
+class ConstraintInjector(
+    val constraintIncorporator: ConstraintIncorporator,
+    val typeApproximator: AbstractTypeApproximator,
+    val kotlinTypeRefiner: KotlinTypeRefiner
+) {
     private val ALLOWED_DEPTH_DELTA_FOR_INCORPORATION = 1
 
     interface Context : TypeSystemInferenceExtensionContext {
@@ -135,10 +140,21 @@ class ConstraintInjector(val constraintIncorporator: ConstraintIncorporator, val
             return baseContext.prepareType(type)
         }
 
+        @TypeRefinement
+        private fun KotlinTypeMarker.refineType(): KotlinTypeMarker = if (this is KotlinType) {
+            kotlinTypeRefiner.refineType(this)
+        } else {
+            this
+        }
+
+        @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+        @UseExperimental(TypeRefinement::class)
         fun runIsSubtypeOf(lowerType: KotlinTypeMarker, upperType: KotlinTypeMarker) {
-            if (!AbstractTypeChecker.isSubtypeOf(this@TypeCheckerContext as AbstractTypeCheckerContext, lowerType, upperType)) {
+            val refinedLowerType = lowerType.refineType()
+            val refinedUpperType = upperType.refineType()
+            if (!AbstractTypeChecker.isSubtypeOf(this@TypeCheckerContext as AbstractTypeCheckerContext, refinedLowerType, refinedUpperType)) {
                 // todo improve error reporting -- add information about base types
-                c.addError(NewConstraintError(lowerType, upperType, position))
+                c.addError(NewConstraintError(refinedLowerType, refinedUpperType, position))
             }
         }
 
