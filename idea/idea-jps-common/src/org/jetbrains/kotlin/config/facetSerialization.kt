@@ -126,9 +126,9 @@ fun Element.getFacetPlatformByConfigurationElement(): TargetPlatform {
     }
     // failed to read list of all platforms. Fallback to legacy algorythm
     val platformName = getAttributeValue("platform")
-    return CommonPlatforms.allSimplePlatforms.union(setOf(CommonPlatforms.defaultCommonPlatform))
-        .firstOrNull { it.oldFashionedDescription == platformName }
-        .orDefault()
+    // this code could be simplified using union after fixing the equals method in SimplePlatform
+    val allPlatforms = ArrayList(CommonPlatforms.allSimplePlatforms).also { it.add(CommonPlatforms.defaultCommonPlatform) }
+    return allPlatforms.firstOrNull { it.oldFashionedDescription == platformName }.orDefault()
 }
 
 private fun readV2AndLaterConfig(element: Element): KotlinFacetSettings {
