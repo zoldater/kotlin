@@ -18,7 +18,7 @@ package org.jetbrains.kotlin.idea.facet
 
 import com.intellij.facet.ui.*
 import com.intellij.ide.actions.ShowSettingsUtilImpl
-import com.intellij.ide.plugins.newui.HorizontalLayout
+//import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.HoverHyperlinkLabel
@@ -107,7 +107,7 @@ class KotlinFacetEditorGeneralTab(
                 }
             }
 
-            val targetPlatformsPanel = JPanel(HorizontalLayout(0))
+            val targetPlatformsPanel = JPanel(/*HorizontalLayout(0)*/)
             platformToCheckbox.values.forEach {
                 targetPlatformsPanel.add(it)
                 it.isEnabled = true //TODO(auskov): think about enabling/disabling editing facet settings
