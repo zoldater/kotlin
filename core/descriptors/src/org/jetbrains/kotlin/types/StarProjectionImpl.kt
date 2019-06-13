@@ -17,9 +17,10 @@
 package org.jetbrains.kotlin.types
 
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptorWithTypeParameters
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 class StarProjectionImpl(private val typeParameter: TypeParameterDescriptor) : TypeProjectionBase() {
@@ -35,12 +36,13 @@ class StarProjectionImpl(private val typeParameter: TypeParameterDescriptor) : T
     override fun getType() = _type
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): TypeProjection = refineIfNeeded(moduleDescriptor)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjection =
+        refineIfNeeded(kotlinTypeRefiner)
 }
 
 @TypeRefinementInternal
-private fun TypeProjectionBase.refineIfNeeded(moduleDescriptor: ModuleDescriptor): TypeProjectionBase {
-    return RefinedStarProjection(type.refine(moduleDescriptor))
+private fun TypeProjectionBase.refineIfNeeded(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjectionBase {
+    return RefinedStarProjection(type.refine(kotlinTypeRefiner))
 }
 
 private class RefinedStarProjection(private val _type: KotlinType) : TypeProjectionBase() {
@@ -51,7 +53,8 @@ private class RefinedStarProjection(private val _type: KotlinType) : TypeProject
     override fun isStarProjection(): Boolean = true
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): TypeProjection = refineIfNeeded(moduleDescriptor)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjection =
+        refineIfNeeded(kotlinTypeRefiner)
 }
 
 fun TypeParameterDescriptor.starProjectionType(): KotlinType {
@@ -78,5 +81,8 @@ class TypeBasedStarProjectionImpl(
     override fun getType() = _type
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): TypeProjection = TypeBasedStarProjectionImpl(_type.refine(moduleDescriptor!!))
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjection =
+        TypeBasedStarProjectionImpl(kotlinTypeRefiner.refineType(_type))
 }

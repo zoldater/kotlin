@@ -12,33 +12,34 @@ import org.jetbrains.kotlin.descriptors.impl.ModuleAwareClassDescriptor.Companio
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.TypeProjection
 import org.jetbrains.kotlin.types.TypeSubstitution
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 
 abstract class ModuleAwareClassDescriptor : ClassDescriptor {
-    protected abstract fun getUnsubstitutedMemberScope(moduleDescriptor: ModuleDescriptor): MemberScope
-    protected abstract fun getMemberScope(typeSubstitution: TypeSubstitution, moduleDescriptor: ModuleDescriptor): MemberScope
-    protected abstract fun getMemberScope(typeArguments: List<TypeProjection>, moduleDescriptor: ModuleDescriptor): MemberScope
+    protected abstract fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope
+    protected abstract fun getMemberScope(typeSubstitution: TypeSubstitution, kotlinTypeRefiner: KotlinTypeRefiner): MemberScope
+    protected abstract fun getMemberScope(typeArguments: List<TypeProjection>, kotlinTypeRefiner: KotlinTypeRefiner): MemberScope
 
     companion object {
         internal fun ClassDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
-            moduleDescriptor: ModuleDescriptor
+            kotlinTypeRefiner: KotlinTypeRefiner
         ): MemberScope =
-            (this as? ModuleAwareClassDescriptor)?.getUnsubstitutedMemberScope(moduleDescriptor) ?: this.unsubstitutedMemberScope
+            (this as? ModuleAwareClassDescriptor)?.getUnsubstitutedMemberScope(kotlinTypeRefiner) ?: this.unsubstitutedMemberScope
 
         internal fun ClassDescriptor.getRefinedMemberScopeIfPossible(
             typeSubstitution: TypeSubstitution,
-            moduleDescriptor: ModuleDescriptor
+            kotlinTypeRefiner: KotlinTypeRefiner
         ): MemberScope =
-            (this as? ModuleAwareClassDescriptor)?.getMemberScope(typeSubstitution, moduleDescriptor) ?: this.getMemberScope(
+            (this as? ModuleAwareClassDescriptor)?.getMemberScope(typeSubstitution, kotlinTypeRefiner) ?: this.getMemberScope(
                 typeSubstitution
             )
     }
 }
 
 fun ClassDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
-    moduleDescriptor: ModuleDescriptor
-): MemberScope = getRefinedUnsubstitutedMemberScopeIfPossible(moduleDescriptor)
+    kotlinTypeRefiner: KotlinTypeRefiner
+): MemberScope = getRefinedUnsubstitutedMemberScopeIfPossible(kotlinTypeRefiner)
 
 fun ClassDescriptor.getRefinedMemberScopeIfPossible(
     typeSubstitution: TypeSubstitution,
-    moduleDescriptor: ModuleDescriptor
-): MemberScope = getRefinedMemberScopeIfPossible(typeSubstitution, moduleDescriptor)
+    kotlinTypeRefiner: KotlinTypeRefiner
+): MemberScope = getRefinedMemberScopeIfPossible(typeSubstitution, kotlinTypeRefiner)

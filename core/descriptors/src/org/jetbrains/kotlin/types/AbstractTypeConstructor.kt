@@ -18,10 +18,12 @@ package org.jetbrains.kotlin.types
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.SupertypeLoopChecker
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.storage.StorageManager
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.checker.refineTypes
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 abstract class AbstractTypeConstructor(private val storageManager: StorageManager) : TypeConstructor {
@@ -30,15 +32,21 @@ abstract class AbstractTypeConstructor(private val storageManager: StorageManage
     abstract override fun getDeclarationDescriptor(): ClassifierDescriptor
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): TypeConstructor = ModuleViewTypeConstructor(moduleDescriptor)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeConstructor = ModuleViewTypeConstructor(kotlinTypeRefiner)
 
     @TypeRefinementInternal
     private inner class ModuleViewTypeConstructor(
-        private val moduleDescriptor: ModuleDescriptor
+        private val kotlinTypeRefiner: KotlinTypeRefiner
     ) : TypeConstructor {
+        private val supertypes = storageManager.createLazyValue {
+            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+            @UseExperimental(TypeRefinement::class)
+            kotlinTypeRefiner.refineTypes(this@AbstractTypeConstructor.getSupertypes())
+        }
+
         override fun getParameters(): List<TypeParameterDescriptor> = this@AbstractTypeConstructor.parameters
 
-        override fun getSupertypes() = this@AbstractTypeConstructor.getSupertypes().map { it.refine(moduleDescriptor) }
+        override fun getSupertypes(): List<KotlinType> = supertypes()
 
         override fun isFinal(): Boolean = this@AbstractTypeConstructor.isFinal
         override fun isDenotable(): Boolean = this@AbstractTypeConstructor.isDenotable
@@ -47,7 +55,8 @@ abstract class AbstractTypeConstructor(private val storageManager: StorageManage
 
         override fun getBuiltIns(): KotlinBuiltIns = this@AbstractTypeConstructor.builtIns
 
-        override fun refine(moduleDescriptor: ModuleDescriptor) = this@AbstractTypeConstructor.refine(moduleDescriptor)
+        override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeConstructor =
+            this@AbstractTypeConstructor.refine(kotlinTypeRefiner)
 
         override fun equals(other: Any?) = this@AbstractTypeConstructor.equals(other)
         override fun hashCode() = this@AbstractTypeConstructor.hashCode()

@@ -68,7 +68,6 @@ class LazyJavaClassMemberScope(
     c: LazyJavaResolverContext,
     override val ownerDescriptor: ClassDescriptor,
     private val jClass: JavaClass,
-    private val moduleDescriptor: ModuleDescriptor,
     private val skipRefinement: Boolean,
     mainScope: LazyJavaClassMemberScope? = null
 ) : LazyJavaScope(c, mainScope) {
@@ -562,7 +561,7 @@ class LazyJavaClassMemberScope(
 
         @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
         @UseExperimental(TypeRefinement::class)
-        return c.components.kotlinTypeChecker.kotlinTypeRefiner.refineSupertypes(ownerDescriptor, moduleDescriptor)
+        return c.components.kotlinTypeChecker.kotlinTypeRefiner.refineSupertypes(ownerDescriptor)
     }
 
     override fun resolveMethodSignature(

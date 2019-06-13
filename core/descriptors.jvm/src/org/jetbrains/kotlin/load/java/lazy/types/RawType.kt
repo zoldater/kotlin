@@ -18,10 +18,8 @@ package org.jetbrains.kotlin.load.java.lazy.types
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.load.java.components.TypeUsage
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.DescriptorRendererOptions
@@ -30,6 +28,8 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
@@ -86,8 +86,10 @@ class RawTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : FlexibleType
     }
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): FlexibleType {
-        return RawTypeImpl(lowerBound.refine(moduleDescriptor), upperBound.refine(moduleDescriptor))
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): FlexibleType {
+        return RawTypeImpl(kotlinTypeRefiner.refineType(lowerBound) as SimpleType, kotlinTypeRefiner.refineType(upperBound) as SimpleType)
     }
 }
 
@@ -148,9 +150,11 @@ internal object RawSubstitution : TypeSubstitution() {
                 computeProjection(parameter, attr)
             },
             type.isMarkedNullable, memberScope
-        ) factory@{ moduleDescriptor ->
+        ) factory@{ kotlinTypeRefiner ->
             val classId = (declaration as? ClassDescriptor)?.classId ?: return@factory null
-            val refinedClassDescriptor = moduleDescriptor.findClassAcrossModuleDependencies(classId) ?: return@factory null
+            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+            @UseExperimental(TypeRefinement::class)
+            val refinedClassDescriptor = kotlinTypeRefiner.findClassAcrossModuleDependencies(classId) ?: return@factory null
             if (refinedClassDescriptor == declaration) return@factory null
 
             eraseInflexibleBasedOnClassDescriptor(type, refinedClassDescriptor, attr).first

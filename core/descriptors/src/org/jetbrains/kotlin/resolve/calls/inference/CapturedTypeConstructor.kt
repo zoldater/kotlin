@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.resolve.calls.inference
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -25,6 +24,7 @@ import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.Variance.IN_VARIANCE
 import org.jetbrains.kotlin.types.Variance.OUT_VARIANCE
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
 import org.jetbrains.kotlin.types.model.CapturedTypeMarker
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
@@ -66,7 +66,8 @@ class CapturedTypeConstructorImpl(
     override fun getBuiltIns(): KotlinBuiltIns = projection.type.constructor.builtIns
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) = CapturedTypeConstructorImpl(projection.refine(moduleDescriptor))
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
+        CapturedTypeConstructorImpl(projection.refine(kotlinTypeRefiner))
 }
 
 class CapturedType(
@@ -105,8 +106,8 @@ class CapturedType(
         CapturedType(typeProjection, constructor, isMarkedNullable, newAnnotations)
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) =
-        CapturedType(typeProjection.refine(moduleDescriptor), constructor, isMarkedNullable, annotations)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
+        CapturedType(typeProjection.refine(kotlinTypeRefiner), constructor, isMarkedNullable, annotations)
 }
 
 fun createCapturedType(typeProjection: TypeProjection): KotlinType = CapturedType(typeProjection)

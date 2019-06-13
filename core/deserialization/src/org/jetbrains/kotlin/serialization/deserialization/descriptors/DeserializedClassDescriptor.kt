@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.resolve.NonReportingOverrideStrategy
 import org.jetbrains.kotlin.resolve.OverridingUtil
 import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.resolve.descriptorUtil.computeSealedSubclasses
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.StaticScopeForKotlinEnum
@@ -28,6 +27,7 @@ import org.jetbrains.kotlin.serialization.deserialization.*
 import org.jetbrains.kotlin.types.AbstractClassTypeConstructor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import java.util.*
 
@@ -56,9 +56,9 @@ class DeserializedClassDescriptor(
     private val typeConstructor = DeserializedClassTypeConstructor()
 
     private val memberScopeHolder =
-        ScopesHolderForClass.create(this, c.storageManager, this::DeserializedClassMemberScope)
+        ScopesHolderForClass.create(this, c.storageManager, c.components.kotlinTypeChecker.kotlinTypeRefiner, this::DeserializedClassMemberScope)
 
-    private val memberScope get() = memberScopeHolder.getScope(module)
+    private val memberScope get() = memberScopeHolder.getScope(c.components.kotlinTypeChecker.kotlinTypeRefiner)
     private val enumEntries = if (kind == ClassKind.ENUM_CLASS) EnumEntryClassDescriptors() else null
 
     private val containingDeclaration = outerContext.containingDeclaration
@@ -104,8 +104,8 @@ class DeserializedClassDescriptor(
 
     override fun isExternal() = Flags.IS_EXTERNAL_CLASS.get(classProto.flags)
 
-    override fun getUnsubstitutedMemberScope(moduleDescriptor: ModuleDescriptor): MemberScope =
-        memberScopeHolder.getScope(moduleDescriptor)
+    override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope =
+        memberScopeHolder.getScope(kotlinTypeRefiner)
 
     override fun getStaticScope() = staticScope
 
@@ -207,7 +207,7 @@ class DeserializedClassDescriptor(
             get() = SupertypeLoopChecker.EMPTY
     }
 
-    private inner class DeserializedClassMemberScope(private val moduleDescriptor: ModuleDescriptor) : DeserializedMemberScope(
+    private inner class DeserializedClassMemberScope(private val kotlinTypeRefiner: KotlinTypeRefiner) : DeserializedMemberScope(
         c, classProto.functionList, classProto.propertyList, classProto.typeAliasList,
         classProto.nestedClassNameList.map(c.nameResolver::getName).let { { it } } // workaround KT-13454
     ) {
@@ -220,7 +220,7 @@ class DeserializedClassDescriptor(
         private val refinedSupertypes = c.storageManager.createLazyValue {
             @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
             @UseExperimental(TypeRefinement::class)
-            c.components.kotlinTypeChecker.kotlinTypeRefiner.refineSupertypes(classDescriptor, moduleDescriptor)
+            kotlinTypeRefiner.refineSupertypes(classDescriptor)
         }
 
         override fun getContributedDescriptors(

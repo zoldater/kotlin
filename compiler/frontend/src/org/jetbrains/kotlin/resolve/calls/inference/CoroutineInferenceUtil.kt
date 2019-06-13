@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.coroutines.hasFunctionOrSuspendFunctionType
 import org.jetbrains.kotlin.coroutines.hasSuspendFunctionType
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.psi.KtExpression
@@ -41,6 +40,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.TypeUtils.NO_EXPECTED_TYPE
 import org.jetbrains.kotlin.types.checker.ClassicTypeCheckerContext
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
@@ -68,7 +68,7 @@ class TypeTemplate(
         "~${renderer.renderType(typeVariable.type)}"
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) = this
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) = this
 }
 
 class CoroutineInferenceData {

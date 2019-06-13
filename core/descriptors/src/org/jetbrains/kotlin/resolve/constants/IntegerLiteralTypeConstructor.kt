@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 class IntegerLiteralTypeConstructor : TypeConstructor {
@@ -166,7 +167,7 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
     override fun getBuiltIns(): KotlinBuiltIns = module.builtIns
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) = IntegerLiteralTypeConstructor(value, moduleDescriptor, possibleTypes)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeConstructor? = null
 
     override fun toString(): String {
         return "IntegerLiteralType${valueToString()}"

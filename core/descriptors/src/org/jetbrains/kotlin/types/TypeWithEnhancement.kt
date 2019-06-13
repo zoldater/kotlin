@@ -16,10 +16,11 @@
 
 package org.jetbrains.kotlin.types
 
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.DescriptorRendererOptions
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 interface TypeWithEnhancement {
@@ -45,8 +46,13 @@ class SimpleTypeWithEnhancement(
     override fun replaceDelegate(delegate: SimpleType) = SimpleTypeWithEnhancement(delegate, enhancement)
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): SimpleTypeWithEnhancement =
-            SimpleTypeWithEnhancement(delegate.refine(moduleDescriptor), enhancement.refine(moduleDescriptor))
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): SimpleTypeWithEnhancement =
+            SimpleTypeWithEnhancement(
+                kotlinTypeRefiner.refineType(delegate) as SimpleType,
+                kotlinTypeRefiner.refineType(enhancement)
+            )
 }
 
 class FlexibleTypeWithEnhancement(
@@ -71,8 +77,13 @@ class FlexibleTypeWithEnhancement(
     override val delegate: SimpleType get() = origin.delegate
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) =
-        FlexibleTypeWithEnhancement(origin.refine(moduleDescriptor), enhancement.refine(moduleDescriptor))
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
+        FlexibleTypeWithEnhancement(
+            kotlinTypeRefiner.refineType(origin) as FlexibleType,
+            kotlinTypeRefiner.refineType(enhancement)
+        )
 }
 
 fun KotlinType.getEnhancement(): KotlinType? = when (this) {

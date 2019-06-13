@@ -123,7 +123,7 @@ class LazyScriptDescriptor(
         c: LazyClassContext,
         declarationProvider: ClassMemberDeclarationProvider
     ): ScopesHolderForClass<LazyClassMemberScope> =
-        ScopesHolderForClass.create(this, c.storageManager) {
+        ScopesHolderForClass.create(this, c.storageManager, c.kotlinTypeChecker.kotlinTypeRefiner) {
             LazyScriptClassMemberScope(
                 // Must be a ResolveSession for scripts
                 c as ResolveSession,

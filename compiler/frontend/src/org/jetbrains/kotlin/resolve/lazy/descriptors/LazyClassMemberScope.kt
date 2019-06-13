@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.storage.NotNullLazyValue
 import org.jetbrains.kotlin.storage.NullableLazyValue
 import org.jetbrains.kotlin.storage.getValue
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import java.util.*
 
@@ -50,7 +51,7 @@ open class LazyClassMemberScope(
     declarationProvider: ClassMemberDeclarationProvider,
     thisClass: ClassDescriptorWithResolutionScopes,
     trace: BindingTrace,
-    private val moduleDescriptor: ModuleDescriptor = c.moduleDescriptor,
+    private val kotlinTypeRefiner: KotlinTypeRefiner = c.kotlinTypeChecker.kotlinTypeRefiner,
     scopeForDeclaredMembers: LazyClassMemberScope? = null
 ) : AbstractLazyMemberScope<ClassDescriptorWithResolutionScopes, ClassMemberDeclarationProvider>(
     c, declarationProvider, thisClass, trace, scopeForDeclaredMembers
@@ -101,7 +102,7 @@ open class LazyClassMemberScope(
     val supertypes by storageManager.createLazyValue {
         @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
         @UseExperimental(TypeRefinement::class)
-        c.kotlinTypeChecker.kotlinTypeRefiner.refineSupertypes(thisDescriptor, moduleDescriptor)
+        kotlinTypeRefiner.refineSupertypes(thisDescriptor)
     }
 
     private val _variableNames: MutableSet<Name>

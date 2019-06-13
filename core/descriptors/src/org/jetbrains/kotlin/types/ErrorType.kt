@@ -16,9 +16,9 @@
 
 package org.jetbrains.kotlin.types
 
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 open class ErrorType @JvmOverloads internal constructor(
@@ -39,7 +39,7 @@ open class ErrorType @JvmOverloads internal constructor(
             ErrorType(constructor, memberScope, arguments, newNullability)
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) = this
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) = this
 }
 
 class UnresolvedType(
@@ -53,5 +53,5 @@ class UnresolvedType(
             UnresolvedType(presentableName, constructor, memberScope, arguments, newNullability)
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) = this
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) = this
 }

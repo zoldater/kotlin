@@ -18,8 +18,8 @@ package org.jetbrains.kotlin.types
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 class FunctionPlaceholders(private val builtIns: KotlinBuiltIns) {
@@ -75,5 +75,5 @@ class FunctionPlaceholderTypeConstructor(
     }
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): TypeConstructor? = null
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeConstructor? = null
 }

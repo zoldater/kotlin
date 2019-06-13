@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.types.checker
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.calls.inference.CapturedTypeConstructor
@@ -26,6 +25,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.model.CaptureStatus
 import org.jetbrains.kotlin.types.model.CapturedTypeMarker
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.builtIns
@@ -143,11 +143,14 @@ class NewCapturedType(
         NewCapturedType(captureStatus, constructor, lowerType, annotations, newNullability)
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) =
+    @TypeRefinement
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
         NewCapturedType(
             captureStatus,
-            constructor.refine(moduleDescriptor),
-            lowerType?.refine(moduleDescriptor), annotations, isMarkedNullable
+            constructor.refine(kotlinTypeRefiner),
+            lowerType?.let { kotlinTypeRefiner.refineType(it).unwrap() },
+            annotations,
+            isMarkedNullable
         )
 }
 
@@ -173,10 +176,11 @@ class NewCapturedTypeConstructor(
     override fun getBuiltIns(): KotlinBuiltIns = projection.type.builtIns
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) =
+    @TypeRefinement
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
         NewCapturedTypeConstructor(
-            projection.refine(moduleDescriptor),
-            supertypes?.map { it.refine(moduleDescriptor) },
+            projection.refine(kotlinTypeRefiner),
+            supertypes?.let { kotlinTypeRefiner.refineTypes(it) },
             original ?: this
         )
 

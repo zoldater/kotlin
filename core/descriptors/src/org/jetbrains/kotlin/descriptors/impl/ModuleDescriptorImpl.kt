@@ -26,9 +26,9 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.types.refinement.RefinedScopeCacheImpl
+import org.jetbrains.kotlin.types.checker.REFINER_CAPABILITY
+import org.jetbrains.kotlin.types.checker.Ref
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
-import org.jetbrains.kotlin.types.refinement.refinementCacheCapability
 import org.jetbrains.kotlin.utils.sure
 
 class ModuleDescriptorImpl @JvmOverloads constructor(
@@ -49,7 +49,7 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
         this.capabilities = capabilities.toMutableMap()
         @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
         @UseExperimental(TypeRefinementInternal::class)
-        this.capabilities[refinementCacheCapability] = RefinedScopeCacheImpl(this, storageManager)
+        this.capabilities[REFINER_CAPABILITY] = Ref(null)
     }
 
     private var dependencies: ModuleDependencies? = null

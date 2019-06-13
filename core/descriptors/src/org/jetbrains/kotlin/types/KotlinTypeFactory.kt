@@ -17,34 +17,40 @@
 package org.jetbrains.kotlin.types
 
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.getRefinedMemberScopeIfPossible
 import org.jetbrains.kotlin.descriptors.impl.getRefinedUnsubstitutedMemberScopeIfPossible
 import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
+import org.jetbrains.kotlin.resolve.descriptorUtil.getKotlinTypeRefiner
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
+typealias RefinedTypeFactory = (KotlinTypeRefiner) -> SimpleType?
+
 object KotlinTypeFactory {
+    val EMPTY_REFINED_TYPE_FACTORY: RefinedTypeFactory = { _ -> null }
+
     private fun computeMemberScope(
         constructor: TypeConstructor,
         arguments: List<TypeProjection>,
-        moduleDescriptor: ModuleDescriptor? = null
+        kotlinTypeRefiner: KotlinTypeRefiner? = null
     ): MemberScope {
         val descriptor = constructor.declarationDescriptor
         return when (descriptor) {
             is TypeParameterDescriptor -> descriptor.getDefaultType().memberScope
             is ClassDescriptor -> {
-                val moduleToUse = moduleDescriptor ?: descriptor.module
+                val refinerToUse = kotlinTypeRefiner ?: descriptor.module.getKotlinTypeRefiner()
                 if (arguments.isEmpty())
-                    descriptor.getRefinedUnsubstitutedMemberScopeIfPossible(moduleToUse)
+                    descriptor.getRefinedUnsubstitutedMemberScopeIfPossible(refinerToUse)
                 else
                     descriptor.getRefinedMemberScopeIfPossible(
                         TypeConstructorSubstitution.create(constructor, arguments),
-                        moduleToUse
+                        refinerToUse
                     )
             }
             is TypeAliasDescriptor -> ErrorUtils.createErrorScope("Scope for abbreviation: ${descriptor.name}", true)
@@ -61,7 +67,7 @@ object KotlinTypeFactory {
         constructor: TypeConstructor,
         arguments: List<TypeProjection>,
         nullable: Boolean,
-        moduleDescriptor: ModuleDescriptor? = null
+        kotlinTypeRefiner: KotlinTypeRefiner? = null
     ): SimpleType {
         if (annotations.isEmpty() && arguments.isEmpty() && !nullable && constructor.declarationDescriptor != null) {
             return constructor.declarationDescriptor!!.defaultType
@@ -69,13 +75,13 @@ object KotlinTypeFactory {
 
         return simpleTypeWithNonTrivialMemberScope(
             annotations, constructor, arguments, nullable,
-            computeMemberScope(constructor, arguments, moduleDescriptor)
-        ) f@{ module ->
-            val refinedArguments = arguments.map { it.refine(module) }
-            val expandedTypeOrRefinedConstructor = refineConstructor(constructor, module, refinedArguments) ?: return@f null
+            computeMemberScope(constructor, arguments, kotlinTypeRefiner)
+        ) f@{ refiner ->
+            val refinedArguments = arguments.map { it.refine(refiner) }
+            val expandedTypeOrRefinedConstructor = refineConstructor(constructor, refiner, refinedArguments) ?: return@f null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@f it }
 
-            simpleType(annotations, expandedTypeOrRefinedConstructor.refinedConstructor!!, refinedArguments, nullable, module)
+            simpleType(Annotations.EMPTY, expandedTypeOrRefinedConstructor.refinedConstructor!!, refinedArguments, nullable, refiner)
         }
     }
 
@@ -89,18 +95,20 @@ object KotlinTypeFactory {
     @TypeRefinementInternal
     private fun refineConstructor(
         constructor: TypeConstructor,
-        moduleDescriptor: ModuleDescriptor,
+        kotlinTypeRefiner: KotlinTypeRefiner,
         arguments: List<TypeProjection>
     ): ExpandedTypeOrRefinedConstructor? {
         val basicDescriptor = constructor.declarationDescriptor
-        val descriptor =
-            basicDescriptor?.refineDescriptor(moduleDescriptor) ?: return null
+        @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+        @UseExperimental(TypeRefinement::class)
+        val descriptor = basicDescriptor?.let { kotlinTypeRefiner.refineDescriptor(it) } ?: return null
 
         if (descriptor is TypeAliasDescriptor) {
             return ExpandedTypeOrRefinedConstructor(descriptor.computeExpandedType(arguments), null)
         }
 
-        return ExpandedTypeOrRefinedConstructor(null, descriptor.typeConstructor.refine(moduleDescriptor) ?: descriptor.typeConstructor)
+        val refinedConstructor = descriptor.typeConstructor.refine(kotlinTypeRefiner) ?: descriptor.typeConstructor
+        return ExpandedTypeOrRefinedConstructor(null, refinedConstructor)
     }
 
     private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, val refinedConstructor: TypeConstructor?)
@@ -113,18 +121,18 @@ object KotlinTypeFactory {
         nullable: Boolean,
         memberScope: MemberScope
     ): SimpleType =
-        SimpleTypeImpl(constructor, arguments, nullable, memberScope) { module ->
+        SimpleTypeImpl(constructor, arguments, nullable, memberScope) { kotlinTypeRefiner ->
             @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
             @UseExperimental(TypeRefinementInternal::class)
-            val expandedTypeOrRefinedConstructor = refineConstructor(constructor, module, arguments) ?: return@SimpleTypeImpl null
+            val expandedTypeOrRefinedConstructor = refineConstructor(constructor, kotlinTypeRefiner, arguments) ?: return@SimpleTypeImpl null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@SimpleTypeImpl it }
 
             @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
             @UseExperimental(TypeRefinementInternal::class)
-            val refinedArguments = arguments.map { it.refine(module) }
+            val refinedArguments = arguments.map { it.refine(kotlinTypeRefiner) }
 
             simpleTypeWithNonTrivialMemberScope(
-                annotations,
+                Annotations.EMPTY,
                 expandedTypeOrRefinedConstructor.refinedConstructor!!,
                 refinedArguments,
                 nullable,
@@ -144,9 +152,9 @@ object KotlinTypeFactory {
         arguments: List<TypeProjection>,
         nullable: Boolean,
         memberScope: MemberScope,
-        refineTypeFactory: (ModuleDescriptor) -> SimpleType?
+        refinedTypeFactory: RefinedTypeFactory
     ): SimpleType =
-        SimpleTypeImpl(constructor, arguments, nullable, memberScope, refineTypeFactory)
+        SimpleTypeImpl(constructor, arguments, nullable, memberScope, refinedTypeFactory)
             .let {
                 if (annotations.isEmpty())
                     it
@@ -195,7 +203,7 @@ private class SimpleTypeImpl(
     override val arguments: List<TypeProjection>,
     override val isMarkedNullable: Boolean,
     override val memberScope: MemberScope,
-    private val refinedTypeFactory: (ModuleDescriptor) -> SimpleType?
+    private val refinedTypeFactory: RefinedTypeFactory
 ) : SimpleType() {
     @TypeRefinementInternal
     override val hasNotTrivialRefinementFactory: Boolean get() = true
@@ -221,8 +229,8 @@ private class SimpleTypeImpl(
     }
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): SimpleType {
-        return refinedTypeFactory(moduleDescriptor) ?: this
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): SimpleType {
+        return refinedTypeFactory(kotlinTypeRefiner) ?: this
     }
 }
 

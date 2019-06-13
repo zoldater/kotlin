@@ -9,33 +9,36 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.storage.getValue
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
-import org.jetbrains.kotlin.types.refinement.getOrPutScopeForClass
-import org.jetbrains.kotlin.types.refinement.isRefinementNeededForTypeConstructor
 
 class ScopesHolderForClass<T : MemberScope> private constructor(
     private val classDescriptor: ClassDescriptor,
     storageManager: StorageManager,
-    private val scopeFactory: (ModuleDescriptor) -> T
+    private val scopeFactory: (KotlinTypeRefiner) -> T,
+    private val kotlinTypeRefinerForOwnerModule: KotlinTypeRefiner
 ) {
-    private val scopeForOwnerModule by storageManager.createLazyValue { scopeFactory(classDescriptor.module) }
+    private val scopeForOwnerModule by storageManager.createLazyValue {
+        scopeFactory(kotlinTypeRefinerForOwnerModule)
+    }
 
     @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
-    fun getScope(moduleDescriptor: ModuleDescriptor): T {
-        if (classDescriptor.module === moduleDescriptor) return scopeForOwnerModule
+    fun getScope(kotlinTypeRefiner: KotlinTypeRefiner): T {
+        if (!kotlinTypeRefiner.isRefinementNeededForModule(classDescriptor.module)) return scopeForOwnerModule
 
-        if (!moduleDescriptor.isRefinementNeededForTypeConstructor(classDescriptor.typeConstructor)) return scopeForOwnerModule
-        return moduleDescriptor.getOrPutScopeForClass(classDescriptor) { scopeFactory(moduleDescriptor) }
+        if (!kotlinTypeRefiner.isRefinementNeededForTypeConstructor(classDescriptor.typeConstructor)) return scopeForOwnerModule
+        return kotlinTypeRefiner.getOrPutScopeForClass(classDescriptor) { scopeFactory(kotlinTypeRefiner) }
     }
 
     companion object {
         fun <T : MemberScope> create(
             classDescriptor: ClassDescriptor,
             storageManager: StorageManager,
-            scopeFactory: (ModuleDescriptor) -> T
+            kotlinTypeRefinerForOwnerModule: KotlinTypeRefiner,
+            scopeFactory: (KotlinTypeRefiner) -> T
         ): ScopesHolderForClass<T> {
-            return ScopesHolderForClass(classDescriptor, storageManager, scopeFactory)
+            return ScopesHolderForClass(classDescriptor, storageManager, scopeFactory, kotlinTypeRefinerForOwnerModule)
         }
     }
 }
