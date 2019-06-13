@@ -24,7 +24,7 @@ val KotlinJsCompilation.npmProject: NpmProject
  */
 open class NpmProject(val compilation: KotlinJsCompilation) {
     val name: String
-        get() = buildNpmProjectName()
+        get() = compilation.packageName
 
     val dir: File
         get() = project.nodeJs.root.projectPackagesDir.resolve(name)
@@ -70,28 +70,6 @@ open class NpmProject(val compilation: KotlinJsCompilation) {
      * with exception that instead of traversing parent folders, we are traversing parent projects
      */
     internal fun resolve(name: String): File? = modules.resolve(name)
-
-    private fun buildNpmProjectName(): String {
-        val project = target.project
-        val name = StringBuilder()
-
-        name.append(project.rootProject.name)
-
-        if (project != project.rootProject) {
-            name.append("-")
-            name.append(project.name)
-        }
-
-        if (target.name.isNotEmpty() && target.name.toLowerCase() != "js") {
-            name.append("-").append(target.name)
-        }
-
-        if (compilation.name != KotlinCompilation.MAIN_COMPILATION_NAME) {
-            name.append("-").append(compilation.name)
-        }
-
-        return name.toString()
-    }
 
     override fun toString() = "NpmProject($name)"
 

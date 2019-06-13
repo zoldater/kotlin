@@ -65,6 +65,13 @@ internal class NpmResolver private constructor(val rootProject: Project) {
                 }
             }
         }
+
+        fun checkModification(project: Project) {
+            val process = ProjectData[project]
+            check(process == null) {
+                "Cannot change NPM project properties inside \"${project.path}\" when it is resolved"
+            }
+        }
     }
 
     sealed class ResolutionCallResult {
