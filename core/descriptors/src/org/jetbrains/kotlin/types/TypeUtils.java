@@ -10,7 +10,10 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
-import org.jetbrains.kotlin.descriptors.*;
+import org.jetbrains.kotlin.descriptors.ClassDescriptor;
+import org.jetbrains.kotlin.descriptors.ClassifierDescriptor;
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor;
+import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor;
 import org.jetbrains.kotlin.descriptors.annotations.Annotations;
 import org.jetbrains.kotlin.name.FqName;
 import org.jetbrains.kotlin.name.FqNameUnsafe;
@@ -19,6 +22,7 @@ import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor;
 import org.jetbrains.kotlin.resolve.constants.IntegerValueTypeConstructor;
 import org.jetbrains.kotlin.resolve.scopes.MemberScope;
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner;
 import org.jetbrains.kotlin.types.checker.NewTypeVariableConstructor;
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal;
 
@@ -197,7 +201,7 @@ public class TypeUtils {
     @NotNull
     public static SimpleType makeUnsubstitutedType(
             ClassifierDescriptor classifierDescriptor, MemberScope unsubstitutedMemberScope,
-            Function1<ModuleDescriptor, SimpleType> refinedTypeFactory
+            Function1<KotlinTypeRefiner, SimpleType> refinedTypeFactory
     ) {
         if (ErrorUtils.isError(classifierDescriptor)) {
             return ErrorUtils.createErrorType("Unsubstituted type for " + classifierDescriptor);
@@ -210,7 +214,7 @@ public class TypeUtils {
     public static SimpleType makeUnsubstitutedType(
             @NotNull TypeConstructor typeConstructor,
             @NotNull MemberScope unsubstitutedMemberScope,
-            @NotNull Function1<ModuleDescriptor, SimpleType> refinedTypeFactory
+            @NotNull Function1<KotlinTypeRefiner, SimpleType> refinedTypeFactory
     ) {
         List<TypeProjection> arguments = getDefaultTypeProjections(typeConstructor.getParameters());
         return KotlinTypeFactory.simpleTypeWithNonTrivialMemberScope(

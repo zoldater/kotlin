@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.resolve.calls.inference.model
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.calls.model.LambdaKotlinCallArgument
@@ -28,6 +27,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.types.TypeConstructor
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewTypeVariableConstructor
 import org.jetbrains.kotlin.types.model.TypeVariableMarker
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
@@ -44,7 +44,7 @@ class TypeVariableTypeConstructor(private val builtIns: KotlinBuiltIns, val debu
     override fun getBuiltIns() = builtIns
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): TypeConstructor? = null
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeConstructor? = null
 
     override fun toString() = "TypeVariable($debugName)"
 }

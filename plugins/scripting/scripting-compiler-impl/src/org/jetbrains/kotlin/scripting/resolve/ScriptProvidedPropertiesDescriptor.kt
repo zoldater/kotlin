@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.utils.Printer
 
 class ScriptProvidedPropertiesDescriptor(script: LazyScriptDescriptor) :
@@ -39,7 +40,7 @@ class ScriptProvidedPropertiesDescriptor(script: LazyScriptDescriptor) :
         )
     }
 
-    override fun getUnsubstitutedMemberScope(moduleDescriptor: ModuleDescriptor): MemberScope = memberScope()
+    override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = memberScope()
 
     val properties: () -> List<ScriptProvidedPropertyDescriptor> = script.resolveSession.storageManager.createLazyValue {
         script.scriptDefinition().providedProperties.mapNotNull { (name, type) ->

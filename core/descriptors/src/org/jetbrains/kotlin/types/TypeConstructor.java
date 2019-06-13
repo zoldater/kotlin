@@ -21,8 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor;
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor;
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor;
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner;
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker;
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal;
 
@@ -63,5 +63,5 @@ public interface TypeConstructor extends TypeConstructorMarker {
 
     @Nullable
     @TypeRefinementInternal
-    TypeConstructor refine(@NotNull ModuleDescriptor moduleDescriptor);
+    TypeConstructor refine(@NotNull KotlinTypeRefiner kotlinTypeRefiner);
 }

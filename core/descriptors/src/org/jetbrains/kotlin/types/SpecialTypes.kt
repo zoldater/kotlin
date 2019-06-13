@@ -16,14 +16,15 @@
 
 package org.jetbrains.kotlin.types
 
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewTypeVariableConstructor
 import org.jetbrains.kotlin.types.checker.NullabilityChecker
 import org.jetbrains.kotlin.types.model.DefinitelyNotNullTypeMarker
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.canHaveUndefinedNullability
 
@@ -40,7 +41,10 @@ abstract class DelegatingSimpleType : SimpleType() {
     abstract fun replaceDelegate(delegate: SimpleType): DelegatingSimpleType
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) = replaceDelegate(delegate.refine(moduleDescriptor))
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
+        replaceDelegate(kotlinTypeRefiner.refineType(delegate) as SimpleType)
 }
 
 class AbbreviatedType(override val delegate: SimpleType, val abbreviation: SimpleType) : DelegatingSimpleType() {
@@ -56,8 +60,13 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
     override fun replaceDelegate(delegate: SimpleType) = AbbreviatedType(delegate, abbreviation)
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor): AbbreviatedType =
-        AbbreviatedType(delegate.refine(moduleDescriptor), abbreviation.refine(moduleDescriptor))
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): AbbreviatedType =
+        AbbreviatedType(
+            kotlinTypeRefiner.refineType(delegate) as SimpleType,
+            kotlinTypeRefiner.refineType(abbreviation) as SimpleType
+        )
 }
 
 fun KotlinType.getAbbreviatedType(): AbbreviatedType? = unwrap() as? AbbreviatedType
@@ -79,8 +88,10 @@ class LazyWrappedType(
     override fun isComputed(): Boolean = lazyValue.isComputed()
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) = LazyWrappedType(storageManager) {
-        computation().refine(moduleDescriptor)
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) = LazyWrappedType(storageManager) {
+        kotlinTypeRefiner.refineType(computation())
     }
 }
 

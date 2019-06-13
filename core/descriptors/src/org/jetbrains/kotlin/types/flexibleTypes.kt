@@ -16,13 +16,14 @@
 
 package org.jetbrains.kotlin.types
 
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.DescriptorRendererOptions
 import org.jetbrains.kotlin.types.checker.ErrorTypesAreEqualToAnything
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
@@ -138,6 +139,11 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
             = KotlinTypeFactory.flexibleType(lowerBound.makeNullableAsSpecified(newNullability), upperBound.makeNullableAsSpecified(newNullability))
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) =
-        KotlinTypeFactory.flexibleType(lowerBound.refine(moduleDescriptor), upperBound.refine(moduleDescriptor)) as FlexibleType
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
+        KotlinTypeFactory.flexibleType(
+            kotlinTypeRefiner.refineType(lowerBound) as SimpleType,
+            kotlinTypeRefiner.refineType(upperBound) as SimpleType
+        ) as FlexibleType
 }

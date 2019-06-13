@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.types;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor;
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner;
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal;
 
 public class TypeProjectionImpl extends TypeProjectionBase {
@@ -53,7 +53,7 @@ public class TypeProjectionImpl extends TypeProjectionBase {
     @NotNull
     @Override
     @TypeRefinementInternal
-    public TypeProjection refine(@NotNull ModuleDescriptor moduleDescriptor) {
-        return new TypeProjectionImpl(projection, type.refine(moduleDescriptor));
+    public TypeProjection refine(@NotNull KotlinTypeRefiner kotlinTypeRefiner) {
+        return new TypeProjectionImpl(projection, type.refine(kotlinTypeRefiner));
     }
 }

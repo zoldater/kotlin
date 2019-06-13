@@ -21,10 +21,11 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -92,10 +93,12 @@ abstract class AbstractTypeAliasDescriptor(
 
     protected abstract fun getTypeConstructorTypeParameters(): List<TypeParameterDescriptor>
 
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
     protected fun computeDefaultType(): SimpleType =
-        TypeUtils.makeUnsubstitutedType(this, classDescriptor?.unsubstitutedMemberScope ?: MemberScope.Empty) { moduleDescriptor ->
+        TypeUtils.makeUnsubstitutedType(this, classDescriptor?.unsubstitutedMemberScope ?: MemberScope.Empty) { kotlinTypeRefiner ->
             classDescriptor
-                ?.refineDescriptor(moduleDescriptor)
+                ?.let { kotlinTypeRefiner.refineDescriptor(it) }
                 ?.safeAs<ClassDescriptor>()
                 ?.defaultType
         }
@@ -124,8 +127,8 @@ abstract class AbstractTypeAliasDescriptor(
         // There must be @TypeRefinement, but there is a bug with anonymous objects and experimental annotations
         // See KT-31728
         @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
-        @UseExperimental(TypeRefinementInternal::class)
-        override fun refine(moduleDescriptor: ModuleDescriptor) =
-            classId?.let(moduleDescriptor::findClassifierAcrossModuleDependencies)?.typeConstructor
+        @UseExperimental(TypeRefinementInternal::class, TypeRefinement::class)
+        override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeConstructor? =
+            kotlinTypeRefiner.refineTypeAliasTypeConstructor(this@AbstractTypeAliasDescriptor)
     }
 }

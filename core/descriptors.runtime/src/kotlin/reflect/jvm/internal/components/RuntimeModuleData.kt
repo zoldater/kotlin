@@ -88,8 +88,7 @@ class RuntimeModuleData private constructor(
             val deserializationComponentsForJava = DeserializationComponentsForJava(
                 storageManager, module, DeserializationConfiguration.Default, javaClassDataFinder,
                 binaryClassAnnotationAndConstantLoader, lazyJavaPackageFragmentProvider, notFoundClasses,
-                RuntimeErrorReporter, LookupTracker.DO_NOTHING, ContractDeserializer.DEFAULT,
-                NewKotlinTypeChecker.Default
+                RuntimeErrorReporter, LookupTracker.DO_NOTHING, ContractDeserializer.DEFAULT, NewKotlinTypeChecker.Default
             )
 
             // .kotlin_builtins files should be found by the same class loader that loaded stdlib classes

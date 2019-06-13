@@ -18,12 +18,11 @@ package org.jetbrains.kotlin.types
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.container.DefaultImplementation
-import org.jetbrains.kotlin.container.PlatformExtensionsClashResolver
 import org.jetbrains.kotlin.container.PlatformSpecificExtension
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.renderer.DescriptorRendererOptions
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.model.DynamicTypeMarker
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.builtIns
@@ -59,5 +58,5 @@ class DynamicType(
     override fun render(renderer: DescriptorRenderer, options: DescriptorRendererOptions): String = "dynamic"
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) = this
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) = this
 }

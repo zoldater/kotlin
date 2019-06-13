@@ -30,11 +30,11 @@ import org.jetbrains.kotlin.name.isValidJavaFqName
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.descriptorUtil.resolveTopLevelClass
 import org.jetbrains.kotlin.resolve.scopes.InnerClassesScopeWrapper
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.*
@@ -103,18 +103,18 @@ class LazyJavaClassDescriptor(
     override fun getTypeConstructor(): TypeConstructor = typeConstructor
 
     private val unsubstitutedMemberScope =
-        LazyJavaClassMemberScope(c, this, jClass, module, skipRefinement = additionalSupertypeClassDescriptor != null)
+        LazyJavaClassMemberScope(c, this, jClass, skipRefinement = additionalSupertypeClassDescriptor != null)
 
     private val scopeHolder =
-        ScopesHolderForClass.create(this, c.storageManager) { moduleDescriptor ->
+        ScopesHolderForClass.create(this, c.storageManager, c.components.kotlinTypeChecker.kotlinTypeRefiner) { kotlinTypeRefiner ->
             LazyJavaClassMemberScope(
-                c, this, jClass, moduleDescriptor,
+                c, this, jClass,
                 skipRefinement = additionalSupertypeClassDescriptor != null,
                 mainScope = unsubstitutedMemberScope
             )
         }
 
-    override fun getUnsubstitutedMemberScope(moduleDescriptor: ModuleDescriptor) = scopeHolder.getScope(moduleDescriptor)
+    override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner) = scopeHolder.getScope(kotlinTypeRefiner)
 
     private val innerClassesScope = InnerClassesScopeWrapper(unsubstitutedMemberScope)
     override fun getUnsubstitutedInnerClassesScope(): MemberScope = innerClassesScope

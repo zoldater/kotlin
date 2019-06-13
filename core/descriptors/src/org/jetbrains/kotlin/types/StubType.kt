@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.types
 
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.model.StubTypeMarker
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
@@ -41,5 +41,5 @@ class StubType(
     }
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) = this
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) = this
 }

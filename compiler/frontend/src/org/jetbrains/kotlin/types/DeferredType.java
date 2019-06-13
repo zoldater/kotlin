@@ -19,10 +19,11 @@ package org.jetbrains.kotlin.types;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor;
 import org.jetbrains.kotlin.resolve.BindingTrace;
 import org.jetbrains.kotlin.storage.NotNullLazyValue;
 import org.jetbrains.kotlin.storage.StorageManager;
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner;
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal;
 import org.jetbrains.kotlin.util.Box;
 import org.jetbrains.kotlin.util.ReenteringLazyValueComputationException;
 
@@ -67,7 +68,7 @@ public class DeferredType extends WrappedType {
 
     @NotNull
     @Override
-    public KotlinType refine(@NotNull ModuleDescriptor moduleDescriptor) {
+    public KotlinType refine(@NotNull KotlinTypeRefiner kotlinTypeRefiner) {
         return new DeferredType(new NotNullLazyValue<KotlinType>() {
             @NotNull
             @Override
@@ -86,8 +87,9 @@ public class DeferredType extends WrappedType {
             }
 
             @Override
+            @TypeRefinementInternal
             public KotlinType invoke() {
-                return lazyValue.invoke().refine(moduleDescriptor);
+                return kotlinTypeRefiner.refineType(lazyValue.invoke());
             }
         });
     }

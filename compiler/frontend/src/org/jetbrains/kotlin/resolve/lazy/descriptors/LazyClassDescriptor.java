@@ -48,6 +48,7 @@ import org.jetbrains.kotlin.storage.NotNullLazyValue;
 import org.jetbrains.kotlin.storage.NullableLazyValue;
 import org.jetbrains.kotlin.storage.StorageManager;
 import org.jetbrains.kotlin.types.*;
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -315,14 +316,16 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         return ScopesHolderForClass.Companion.create(
                 this,
                 c.getStorageManager(),
-                moduleDescriptor -> {
+                c.getKotlinTypeChecker().getKotlinTypeRefiner(),
+                kotlinTypeRefiner -> {
                     LazyClassMemberScope scopeForDeclaredMembers =
-                            moduleDescriptor == c.getModuleDescriptor()
+                            !kotlinTypeRefiner.isRefinementNeededForModule(c.getModuleDescriptor())
                                 ? null
-                                : scopesHolderForClass.getScope(c.getModuleDescriptor());
+                            // TODO: or kotlinTypeRefiner.getModuleDescriptor()
+                                : scopesHolderForClass.getScope(c.getKotlinTypeChecker().getKotlinTypeRefiner());
 
                     return new LazyClassMemberScope(
-                            c, declarationProvider, this, c.getTrace(), moduleDescriptor,
+                            c, declarationProvider, this, c.getTrace(), kotlinTypeRefiner,
                             scopeForDeclaredMembers
                     );
                 }
@@ -332,8 +335,8 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 
     @NotNull
     @Override
-    public MemberScope getUnsubstitutedMemberScope(@NotNull ModuleDescriptor moduleDescriptor) {
-        return scopesHolderForClass.getScope(moduleDescriptor);
+    public MemberScope getUnsubstitutedMemberScope(@NotNull KotlinTypeRefiner kotlinTypeRefiner) {
+        return scopesHolderForClass.getScope(kotlinTypeRefiner);
     }
 
     @NotNull

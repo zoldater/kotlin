@@ -18,11 +18,13 @@ package org.jetbrains.kotlin.types
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.TypeIntersectionScope
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.checker.refineTypes
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import java.util.*
 
@@ -68,15 +70,17 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<KotlinType>) : Ty
     fun createType(): SimpleType =
         KotlinTypeFactory.simpleTypeWithNonTrivialMemberScope(
             Annotations.EMPTY, this, listOf(), false, this.createScopeForKotlinType()
-        ) { moduleDescriptor: ModuleDescriptor ->
-            this.refine(moduleDescriptor).createType()
+        ) { kotlinTypeRefiner ->
+            this.refine(kotlinTypeRefiner).createType()
         }
 
     override fun hashCode(): Int = hashCode
 
     @TypeRefinementInternal
-    override fun refine(moduleDescriptor: ModuleDescriptor) =
-        IntersectionTypeConstructor(intersectedTypes.map { it.refine(moduleDescriptor) })
+    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+    @UseExperimental(TypeRefinement::class)
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
+        IntersectionTypeConstructor(kotlinTypeRefiner.refineTypes(intersectedTypes))
 }
 
 inline fun IntersectionTypeConstructor.transformComponents(
