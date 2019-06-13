@@ -119,7 +119,6 @@ class CallExpressionResolver(
         val resolutionResult = callResolver.resolveSimpleProperty(contextForVariable)
 
         val resultType = if (resolutionResult.isSingleResult) {
-            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
             @UseExperimental(TypeRefinement::class)
             resolutionResult.resultingDescriptor.returnType?.let {
                 expressionTypingServices.kotlinTypeChecker.kotlinTypeRefiner.refineType(it)

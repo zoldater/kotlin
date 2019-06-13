@@ -22,7 +22,6 @@ class ScopesHolderForClass<T : MemberScope> private constructor(
         scopeFactory(kotlinTypeRefinerForOwnerModule)
     }
 
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     fun getScope(kotlinTypeRefiner: KotlinTypeRefiner): T {
         if (!kotlinTypeRefiner.isRefinementNeededForModule(classDescriptor.module)) return scopeForOwnerModule

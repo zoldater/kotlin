@@ -559,7 +559,6 @@ class LazyJavaClassMemberScope(
     private fun computeSupertypes(): Collection<KotlinType> {
         if (skipRefinement) return ownerDescriptor.typeConstructor.supertypes
 
-        @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
         @UseExperimental(TypeRefinement::class)
         return c.components.kotlinTypeChecker.kotlinTypeRefiner.refineSupertypes(ownerDescriptor)
     }

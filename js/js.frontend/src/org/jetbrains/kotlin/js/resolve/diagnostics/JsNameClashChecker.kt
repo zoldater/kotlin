@@ -153,7 +153,6 @@ class JsNameClashChecker(
             }
             is ClassDescriptor -> {
                 val memberScope = if (descriptor.isActual)
-                    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
                     @UseExperimental(TypeRefinement::class)
                     kotlinTypeRefiner.refineType(descriptor.defaultType).memberScope
                 else

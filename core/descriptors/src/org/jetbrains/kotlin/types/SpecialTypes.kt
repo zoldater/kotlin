@@ -41,7 +41,6 @@ abstract class DelegatingSimpleType : SimpleType() {
     abstract fun replaceDelegate(delegate: SimpleType): DelegatingSimpleType
 
     @TypeRefinementInternal
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
         replaceDelegate(kotlinTypeRefiner.refineType(delegate) as SimpleType)
@@ -60,7 +59,6 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
     override fun replaceDelegate(delegate: SimpleType) = AbbreviatedType(delegate, abbreviation)
 
     @TypeRefinementInternal
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): AbbreviatedType =
         AbbreviatedType(
@@ -88,7 +86,6 @@ class LazyWrappedType(
     override fun isComputed(): Boolean = lazyValue.isComputed()
 
     @TypeRefinementInternal
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) = LazyWrappedType(storageManager) {
         kotlinTypeRefiner.refineType(computation())

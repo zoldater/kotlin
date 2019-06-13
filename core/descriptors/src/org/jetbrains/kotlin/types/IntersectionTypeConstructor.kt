@@ -65,7 +65,6 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<KotlinType>) : Ty
         return intersectedTypes == other.intersectedTypes
     }
 
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinementInternal::class)
     fun createType(): SimpleType =
         KotlinTypeFactory.simpleTypeWithNonTrivialMemberScope(
@@ -77,7 +76,6 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<KotlinType>) : Ty
     override fun hashCode(): Int = hashCode
 
     @TypeRefinementInternal
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
         IntersectionTypeConstructor(kotlinTypeRefiner.refineTypes(intersectedTypes))

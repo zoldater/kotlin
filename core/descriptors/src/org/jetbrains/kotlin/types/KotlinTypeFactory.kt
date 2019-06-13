@@ -60,7 +60,6 @@ object KotlinTypeFactory {
 
     @JvmStatic
     @JvmOverloads
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinementInternal::class)
     fun simpleType(
         annotations: Annotations,
@@ -99,7 +98,6 @@ object KotlinTypeFactory {
         arguments: List<TypeProjection>
     ): ExpandedTypeOrRefinedConstructor? {
         val basicDescriptor = constructor.declarationDescriptor
-        @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
         @UseExperimental(TypeRefinement::class)
         val descriptor = basicDescriptor?.let { kotlinTypeRefiner.refineDescriptor(it) } ?: return null
 
@@ -122,12 +120,10 @@ object KotlinTypeFactory {
         memberScope: MemberScope
     ): SimpleType =
         SimpleTypeImpl(constructor, arguments, nullable, memberScope) { kotlinTypeRefiner ->
-            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
             @UseExperimental(TypeRefinementInternal::class)
             val expandedTypeOrRefinedConstructor = refineConstructor(constructor, kotlinTypeRefiner, arguments) ?: return@SimpleTypeImpl null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@SimpleTypeImpl it }
 
-            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
             @UseExperimental(TypeRefinementInternal::class)
             val refinedArguments = arguments.map { it.refine(kotlinTypeRefiner) }
 

@@ -81,7 +81,6 @@ class TypeBasedStarProjectionImpl(
     override fun getType() = _type
 
     @TypeRefinementInternal
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjection =
         TypeBasedStarProjectionImpl(kotlinTypeRefiner.refineType(_type))

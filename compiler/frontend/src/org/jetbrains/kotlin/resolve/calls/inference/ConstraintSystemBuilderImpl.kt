@@ -280,7 +280,6 @@ open class ConstraintSystemBuilderImpl(
             TypeUtils.makeNotNullable(type)
         }
 
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     internal fun addBound(
         typeVariable: TypeVariable,
