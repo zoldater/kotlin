@@ -147,7 +147,6 @@ class ConstraintInjector(
             this
         }
 
-        @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
         @UseExperimental(TypeRefinement::class)
         fun runIsSubtypeOf(lowerType: KotlinTypeMarker, upperType: KotlinTypeMarker) {
             val refinedLowerType = lowerType.refineType()

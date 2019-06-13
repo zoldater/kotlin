@@ -874,7 +874,6 @@ class OverrideResolver(
             declaringClass: ClassDescriptor,
             kotlinTypeRefiner: KotlinTypeRefiner
         ): CallableMemberDescriptor? {
-            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
             @UseExperimental(TypeRefinement::class)
             for (supertype in kotlinTypeRefiner.refineSupertypes(declaringClass)) {
                 val all = linkedSetOf<CallableMemberDescriptor>()

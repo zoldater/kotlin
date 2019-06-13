@@ -39,7 +39,6 @@ abstract class AbstractTypeConstructor(private val storageManager: StorageManage
         private val kotlinTypeRefiner: KotlinTypeRefiner
     ) : TypeConstructor {
         private val supertypes = storageManager.createLazyValue {
-            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
             @UseExperimental(TypeRefinement::class)
             kotlinTypeRefiner.refineTypes(this@AbstractTypeConstructor.getSupertypes())
         }

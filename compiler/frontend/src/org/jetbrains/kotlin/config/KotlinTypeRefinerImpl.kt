@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.types.refinement.*
 import org.jetbrains.kotlin.utils.DFS
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-@Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
 @UseExperimental(TypeRefinementInternal::class)
 class KotlinTypeRefinerImpl(
     override val moduleDescriptor: ModuleDescriptor,

@@ -721,7 +721,6 @@ class PSICallResolver(
         return replaceScope(catchScope)
     }
 
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     private fun ReceiverValueWithSmartCastInfo.refine(): ReceiverValueWithSmartCastInfo {
         if (receiverValue is ImplicitReceiver) return this

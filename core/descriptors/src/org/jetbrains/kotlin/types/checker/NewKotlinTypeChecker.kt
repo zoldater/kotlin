@@ -72,7 +72,6 @@ interface NewKotlinTypeChecker : KotlinTypeChecker {
 class NewKotlinTypeCheckerImpl(override val kotlinTypeRefiner: KotlinTypeRefiner) : NewKotlinTypeChecker {
     override val overridingUtil: OverridingUtil = OverridingUtil.createWithTypeRefiner(kotlinTypeRefiner)
 
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     override fun isSubtypeOf(subtype: KotlinType, supertype: KotlinType): Boolean =
         ClassicTypeCheckerContext(true).isSubtypeOf(
@@ -80,7 +79,6 @@ class NewKotlinTypeCheckerImpl(override val kotlinTypeRefiner: KotlinTypeRefiner
             kotlinTypeRefiner.refineType(supertype.unwrap()).unwrap()
         ) // todo fix flag errorTypeEqualsToAnything
 
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     override fun equalTypes(a: KotlinType, b: KotlinType): Boolean =
         ClassicTypeCheckerContext(false).equalTypes(

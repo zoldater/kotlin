@@ -86,7 +86,6 @@ class RawTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : FlexibleType
     }
 
     @TypeRefinementInternal
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): FlexibleType {
         return RawTypeImpl(kotlinTypeRefiner.refineType(lowerBound) as SimpleType, kotlinTypeRefiner.refineType(upperBound) as SimpleType)
@@ -152,7 +151,6 @@ internal object RawSubstitution : TypeSubstitution() {
             type.isMarkedNullable, memberScope
         ) factory@{ kotlinTypeRefiner ->
             val classId = (declaration as? ClassDescriptor)?.classId ?: return@factory null
-            @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
             @UseExperimental(TypeRefinement::class)
             val refinedClassDescriptor = kotlinTypeRefiner.findClassAcrossModuleDependencies(classId) ?: return@factory null
             if (refinedClassDescriptor == declaration) return@factory null

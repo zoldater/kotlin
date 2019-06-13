@@ -445,6 +445,5 @@ fun DeclarationDescriptor.isAnnotationConstructor(): Boolean =
 fun DeclarationDescriptor.isPrimaryConstructorOfInlineClass(): Boolean =
     this is ConstructorDescriptor && this.isPrimary && this.constructedClass.isInline
 
-@Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
 @UseExperimental(TypeRefinementInternal::class)
 fun ModuleDescriptor.getKotlinTypeRefiner(): KotlinTypeRefiner = getCapability(REFINER_CAPABILITY)?.value ?: KotlinTypeRefiner.Default

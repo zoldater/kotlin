@@ -290,7 +290,6 @@ private fun KotlinResolutionCandidate.prepareExpectedType(
     )
     val resultType = knownTypeParametersResultingSubstitutor?.substitute(argumentType) ?: argumentType
     val substitutedType = resolvedCall.substitutor.safeSubstitute(resultType)
-    @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
     @UseExperimental(TypeRefinement::class)
     return callComponents.kotlinTypeChecker.kotlinTypeRefiner.refineType(substitutedType).unwrap()
 }
