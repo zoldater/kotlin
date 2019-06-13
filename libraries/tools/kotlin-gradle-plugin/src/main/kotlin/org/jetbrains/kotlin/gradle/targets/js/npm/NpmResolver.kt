@@ -6,12 +6,12 @@
 package org.jetbrains.kotlin.gradle.targets.js.npm
 
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJsCompilation
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.nodeJs
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolver.ResolutionCallResult.*
-import java.nio.file.Files
 
 /**
  * Generates `package.json` file for [NpmProject] with npm or js dependencies and
@@ -137,9 +137,12 @@ internal class NpmResolver private constructor(val rootProject: Project) {
     }
 
     fun findDependentResolvedNpmProject(src: Project, target: Project): NpmProjectPackage? {
+        target.kotlinExtension
+
         // todo: proper finding using KotlinTargetComponent.findUsageContext
         val resolvedTarget = getOrResolve(target)
-        val mainCompilations = resolvedTarget.npmProjectsByCompilation.entries.filter { it.key.name == KotlinCompilation.MAIN_COMPILATION_NAME }
+        val mainCompilations =
+            resolvedTarget.npmProjectsByCompilation.entries.filter { it.key.name == KotlinCompilation.MAIN_COMPILATION_NAME }
 
         return if (mainCompilations.isNotEmpty()) {
             if (mainCompilations.size > 1) {

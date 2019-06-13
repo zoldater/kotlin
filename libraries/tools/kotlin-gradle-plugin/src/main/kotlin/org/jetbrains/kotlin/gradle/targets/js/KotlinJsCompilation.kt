@@ -10,7 +10,9 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJsOptions
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilationWithResources
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
+import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProjectPackage
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolver
+import org.jetbrains.kotlin.gradle.targets.js.npm.PackageJson
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 
 class KotlinJsCompilation(
@@ -22,6 +24,12 @@ class KotlinJsCompilation(
             NpmResolver.checkModification(target.project)
             field = value
         }
+
+    private var packageJson: PackageJson? = null
+    private var resolvedNpmPackage: NpmProjectPackage? = null
+
+    val npmPackage: NpmProjectPackage
+        get() = resolvedNpmPackage ?: error("This property accessible only after NpmResolve task execution")
 
     override val processResourcesTaskName: String
         get() = disambiguateName("processResources")
