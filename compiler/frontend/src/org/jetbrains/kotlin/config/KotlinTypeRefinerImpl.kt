@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.config
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.resolve.descriptorUtil.classId
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
@@ -15,7 +16,8 @@ import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
 import org.jetbrains.kotlin.types.checker.REFINER_CAPABILITY
-import org.jetbrains.kotlin.types.refinement.*
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.utils.DFS
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -32,7 +34,7 @@ class KotlinTypeRefinerImpl(
     private val isRefinementDisabled = !languageVersionSettings.isTypeRefinementEnabled
     private val refinedTypeCache = storageManager.createCacheWithNotNullValues<KotlinType, KotlinType>()
     private val _isRefinementNeededForTypeConstructor =
-        storageManager.createMemoizedFunction(TypeConstructor::areThereExpectSupertypesOrTypeArguments)
+        storageManager.createMemoizedFunction<TypeConstructor, Boolean> { it.areThereExpectSupertypesOrTypeArguments() }
     private val scopes = storageManager.createCacheWithNotNullValues<ClassDescriptor, MemberScope>()
 
     @TypeRefinement
@@ -84,32 +86,32 @@ class KotlinTypeRefinerImpl(
         @Suppress("UNCHECKED_CAST")
         return scopes.computeIfAbsent(classDescriptor, compute) as S
     }
+
+    private fun TypeConstructor.areThereExpectSupertypesOrTypeArguments(): Boolean {
+        var result = false
+        DFS.dfs(
+            listOf(this),
+            DFS.Neighbors(TypeConstructor::allDependentTypeConstructors),
+            DFS.VisitedWithSet(),
+            object : DFS.AbstractNodeHandler<TypeConstructor, Unit>() {
+                override fun beforeChildren(current: TypeConstructor): Boolean {
+                    if (current.isExpectClass() && current.declarationDescriptor?.module != moduleDescriptor) {
+                        result = true
+                        return false
+                    }
+                    return true
+                }
+
+                override fun result() = Unit
+            }
+        )
+
+        return result
+    }
 }
 
 val LanguageVersionSettings.isTypeRefinementEnabled: Boolean
     get() = getFlag(AnalysisFlags.useTypeRefinement) && supportsFeature(LanguageFeature.MultiPlatformProjects)
-
-private fun TypeConstructor.areThereExpectSupertypesOrTypeArguments(): Boolean {
-    var result = false
-    DFS.dfs(
-        listOf(this),
-        DFS.Neighbors(TypeConstructor::allDependentTypeConstructors),
-        DFS.VisitedWithSet(),
-        object : DFS.AbstractNodeHandler<TypeConstructor, Unit>() {
-            override fun beforeChildren(current: TypeConstructor): Boolean {
-                if (current.isExpectClass()) {
-                    result = true
-                    return false
-                }
-                return true
-            }
-
-            override fun result() = Unit
-        }
-    )
-
-    return result
-}
 
 private val TypeConstructor.allDependentTypeConstructors: Collection<TypeConstructor>
     get() = when (this) {
