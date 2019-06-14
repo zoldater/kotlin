@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 abstract class AbstractTypeAliasDescriptor(
     containingDeclaration: DeclarationDescriptor,
@@ -96,10 +95,7 @@ abstract class AbstractTypeAliasDescriptor(
     @UseExperimental(TypeRefinement::class)
     protected fun computeDefaultType(): SimpleType =
         TypeUtils.makeUnsubstitutedType(this, classDescriptor?.unsubstitutedMemberScope ?: MemberScope.Empty) { kotlinTypeRefiner ->
-            classDescriptor
-                ?.let { kotlinTypeRefiner.refineDescriptor(it) }
-                ?.safeAs<ClassDescriptor>()
-                ?.defaultType
+            kotlinTypeRefiner.refineDescriptor(this)?.defaultType
         }
 
     private val typeConstructor = object : TypeConstructor {
