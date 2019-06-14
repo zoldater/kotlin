@@ -94,6 +94,11 @@ public class MultiplatformAnalysisTestGenerated extends AbstractMultiplatformAna
             runTest("idea/testData/multiplatformTypeRefinement/multilevelParents/");
         }
 
+        @TestMetadata("recursiveTypes")
+        public void testRecursiveTypes() throws Exception {
+            runTest("idea/testData/multiplatformTypeRefinement/recursiveTypes/");
+        }
+
         @TestMetadata("simple")
         public void testSimple() throws Exception {
             runTest("idea/testData/multiplatformTypeRefinement/simple/");
