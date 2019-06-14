@@ -15,8 +15,6 @@ import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 
 abstract class KotlinTypeRefiner {
-    abstract val moduleDescriptor: ModuleDescriptor
-
     @TypeRefinement
     abstract fun refineType(type: KotlinType): KotlinType
 
@@ -42,9 +40,6 @@ abstract class KotlinTypeRefiner {
     abstract fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S
 
     object Default : KotlinTypeRefiner() {
-        override val moduleDescriptor: ModuleDescriptor
-            get() = TODO()
-
         @TypeRefinement
         override fun refineType(type: KotlinType): KotlinType = type
 

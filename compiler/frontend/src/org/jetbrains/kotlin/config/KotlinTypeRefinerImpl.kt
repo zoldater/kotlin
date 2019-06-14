@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 @UseExperimental(TypeRefinementInternal::class)
 class KotlinTypeRefinerImpl(
-    override val moduleDescriptor: ModuleDescriptor,
+    private val moduleDescriptor: ModuleDescriptor,
     storageManager: StorageManager,
     languageVersionSettings: LanguageVersionSettings
 ) : KotlinTypeRefiner() {

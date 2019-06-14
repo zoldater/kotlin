@@ -44,6 +44,7 @@ object KotlinTypeFactory {
         return when (descriptor) {
             is TypeParameterDescriptor -> descriptor.getDefaultType().memberScope
             is ClassDescriptor -> {
+                @UseExperimental(TypeRefinement::class)
                 val refinerToUse = kotlinTypeRefiner ?: descriptor.module.getKotlinTypeRefiner()
                 if (arguments.isEmpty())
                     descriptor.getRefinedUnsubstitutedMemberScopeIfPossible(refinerToUse)

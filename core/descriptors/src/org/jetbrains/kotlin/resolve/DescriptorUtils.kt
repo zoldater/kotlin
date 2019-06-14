@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.REFINER_CAPABILITY
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
 import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 import org.jetbrains.kotlin.types.typeUtil.makeNullable
@@ -445,5 +446,6 @@ fun DeclarationDescriptor.isAnnotationConstructor(): Boolean =
 fun DeclarationDescriptor.isPrimaryConstructorOfInlineClass(): Boolean =
     this is ConstructorDescriptor && this.isPrimary && this.constructedClass.isInline
 
+@TypeRefinement
 @UseExperimental(TypeRefinementInternal::class)
 fun ModuleDescriptor.getKotlinTypeRefiner(): KotlinTypeRefiner = getCapability(REFINER_CAPABILITY)?.value ?: KotlinTypeRefiner.Default
