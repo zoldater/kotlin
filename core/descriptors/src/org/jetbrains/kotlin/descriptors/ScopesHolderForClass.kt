@@ -24,8 +24,6 @@ class ScopesHolderForClass<T : MemberScope> private constructor(
 
     @UseExperimental(TypeRefinement::class)
     fun getScope(kotlinTypeRefiner: KotlinTypeRefiner): T {
-        if (!kotlinTypeRefiner.isRefinementNeededForModule(classDescriptor.module)) return scopeForOwnerModule
-
         if (!kotlinTypeRefiner.isRefinementNeededForTypeConstructor(classDescriptor.typeConstructor)) return scopeForOwnerModule
         return kotlinTypeRefiner.getOrPutScopeForClass(classDescriptor) { scopeFactory(kotlinTypeRefiner) }
     }
