@@ -41,8 +41,9 @@ class StarProjectionImpl(private val typeParameter: TypeParameterDescriptor) : T
 }
 
 @TypeRefinementInternal
+@UseExperimental(TypeRefinement::class)
 private fun TypeProjectionBase.refineIfNeeded(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjectionBase {
-    return RefinedStarProjection(type.refine(kotlinTypeRefiner))
+    return RefinedStarProjection(kotlinTypeRefiner.refineType(type))
 }
 
 private class RefinedStarProjection(private val _type: KotlinType) : TypeProjectionBase() {

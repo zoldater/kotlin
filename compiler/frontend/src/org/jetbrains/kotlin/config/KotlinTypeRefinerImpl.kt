@@ -51,7 +51,7 @@ class KotlinTypeRefinerImpl(
     @TypeRefinement
     override fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<KotlinType> {
         if (isRefinementDisabled) return classDescriptor.typeConstructor.supertypes
-        return classDescriptor.typeConstructor.supertypes.map { it.refine(this) }
+        return classDescriptor.typeConstructor.supertypes.map { refineType(it) }
     }
 
     @TypeRefinement
@@ -78,7 +78,11 @@ class KotlinTypeRefinerImpl(
 
     @TypeRefinement
     override fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean {
-        return _isRefinementNeededForTypeConstructor.invoke(typeConstructor)
+        return try {
+            _isRefinementNeededForTypeConstructor.invoke(typeConstructor)
+        } catch (e: AssertionError) {
+            false
+        }
     }
 
     @TypeRefinement
