@@ -42,7 +42,7 @@ abstract class DelegatingSimpleType : SimpleType() {
 
     @TypeRefinementInternal
     @UseExperimental(TypeRefinement::class)
-    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): KotlinType =
         replaceDelegate(kotlinTypeRefiner.refineType(delegate) as SimpleType)
 }
 
