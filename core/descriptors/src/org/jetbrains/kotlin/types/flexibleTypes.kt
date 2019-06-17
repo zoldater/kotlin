@@ -140,9 +140,10 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
 
     @TypeRefinementInternal
     @UseExperimental(TypeRefinement::class)
-    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner) =
-        KotlinTypeFactory.flexibleType(
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): FlexibleType {
+        return FlexibleTypeImpl(
             kotlinTypeRefiner.refineType(lowerBound) as SimpleType,
             kotlinTypeRefiner.refineType(upperBound) as SimpleType
-        ) as FlexibleType
+        )
+    }
 }
