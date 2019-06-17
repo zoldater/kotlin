@@ -55,6 +55,9 @@ var DataNode<ModuleData>.compilerArgumentsBySourceSet
         by CopyableDataNodeUserDataProperty(Key.create<CompilerArgumentsBySourceSet>("CURRENT_COMPILER_ARGUMENTS"))
 var DataNode<ModuleData>.coroutines
         by CopyableDataNodeUserDataProperty(Key.create<String>("KOTLIN_COROUTINES"))
+val isHmppModuleKey = Key.create<Boolean>("IS_HMPP_MODULE")
+var DataNode<out ModuleData>.isHmpp
+        by NotNullableCopyableDataNodeUserDataProperty(isHmppModuleKey, false)
 var DataNode<ModuleData>.platformPluginId
         by CopyableDataNodeUserDataProperty(Key.create<String>("PLATFORM_PLUGIN_ID"))
 var DataNode<out ModuleData>.implementedModuleNames
