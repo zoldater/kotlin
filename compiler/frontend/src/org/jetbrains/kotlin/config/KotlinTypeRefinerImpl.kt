@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.config
 
+import org.jetbrains.kotlin.builtins.isFunctionOrSuspendFunctionType
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.name.ClassId
@@ -13,10 +14,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.storage.NotNullLazyValue
 import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.types.DelegatingSimpleType
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.SimpleType
-import org.jetbrains.kotlin.types.TypeConstructor
+import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
 import org.jetbrains.kotlin.types.checker.REFINER_CAPABILITY
@@ -46,15 +44,34 @@ class KotlinTypeRefinerImpl(
         return when {
             isRefinementDisabled -> type
 
-            type.hasNotTrivialRefinementFactory -> refinedTypeCache.computeIfAbsent(
-                key = type,
-                computation = { type.refine(this) },
-                onRecursive = { RefinedSimpleTypeWrapper(storageManager.createLazyValue { refineType(type) as SimpleType }) }
-            )
+            type.hasNotTrivialRefinementFactory -> {
+                val cached = refinedTypeCache.computeIfAbsent(
+                    key = type,
+                    computation = { type.refine(this) },
+                    onRecursive = { RefinedSimpleTypeWrapper(storageManager.createLazyValue { refineType(type) as SimpleType }) }
+                )
+                updateArgumentsAnnotationsIfNeeded(type, cached)
+            }
 
             else -> type.refine(this)
         }
     }
+
+    private fun updateArgumentsAnnotationsIfNeeded(originalType: KotlinType, cachedType: KotlinType): KotlinType {
+        if (!originalType.isArgumentsAnnotationsUpdateNeeded()) return cachedType
+
+        fun doReplace(original: KotlinType, cached: KotlinType): KotlinType {
+            val newArguments = mutableListOf<TypeProjection>()
+            for ((originalArg, cachedArg) in original.arguments zip cached.arguments) {
+                newArguments += cachedArg.replaceType(doReplace(originalArg.type, cachedArg.type))
+            }
+            return cached.replace(newArguments, original.annotations)
+        }
+
+        return doReplace(originalType, cachedType)
+    }
+
+    private fun KotlinType.isArgumentsAnnotationsUpdateNeeded(): Boolean = isFunctionOrSuspendFunctionType
 
     @TypeRefinement
     override fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<KotlinType> {

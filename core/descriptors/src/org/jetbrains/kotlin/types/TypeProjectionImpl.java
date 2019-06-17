@@ -56,4 +56,10 @@ public class TypeProjectionImpl extends TypeProjectionBase {
     public TypeProjection refine(@NotNull KotlinTypeRefiner kotlinTypeRefiner) {
         return new TypeProjectionImpl(projection, kotlinTypeRefiner.refineType(type));
     }
+
+    @NotNull
+    @Override
+    public TypeProjection replaceType(@NotNull KotlinType newType) {
+        return new TypeProjectionImpl(projection, newType);
+    }
 }
