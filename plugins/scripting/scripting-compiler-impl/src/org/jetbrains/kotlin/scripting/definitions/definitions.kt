@@ -23,12 +23,27 @@ inline fun <T> runReadAction(crossinline runnable: () -> T): T {
 fun PsiFile.findScriptDefinition(): ScriptDefinition? {
     // Do not use psiFile.script, see comments in findScriptDefinition
     if (this !is KtFile/* || this.script == null*/) return null
-    val file = virtualFile ?: originalFile.virtualFile ?: return null
-    if (file.isNonScript()) return null
+    val ktFile = getScriptOriginalFile() ?: return null
 
-    return findScriptDefinitionByFilePath(project, file.path)
+    return findScriptDefinitionByFilePath(project, ktFile.virtualFilePath)
 }
 
+fun KtFile.getScriptOriginalFile(): KtFile? {
+    val virtualFile = this.virtualFile
+    if (virtualFile == null) {
+        if (this != originalFile) {
+            return originalFile as? KtFile
+        }
+        return null
+    }
+
+    if (virtualFile.isNonScript()) return null
+
+    return this
+}
+
+
+@Deprecated("Use PsiFile.findScriptDefinition() instead")
 fun VirtualFile.findScriptDefinition(project: Project): ScriptDefinition? {
     if (!isValid || isNonScript()) return null
     // Do not use psiFile.script here because this method can be called during indexes access
@@ -55,6 +70,6 @@ private fun VirtualFile.isNonScript(): Boolean =
 
 private fun VirtualFile.isKotlinFileType(): Boolean {
     val typeRegistry = FileTypeRegistry.getInstance()
-    return typeRegistry.getFileTypeByFile(this) == KotlinFileType.INSTANCE ||
+    return fileType == KotlinFileType.INSTANCE ||
             typeRegistry.getFileTypeByFileName(name) == KotlinFileType.INSTANCE
 }
