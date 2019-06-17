@@ -144,7 +144,8 @@ class KotlinTypeRefinerImpl(
 }
 
 val LanguageVersionSettings.isTypeRefinementEnabled: Boolean
-    get() = getFlag(AnalysisFlags.useTypeRefinement) && supportsFeature(LanguageFeature.MultiPlatformProjects)
+    //get() = getFlag(AnalysisFlags.useTypeRefinement) && supportsFeature(LanguageFeature.MultiPlatformProjects)
+    get() = true
 
 private val TypeConstructor.allDependentTypeConstructors: Collection<TypeConstructor>
     get() = when (this) {
