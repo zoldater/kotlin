@@ -144,17 +144,20 @@ fun Module.getOrCreateFacet(
     return facet
 }
 
+@JvmOverloads
 fun KotlinFacet.configureFacet(
     compilerVersion: String?,
     coroutineSupport: LanguageFeature.State,
     platform: TargetPlatform?, // if null, detect by module dependencies
-    modelsProvider: IdeModifiableModelsProvider
+    modelsProvider: IdeModifiableModelsProvider,
+    hmppEnabled: Boolean = false
 ) {
     val module = module
     with(configuration.settings) {
         compilerArguments = null
         targetPlatform = null
         compilerSettings = null
+        isHmppEnabled = hmppEnabled
         initializeIfNeeded(
             module,
             modelsProvider.getModifiableRootModel(module),
@@ -183,7 +186,7 @@ fun KotlinFacet.configureFacet(
     platform: IdePlatform<*, *>,
     modelsProvider: IdeModifiableModelsProvider
 ) {
-    configureFacet(compilerVersion, coroutineSupport, platform.toNewPlatform(), modelsProvider)
+    configureFacet(compilerVersion, coroutineSupport, platform.toNewPlatform(), modelsProvider, false) //TODO(auskov): passed isHmpp = false
 }
 
 

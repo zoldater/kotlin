@@ -121,7 +121,7 @@ class KotlinSourceSetDataService : AbstractProjectDataService<GradleSourceSetDat
             )
 
             val kotlinFacet = ideModule.getOrCreateFacet(modelsProvider, false)
-            kotlinFacet.configureFacet(compilerVersion, coroutinesProperty, platform, modelsProvider)
+            kotlinFacet.configureFacet(compilerVersion, coroutinesProperty, platform, modelsProvider, mainModuleNode.isHmpp)
 
             val compilerArguments = kotlinSourceSet.compilerArguments
             val defaultCompilerArguments = kotlinSourceSet.defaultCompilerArguments
@@ -164,3 +164,5 @@ class KotlinSourceSetDataService : AbstractProjectDataService<GradleSourceSetDat
         }
     }
 }
+
+fun Collection<DataNode<ModuleData>>.isHmppEnabled() = this.any { it.isHmpp }
