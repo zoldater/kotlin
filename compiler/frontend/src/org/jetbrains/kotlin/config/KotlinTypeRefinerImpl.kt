@@ -36,28 +36,24 @@ class KotlinTypeRefinerImpl(
     }
 
     private val isRefinementDisabled = !languageVersionSettings.isTypeRefinementEnabled
-    private val refinedTypeCache = storageManager.createCacheWithNotNullValues<KotlinType, KotlinType>()
+    private val refinedTypeCache = storageManager.createRecursionTolerantCacheWithNotNullValues<KotlinType, KotlinType>()
     private val _isRefinementNeededForTypeConstructor =
         storageManager.createMemoizedFunction<TypeConstructor, Boolean> { it.areThereExpectSupertypesOrTypeArguments() }
     private val scopes = storageManager.createCacheWithNotNullValues<ClassDescriptor, MemberScope>()
 
     @TypeRefinement
     override fun refineType(type: KotlinType): KotlinType {
-        if (isRefinementDisabled) return type
-        return if (type.hasNotTrivialRefinementFactory)
-            try {
-                refinedTypeCache.computeIfAbsent(type) {
-                    type.refine(this)
-                }
-            } catch (e: AssertionError) {
-                if (e.message?.startsWith("Recursion detected on input") == true)
-                    RefinedSimpleTypeWrapper(storageManager.createLazyValue { refineType(type) as SimpleType })
-                else {
-                    throw e
-                }
-            }
-        else
-            type.refine(this)
+        return when {
+            isRefinementDisabled -> type
+
+            type.hasNotTrivialRefinementFactory -> refinedTypeCache.computeIfAbsent(
+                key = type,
+                computation = { type.refine(this) },
+                onRecursive = { RefinedSimpleTypeWrapper(storageManager.createLazyValue { refineType(type) as SimpleType }) }
+            )
+
+            else -> type.refine(this)
+        }
     }
 
     @TypeRefinement
