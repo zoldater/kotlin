@@ -57,6 +57,7 @@ dependencies {
     testRuntime(project(":plugins:kapt3-idea"))
     testRuntime(project(":kotlinx-serialization-ide-plugin"))
     testRuntime(intellijDep())
+    testRuntime(intellijPluginDep("java"))
     testRuntime(intellijPluginDep("junit"))
     testRuntime(intellijPluginDep("gradle"))
     testRuntime(intellijPluginDep("Groovy"))
