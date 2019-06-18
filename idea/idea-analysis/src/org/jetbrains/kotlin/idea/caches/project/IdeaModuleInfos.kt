@@ -210,7 +210,7 @@ data class ModuleTestSourceInfo internal constructor(override val module: Module
     override fun contentScope(): GlobalSearchScope = enlargedSearchScope(ModuleTestSourceScope(module), module, isTestScope = true)
 
     override fun modulesWhoseInternalsAreVisible(): Collection<ModuleInfo> =
-        module.cacheByClassInvalidatingOnRootModifications(this::class.java) {
+        module.cacheByClassInvalidatingOnRootModifications(KeyForModulesWhoseInternalsAreVisible::class.java) {
             val list = SmartList<ModuleInfo>()
 
             list.addIfNotNull(module.productionSourceInfo())
@@ -223,6 +223,8 @@ data class ModuleTestSourceInfo internal constructor(override val module: Module
 
             list.toHashSet()
         }
+
+    private object KeyForModulesWhoseInternalsAreVisible
 }
 
 fun Module.productionSourceInfo(): ModuleProductionSourceInfo? = if (hasProductionRoots()) ModuleProductionSourceInfo(this) else null
