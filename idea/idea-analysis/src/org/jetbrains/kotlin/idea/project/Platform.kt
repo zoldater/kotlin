@@ -146,7 +146,7 @@ fun Project.getLanguageVersionSettings(
 
     val extraAnalysisFlags = additionalArguments.configureAnalysisFlags(MessageCollector.NONE).apply {
         if (jsr305State != null) put(JvmAnalysisFlags.jsr305, jsr305State)
-        initIDESpecificAnalysisSettings()
+        initIDESpecificAnalysisSettings(this@getLanguageVersionSettings)
     }
 
     return LanguageVersionSettingsImpl(
@@ -199,7 +199,7 @@ private fun Module.computeLanguageVersionSettings(): LanguageVersionSettings {
     val analysisFlags = facetSettings
         .mergedCompilerArguments
         ?.configureAnalysisFlags(MessageCollector.NONE)
-        ?.apply { initIDESpecificAnalysisSettings() }
+        ?.apply { initIDESpecificAnalysisSettings(project) }
         .orEmpty()
 
     return LanguageVersionSettingsImpl(
@@ -210,8 +210,10 @@ private fun Module.computeLanguageVersionSettings(): LanguageVersionSettings {
     )
 }
 
-private fun MutableMap<AnalysisFlag<*>, Any>.initIDESpecificAnalysisSettings() {
-    put(AnalysisFlags.useTypeRefinement, true)
+private fun MutableMap<AnalysisFlag<*>, Any>.initIDESpecificAnalysisSettings(project: Project) {
+    if (ResolutionModeComponent.getMode(project) == ResolutionModeComponent.Mode.COMPOSITE) {
+        put(AnalysisFlags.useTypeRefinement, true)
+    }
 }
 
 val Module.platform: TargetPlatform?
