@@ -1,0 +1,21 @@
+// WITH_RUNTIME
+import kotlin.test.*
+
+fun box(): String {
+    assertFailsWith<IllegalArgumentException> {
+        for (i in 1..7 step -1) {
+        }
+    }
+
+    assertFailsWith<IllegalArgumentException> {
+        for (i in 1L..7L step -1L) {
+        }
+    }
+
+    assertFailsWith<IllegalArgumentException> {
+        for (i in 'a'..'g' step -1) {
+        }
+    }
+
+    return "OK"
+}

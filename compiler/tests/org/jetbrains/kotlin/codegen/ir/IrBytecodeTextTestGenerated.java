@@ -1727,6 +1727,11 @@ public class IrBytecodeTextTestGenerated extends AbstractIrBytecodeTextTest {
             runTest("compiler/testData/codegen/bytecodeText/forLoop/primitiveProgression.kt");
         }
 
+        @TestMetadata("primitiveProgressionIR.kt")
+        public void testPrimitiveProgressionIR() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/forLoop/primitiveProgressionIR.kt");
+        }
+
         @TestMetadata("primitiveRange.kt")
         public void testPrimitiveRange() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/forLoop/primitiveRange.kt");
