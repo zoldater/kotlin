@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.common.lower.loops
 
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.ir.Symbols
+import org.jetbrains.kotlin.backend.common.lower.loops.handlers.*
 import org.jetbrains.kotlin.backend.common.lower.matchers.IrCallMatcher
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrVariable
@@ -32,22 +33,22 @@ internal enum class ProgressionType(val elementCastFunctionName: Name, val stepC
 
     /** Returns the [IrType] of the `first`/`last` properties and elements in the progression. */
     fun elementType(builtIns: IrBuiltIns): IrType = when (this) {
-        ProgressionType.INT_PROGRESSION -> builtIns.intType
-        ProgressionType.LONG_PROGRESSION -> builtIns.longType
-        ProgressionType.CHAR_PROGRESSION -> builtIns.charType
+        INT_PROGRESSION -> builtIns.intType
+        LONG_PROGRESSION -> builtIns.longType
+        CHAR_PROGRESSION -> builtIns.charType
     }
 
     /** Returns the [IrType] of the `step` property in the progression. */
     fun stepType(builtIns: IrBuiltIns): IrType = when (this) {
-        ProgressionType.INT_PROGRESSION, ProgressionType.CHAR_PROGRESSION -> builtIns.intType
-        ProgressionType.LONG_PROGRESSION -> builtIns.longType
+        INT_PROGRESSION, CHAR_PROGRESSION -> builtIns.intType
+        LONG_PROGRESSION -> builtIns.longType
     }
 
     companion object {
         fun fromIrType(irType: IrType, symbols: Symbols<CommonBackendContext>): ProgressionType? = when {
-            irType.isSubtypeOfClass(symbols.charProgression) -> ProgressionType.CHAR_PROGRESSION
-            irType.isSubtypeOfClass(symbols.intProgression) -> ProgressionType.INT_PROGRESSION
-            irType.isSubtypeOfClass(symbols.longProgression) -> ProgressionType.LONG_PROGRESSION
+            irType.isSubtypeOfClass(symbols.charProgression) -> CHAR_PROGRESSION
+            irType.isSubtypeOfClass(symbols.intProgression) -> INT_PROGRESSION
+            irType.isSubtypeOfClass(symbols.longProgression) -> LONG_PROGRESSION
             else -> null
         }
     }
