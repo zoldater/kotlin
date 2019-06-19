@@ -45,7 +45,6 @@ import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.expressions.*
 import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContext
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.util.*
@@ -720,14 +719,8 @@ class PSICallResolver(
         return replaceScope(catchScope)
     }
 
-    @UseExperimental(TypeRefinement::class)
     private fun ReceiverValueWithSmartCastInfo.refine(): ReceiverValueWithSmartCastInfo {
         if (receiverValue is ImplicitReceiver) return this
-        val refinedType = kotlinTypeRefiner.refineType(receiverValue.type)
-        return ReceiverValueWithSmartCastInfo(
-            receiverValue.replaceType(refinedType),
-            possibleTypes.mapTo(mutableSetOf()) { kotlinTypeRefiner.refineType(it) },
-            isStable
-        )
+        return ReceiverValueWithSmartCastInfo(receiverValue, possibleTypes,  isStable)
     }
 }
