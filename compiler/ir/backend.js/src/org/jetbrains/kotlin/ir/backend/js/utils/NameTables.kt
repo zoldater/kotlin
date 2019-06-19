@@ -98,7 +98,7 @@ fun functionSignature(declaration: IrFunction): Signature {
     if (declaration.isEffectivelyExternal()) {
         return stableName
     }
-    declaration.getJsName()?.let { jsName ->
+    if (declaration.getJsName() != null) {
         return stableName
     }
     // Handle names for special functions
@@ -216,8 +216,10 @@ class NameTables(packages: List<IrPackageFragment>) {
         when (val signature = functionSignature(declaration)) {
             is StableNameSignature -> memberNames.declareStableName(signature, signature.name)
             is ParameterTypeBasedSignature -> {
+                // TODO: Fix hack: Coroutines runtime currently relies on stable names
+                //       of `invoke` functions in FunctionN interfaces
                 if (declaration.name.asString().startsWith("invoke")) {
-                    memberNames.declareStableName(signature, sanitizeName(signature.mangledName.toString()))
+                    memberNames.declareStableName(signature, sanitizeName(signature.mangledName))
                 } else {
                     memberNames.declareFreshName(signature, signature.suggestedName)
                 }
@@ -271,6 +273,9 @@ class NameTables(packages: List<IrPackageFragment>) {
     fun getNameForMemberFunction(function: IrSimpleFunction): String {
         val signature = functionSignature(function)
         val name = memberNames.names[signature]
+
+        // TODO: Fix hack: Coroutines runtime currently relies on stable names
+        //       of `invoke` functions in FunctionN interfaces
         if (name == null && signature is ParameterTypeBasedSignature && signature.suggestedName.startsWith("invoke"))
             return signature.suggestedName
         require(name != null) {
