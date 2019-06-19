@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope;
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner;
 import org.jetbrains.kotlin.types.checker.NewTypeVariableConstructor;
+import org.jetbrains.kotlin.types.refinement.TypeRefinement;
 import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal;
 
 import java.util.*;
@@ -73,6 +74,13 @@ public class TypeUtils {
         @TypeRefinementInternal
         public DelegatingSimpleType replaceDelegate(@NotNull SimpleType delegate) {
             throw new IllegalStateException(name);
+        }
+
+        @NotNull
+        @Override
+        @TypeRefinement
+        public KotlinType refine(@NotNull KotlinTypeRefiner kotlinTypeRefiner) {
+            return this;
         }
     }
 
