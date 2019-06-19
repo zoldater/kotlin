@@ -37,7 +37,6 @@ import org.jetbrains.kotlin.types.checker.*
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeParameterMarker
 import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContext
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 import org.jetbrains.kotlin.types.typeUtil.defaultProjections
 import org.jetbrains.kotlin.types.typeUtil.isDefaultBound
@@ -136,20 +135,6 @@ open class ConstraintSystemBuilderImpl(
     }
 
     fun addConstraint(
-        constraintKind: ConstraintKind,
-        subType: KotlinType?,
-        superType: KotlinType?,
-        constraintContext: ConstraintContext
-    ) {
-        addConstraintWithoutRefinement(
-            constraintKind,
-            subType?.let(kotlinTypeRefiner::refineType),
-            superType?.let(kotlinTypeRefiner::refineType),
-            constraintContext
-        )
-    }
-
-    private fun addConstraintWithoutRefinement(
         constraintKind: ConstraintKind,
         subType: KotlinType?,
         superType: KotlinType?,
@@ -280,7 +265,6 @@ open class ConstraintSystemBuilderImpl(
             TypeUtils.makeNotNullable(type)
         }
 
-    @UseExperimental(TypeRefinement::class)
     internal fun addBound(
         typeVariable: TypeVariable,
         constrainingType: KotlinType,
@@ -288,7 +272,7 @@ open class ConstraintSystemBuilderImpl(
         constraintContext: ConstraintContext
     ) {
         val bound = Bound(
-            typeVariable, kotlinTypeRefiner.refineType(constrainingType), kind, constraintContext.position,
+            typeVariable, constrainingType, kind, constraintContext.position,
             constrainingType.isProper(), constraintContext.derivedFrom ?: emptySet()
         )
         val typeBounds = getTypeBounds(typeVariable)

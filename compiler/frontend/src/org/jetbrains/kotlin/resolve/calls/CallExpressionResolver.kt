@@ -65,7 +65,6 @@ import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.createTypeInfo
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.noTypeInfo
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.util.AstLoadingFilter
 import javax.inject.Inject
 
@@ -118,14 +117,7 @@ class CallExpressionResolver(
         )
         val resolutionResult = callResolver.resolveSimpleProperty(contextForVariable)
 
-        val resultType = if (resolutionResult.isSingleResult) {
-            @UseExperimental(TypeRefinement::class)
-            resolutionResult.resultingDescriptor.returnType?.let {
-                expressionTypingServices.kotlinTypeChecker.kotlinTypeRefiner.refineType(it)
-            }
-        }
-        else
-            null
+        val resultType = if (resolutionResult.isSingleResult) resolutionResult.resultingDescriptor.returnType else null
 
         // if the expression is a receiver in a qualified expression, it should be resolved after the selector is resolved
         val isLHSOfDot = KtPsiUtil.isLHSOfDot(nameExpression)

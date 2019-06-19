@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.resolve.calls.tower.VisibilityError
 import org.jetbrains.kotlin.types.ErrorUtils
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.UnwrappedType
-import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.types.typeUtil.contains
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -289,9 +288,7 @@ private fun KotlinResolutionCandidate.prepareExpectedType(
         callComponents.languageVersionSettings
     )
     val resultType = knownTypeParametersResultingSubstitutor?.substitute(argumentType) ?: argumentType
-    val substitutedType = resolvedCall.substitutor.safeSubstitute(resultType)
-    @UseExperimental(TypeRefinement::class)
-    return callComponents.kotlinTypeChecker.kotlinTypeRefiner.refineType(substitutedType).unwrap()
+    return resolvedCall.substitutor.safeSubstitute(resultType)
 }
 
 private fun KotlinResolutionCandidate.getExpectedTypeWithSAMConversion(
