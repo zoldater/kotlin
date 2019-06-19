@@ -26,14 +26,12 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 @UseExperimental(TypeRefinementInternal::class)
 class KotlinTypeRefinerImpl(
     private val moduleDescriptor: ModuleDescriptor,
-    private val storageManager: StorageManager,
-    languageVersionSettings: LanguageVersionSettings
+    private val storageManager: StorageManager
 ) : KotlinTypeRefiner() {
     init {
         moduleDescriptor.getCapability(REFINER_CAPABILITY)?.value = this
     }
 
-    private val isRefinementDisabled = !languageVersionSettings.isTypeRefinementEnabled
     private val refinedTypeCache = storageManager.createRecursionTolerantCacheWithNotNullValues<KotlinType, KotlinType>()
     private val _isRefinementNeededForTypeConstructor =
         storageManager.createMemoizedFunction<TypeConstructor, Boolean> { it.areThereExpectSupertypesOrTypeArguments() }
@@ -41,20 +39,14 @@ class KotlinTypeRefinerImpl(
 
     @TypeRefinement
     override fun refineType(type: KotlinType): KotlinType {
-        return when {
-            isRefinementDisabled -> type
-
-            type.hasNotTrivialRefinementFactory -> {
-                val cached = refinedTypeCache.computeIfAbsent(
-                    key = type,
-                    computation = { type.refine(this) },
-                    onRecursive = { RefinedSimpleTypeWrapper(storageManager.createLazyValue { refineType(type) as SimpleType }) }
-                )
-                updateArgumentsAnnotationsIfNeeded(type, cached)
-            }
-
-            else -> type.refine(this)
-        }
+        return if (type.hasNotTrivialRefinementFactory) {
+            val cached = refinedTypeCache.computeIfAbsent(
+                key = type,
+                computation = { type.refine(this) },
+                onRecursive = { RefinedSimpleTypeWrapper(storageManager.createLazyValue { refineType(type) as SimpleType }) }
+            )
+            updateArgumentsAnnotationsIfNeeded(type, cached)
+        } else type.refine(this)
     }
 
     private fun updateArgumentsAnnotationsIfNeeded(originalType: KotlinType, cachedType: KotlinType): KotlinType {
@@ -79,7 +71,6 @@ class KotlinTypeRefinerImpl(
 
     @TypeRefinement
     override fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<KotlinType> {
-        if (isRefinementDisabled) return classDescriptor.typeConstructor.supertypes
         return classDescriptor.typeConstructor.supertypes.map { refineType(it) }
     }
 
