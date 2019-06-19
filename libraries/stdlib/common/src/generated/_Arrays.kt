@@ -8902,11 +8902,8 @@ public inline fun <T, K> Array<out T>.groupingBy(crossinline keySelector: (T) ->
  * @sample samples.collections.Collections.Transformations.map
  */
 public inline fun <T, R> Array<out T>.map(transform: (T) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(get(0)))
-        else -> mapTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -8916,11 +8913,8 @@ public inline fun <T, R> Array<out T>.map(transform: (T) -> R): List<R> {
  * @sample samples.collections.Collections.Transformations.map
  */
 public inline fun <R> ByteArray.map(transform: (Byte) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(get(0)))
-        else -> mapTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -8930,11 +8924,8 @@ public inline fun <R> ByteArray.map(transform: (Byte) -> R): List<R> {
  * @sample samples.collections.Collections.Transformations.map
  */
 public inline fun <R> ShortArray.map(transform: (Short) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(get(0)))
-        else -> mapTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -8944,11 +8935,8 @@ public inline fun <R> ShortArray.map(transform: (Short) -> R): List<R> {
  * @sample samples.collections.Collections.Transformations.map
  */
 public inline fun <R> IntArray.map(transform: (Int) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(get(0)))
-        else -> mapTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -8958,11 +8946,8 @@ public inline fun <R> IntArray.map(transform: (Int) -> R): List<R> {
  * @sample samples.collections.Collections.Transformations.map
  */
 public inline fun <R> LongArray.map(transform: (Long) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(get(0)))
-        else -> mapTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -8972,11 +8957,8 @@ public inline fun <R> LongArray.map(transform: (Long) -> R): List<R> {
  * @sample samples.collections.Collections.Transformations.map
  */
 public inline fun <R> FloatArray.map(transform: (Float) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(get(0)))
-        else -> mapTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -8986,11 +8968,8 @@ public inline fun <R> FloatArray.map(transform: (Float) -> R): List<R> {
  * @sample samples.collections.Collections.Transformations.map
  */
 public inline fun <R> DoubleArray.map(transform: (Double) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(get(0)))
-        else -> mapTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9000,11 +8979,8 @@ public inline fun <R> DoubleArray.map(transform: (Double) -> R): List<R> {
  * @sample samples.collections.Collections.Transformations.map
  */
 public inline fun <R> BooleanArray.map(transform: (Boolean) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(get(0)))
-        else -> mapTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9014,11 +8990,8 @@ public inline fun <R> BooleanArray.map(transform: (Boolean) -> R): List<R> {
  * @sample samples.collections.Collections.Transformations.map
  */
 public inline fun <R> CharArray.map(transform: (Char) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(get(0)))
-        else -> mapTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9028,11 +9001,8 @@ public inline fun <R> CharArray.map(transform: (Char) -> R): List<R> {
  * and returns the result of the transform applied to the element.
  */
 public inline fun <T, R> Array<out T>.mapIndexed(transform: (index: Int, T) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(0, get(0)))
-        else -> mapIndexedTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapIndexedTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9042,11 +9012,8 @@ public inline fun <T, R> Array<out T>.mapIndexed(transform: (index: Int, T) -> R
  * and returns the result of the transform applied to the element.
  */
 public inline fun <R> ByteArray.mapIndexed(transform: (index: Int, Byte) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(0, get(0)))
-        else -> mapIndexedTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapIndexedTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9056,11 +9023,8 @@ public inline fun <R> ByteArray.mapIndexed(transform: (index: Int, Byte) -> R): 
  * and returns the result of the transform applied to the element.
  */
 public inline fun <R> ShortArray.mapIndexed(transform: (index: Int, Short) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(0, get(0)))
-        else -> mapIndexedTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapIndexedTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9070,11 +9034,8 @@ public inline fun <R> ShortArray.mapIndexed(transform: (index: Int, Short) -> R)
  * and returns the result of the transform applied to the element.
  */
 public inline fun <R> IntArray.mapIndexed(transform: (index: Int, Int) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(0, get(0)))
-        else -> mapIndexedTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapIndexedTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9084,11 +9045,8 @@ public inline fun <R> IntArray.mapIndexed(transform: (index: Int, Int) -> R): Li
  * and returns the result of the transform applied to the element.
  */
 public inline fun <R> LongArray.mapIndexed(transform: (index: Int, Long) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(0, get(0)))
-        else -> mapIndexedTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapIndexedTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9098,11 +9056,8 @@ public inline fun <R> LongArray.mapIndexed(transform: (index: Int, Long) -> R): 
  * and returns the result of the transform applied to the element.
  */
 public inline fun <R> FloatArray.mapIndexed(transform: (index: Int, Float) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(0, get(0)))
-        else -> mapIndexedTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapIndexedTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9112,11 +9067,8 @@ public inline fun <R> FloatArray.mapIndexed(transform: (index: Int, Float) -> R)
  * and returns the result of the transform applied to the element.
  */
 public inline fun <R> DoubleArray.mapIndexed(transform: (index: Int, Double) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(0, get(0)))
-        else -> mapIndexedTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapIndexedTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9126,11 +9078,8 @@ public inline fun <R> DoubleArray.mapIndexed(transform: (index: Int, Double) -> 
  * and returns the result of the transform applied to the element.
  */
 public inline fun <R> BooleanArray.mapIndexed(transform: (index: Int, Boolean) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(0, get(0)))
-        else -> mapIndexedTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapIndexedTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
@@ -9140,11 +9089,8 @@ public inline fun <R> BooleanArray.mapIndexed(transform: (index: Int, Boolean) -
  * and returns the result of the transform applied to the element.
  */
 public inline fun <R> CharArray.mapIndexed(transform: (index: Int, Char) -> R): List<R> {
-    return when (size) {
-        0 -> emptyList()
-        1 -> listOf(transform(0, get(0)))
-        else -> mapIndexedTo(ArrayList<R>(size), transform)
-    }
+    if (size == 0) return emptyList()
+    return mapIndexedTo(ArrayList<R>(size), transform).optimizeReadOnlyList()
 }
 
 /**
