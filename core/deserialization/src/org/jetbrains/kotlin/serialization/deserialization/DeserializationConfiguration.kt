@@ -24,8 +24,5 @@ interface DeserializationConfiguration {
     val releaseCoroutines: Boolean
         get() = false
 
-    val useRefineTypes: Boolean
-        get() = false
-
     object Default : DeserializationConfiguration
 }
