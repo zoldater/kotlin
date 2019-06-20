@@ -562,9 +562,9 @@ class MultiplexerTowerDataConsumer(
     val consumers = mutableListOf<TowerDataConsumer>()
     val newConsumers = mutableListOf<TowerDataConsumer>()
 
-    val kinds = mutableListOf<TowerDataKind>()
-    val groups = mutableListOf<Int>()
-    val levels = mutableListOf<TowerScopeLevel>()
+    data class TowerData(val kind: TowerDataKind, val level: TowerScopeLevel, val group: Int)
+
+    val datas = mutableListOf<TowerData>()
 
     override fun consume(
         kind: TowerDataKind,
@@ -574,9 +574,7 @@ class MultiplexerTowerDataConsumer(
         if (skipGroup(group, resultCollector)) return ProcessorAction.NEXT
         consumers += newConsumers
         newConsumers.clear()
-        kinds += kind
-        groups += group
-        levels += towerScopeLevel
+        datas += TowerData(kind, towerScopeLevel, group)
 
         for (consumer in consumers) {
             val action = consumer.consume(kind, towerScopeLevel, group)
@@ -589,8 +587,8 @@ class MultiplexerTowerDataConsumer(
 
     fun addConsumer(consumer: TowerDataConsumer): ProcessorAction =
         run {
-            for (index in kinds.indices) {
-                if (consumer.consume(kinds[index], levels[index], groups[index]).stop()) {
+            for ((kind, level, group) in datas) {
+                if (consumer.consume(kind, level, group).stop()) {
                     return@run ProcessorAction.STOP
                 }
             }
