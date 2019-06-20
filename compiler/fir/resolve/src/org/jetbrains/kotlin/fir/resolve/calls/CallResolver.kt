@@ -393,19 +393,11 @@ abstract class TowerDataConsumer {
         group: Int
     ): ProcessorAction
 
-    private var processed = -1
     private var stopGroup = Int.MAX_VALUE
     fun skipGroup(group: Int, resultCollector: CandidateCollector): Boolean {
         if (resultCollector.isSuccess() && stopGroup == Int.MAX_VALUE) {
             stopGroup = group
-        }
-        if (group > processed) {
-            processed = group
-        }
-        if (group < processed) {
-            return true
-        }
-        if (group > stopGroup) return true
+        } else if (group > stopGroup) return true
         return false
     }
 }
