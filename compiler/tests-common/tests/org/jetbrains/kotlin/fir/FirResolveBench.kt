@@ -19,6 +19,7 @@ import java.io.PrintStream
 import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.system.measureNanoTime
+import kotlin.test.assertEquals
 
 
 fun checkFirProvidersConsistency(firFiles: List<FirFile>) {
@@ -159,7 +160,7 @@ class FirResolveBench(val withProgress: Boolean) {
         }
     }
 
-    fun report(stream: PrintStream, errorTypeReports: Boolean = true) {
+    fun report(stream: PrintStream, errorTypeReports: Boolean = true, unresolvedTypesAllowed: Boolean = true) {
 
         if (errorTypeReports)
             errorTypesReports.values.sortedByDescending { it.count }.forEach {
@@ -195,6 +196,10 @@ class FirResolveBench(val withProgress: Boolean) {
             totalFiles /= counterPerTransformer.keys.size
             stream.println("Total, TIME: ${totalTime * 1e-6} ms, TIME PER FILE: ${(totalTime / totalFiles) * 1e-6} ms")
         }
+
+        if (!unresolvedTypesAllowed) {
+            assertEquals(0, unresolvedTypes)
+        }
     }
 }
 
@@ -202,7 +207,8 @@ fun doFirResolveTestBench(
     firFiles: List<FirFile>,
     transformers: List<FirTransformer<Nothing?>>,
     gc: Boolean = true,
-    withProgress: Boolean = false
+    withProgress: Boolean = false,
+    unresolvedTypesAllowed: Boolean = true
 ) {
 
     if (gc) {
@@ -211,7 +217,7 @@ fun doFirResolveTestBench(
 
     val bench = FirResolveBench(withProgress)
     bench.processFiles(firFiles, transformers)
-    bench.report(System.out)
+    bench.report(System.out, unresolvedTypesAllowed = unresolvedTypesAllowed)
     bench.throwFailure()
 }
 
