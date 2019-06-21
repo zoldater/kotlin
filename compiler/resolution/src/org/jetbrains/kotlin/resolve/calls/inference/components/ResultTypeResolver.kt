@@ -77,8 +77,6 @@ class ResultTypeResolver(
             if (!checkConstraint(this, constraint.type, constraint.kind, resultType)) return false
         }
 
-        if (!trivialConstraintTypeInferenceOracle.isSuitableResultedType(resultType)) return false
-
         return true
     }
 
