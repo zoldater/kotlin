@@ -68,7 +68,7 @@ val KtElement.session: FirSession
         )
     }
 
-fun KtCallableDeclaration.getOrBuildFir(stage: FirStage = FirStage.DECLARATIONS): FirCallableMemberDeclaration {
+fun KtCallableDeclaration.getOrBuildFir(stage: FirStage = FirStage.DECLARATIONS): FirCallableMemberDeclaration<*> {
     val session = this.session
 
     val file = this.containingKtFile
@@ -95,10 +95,10 @@ fun KtCallableDeclaration.getOrBuildFir(stage: FirStage = FirStage.DECLARATIONS)
     val memberScope =
         if (klassFqName == null) FirTopLevelDeclaredMemberScope(cachedOrNewFirFile, session)
         else firProvider.getClassDeclaredMemberScope(ClassId(packageFqName, klassFqName, false))!!
-    var result: FirCallableMemberDeclaration? = null
+    var result: FirCallableMemberDeclaration<*>? = null
     val processor = { symbol: ConeCallableSymbol ->
         val firSymbol = symbol as? FirBasedSymbol<*>
-        val fir = firSymbol?.fir as? FirCallableMemberDeclaration
+        val fir = firSymbol?.fir as? FirCallableMemberDeclaration<*>
         if (fir?.psi == this) {
             result = fir
             ProcessorAction.STOP
