@@ -219,6 +219,9 @@ private fun MutableMap<AnalysisFlag<*>, Any>.initIDESpecificAnalysisSettings(pro
 val Module.platform: TargetPlatform?
     get() = KotlinFacetSettingsProvider.getInstance(project).getInitializedSettings(this).targetPlatform ?: project.platform
 
+val Module.isHMPPEnabled: Boolean
+    get() = KotlinFacetSettingsProvider.getInstance(project).getInitializedSettings(this).isHmppEnabled
+
 // FIXME(dsavvinov): this logic is clearly wrong in MPP environment; review and fix
 val Project.platform: TargetPlatform?
     get() {
