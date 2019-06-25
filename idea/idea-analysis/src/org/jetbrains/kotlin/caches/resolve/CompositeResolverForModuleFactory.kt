@@ -44,7 +44,6 @@ import org.jetbrains.kotlin.resolve.lazy.ResolveSession
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactory
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactoryService
 import org.jetbrains.kotlin.serialization.deserialization.MetadataPackageFragmentProvider
-import org.jetbrains.kotlin.serialization.deserialization.MetadataPartProvider
 import org.jetbrains.kotlin.serialization.js.KotlinJavascriptSerializationUtil
 import org.jetbrains.kotlin.serialization.js.createKotlinJavascriptPackageFragmentProvider
 import org.jetbrains.kotlin.storage.StorageManager
@@ -98,7 +97,7 @@ class CompositeResolverForModuleFactory(
 
         val container = createContainerForCompositePlatform(
             moduleContext, moduleContentScope, languageVersionSettings, targetPlatform,
-            compilerServices, trace, declarationProviderFactory, metadataPartProvider,
+            compilerServices, trace, declarationProviderFactory,
             moduleClassResolver, packagePartProvider
         )
 
@@ -208,7 +207,7 @@ class CompositeResolverForModuleFactory(
 }
 
 class CompositeAnalyzerServices(val services: List<PlatformDependentAnalyzerServices>) : PlatformDependentAnalyzerServices() {
-    override val platformConfigurator: PlatformConfigurator = CompositePlatformConigurator(services.map { it.platformConfigurator })
+    override val platformConfigurator: PlatformConfigurator = CompositePlatformConfigurator(services.map { it.platformConfigurator })
 
     override fun computePlatformSpecificDefaultImports(storageManager: StorageManager, result: MutableList<ImportPath>) {
         val intersectionOfDefaultImports = services.map { service ->
@@ -231,7 +230,7 @@ class CompositeAnalyzerServices(val services: List<PlatformDependentAnalyzerServ
         if (isEmpty()) emptyList() else reduce { first, second -> first.intersect(second) }.toList()
 }
 
-class CompositePlatformConigurator(private val componentConfigurators: List<PlatformConfigurator>) : PlatformConfigurator {
+class CompositePlatformConfigurator(private val componentConfigurators: List<PlatformConfigurator>) : PlatformConfigurator {
     // TODO(dsavvinov): this is actually a hack. Review callers of that method, think about how to refactor it
     // Unfortunately, clients of that container will inject additional services into them,
     // without knowing about composite platform (see LocalClassifierAnalyzer), so we can't just use [createContainerForCompositePlatform]
