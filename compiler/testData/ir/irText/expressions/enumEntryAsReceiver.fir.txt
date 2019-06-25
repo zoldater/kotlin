@@ -81,5 +81,4 @@ FILE fqName:<root> fileName:/enumEntryAsReceiver.kt
   FUN name:box visibility:public modality:FINAL <> () returnType:kotlin.String 
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='public final fun box (): kotlin.String declared in <root>'
-        ERROR_CALL 'Unresolved reference: <Unresolved name: value>#' type=IrErrorType
-
+        ERROR_CALL 'Unresolved reference: <Ambiguity: value, [kotlin/Function0.invoke, kotlin/Function0.invoke]>#' type=IrErrorType
