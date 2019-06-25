@@ -37,8 +37,6 @@ abstract class AbstractMultiModuleIdeResolveTest : AbstractMultiModuleTest() {
         // This will implicitly copy all source files to temporary directory, clearing them from diagnostic markup in process
         setupMppProjectFromTextFile(testRoot)
 
-        project.allKotlinFiles()
-
         for (module in ModuleManager.getInstance(project).modules) {
             for (sourceRoot in module.sourceRoots) {
                 VfsUtilCore.processFilesRecursively(sourceRoot) { file ->
