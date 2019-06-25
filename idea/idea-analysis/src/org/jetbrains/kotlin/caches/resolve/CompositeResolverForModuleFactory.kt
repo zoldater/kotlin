@@ -163,7 +163,6 @@ class CompositeResolverForModuleFactory(
         analyzerServices: CompositeAnalyzerServices,
         trace: BindingTrace,
         declarationProviderFactory: DeclarationProviderFactory,
-        metadataPartProvider: MetadataPartProvider,
         // Guaranteed to be non-null for modules with JVM
         moduleClassResolver: ModuleClassResolver?,
         packagePartProvider: PackagePartProvider?
