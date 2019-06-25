@@ -130,15 +130,15 @@ fun KotlinType.isDefaultBound(): Boolean = KotlinBuiltIns.isDefaultBound(getSupe
 fun createProjection(type: KotlinType, projectionKind: Variance, typeParameterDescriptor: TypeParameterDescriptor?): TypeProjection =
     TypeProjectionImpl(if (typeParameterDescriptor?.variance == projectionKind) Variance.INVARIANT else projectionKind, type)
 
-fun <T> Collection<T>.closure(preserveOrder: Boolean = false, f: (T) -> Collection<T>): Collection<T> {
+fun <T> Collection<T>.closure(f: (T) -> Collection<T>): Collection<T> {
     if (size == 0) return this
 
-    val result = if (preserveOrder) LinkedHashSet(this) else HashSet(this)
+    val result = LinkedHashSet(this)
     var elementsToCheck = result
     var oldSize = 0
     while (result.size > oldSize) {
         oldSize = result.size
-        val toAdd = if (preserveOrder) linkedSetOf() else hashSetOf<T>()
+        val toAdd = linkedSetOf<T>()
         elementsToCheck.forEach { toAdd.addAll(f(it)) }
         result.addAll(toAdd)
         elementsToCheck = toAdd
