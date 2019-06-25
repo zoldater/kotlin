@@ -3,8 +3,6 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-@file:Suppress("Duplicates")
-
 package org.jetbrains.kotlin.caches.resolve
 
 import com.intellij.psi.search.GlobalSearchScope
