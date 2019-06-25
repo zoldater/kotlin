@@ -155,7 +155,7 @@ class CompositeResolverForModuleFactory(
             }
     }
 
-    fun createContainerForCompositePlatform(
+    private fun createContainerForCompositePlatform(
         moduleContext: ModuleContext,
         moduleContentScope: GlobalSearchScope,
         languageVersionSettings: LanguageVersionSettings,
