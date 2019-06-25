@@ -149,22 +149,19 @@ fun <T> Collection<T>.closure(f: (T) -> Collection<T>): Collection<T> {
 
 fun <T> Collection<T>.lazyClosure(f: (T) -> Collection<T>): Sequence<T> = sequence {
     if (size == 0) return@sequence
-    var sizeBeforeIteration = 0
 
     yieldAll(this@lazyClosure)
-    var yieldedCount = size
+    val yieldedElements = LinkedHashSet(this@lazyClosure)
     var elementsToCheck = this@lazyClosure
 
-    while (yieldedCount > sizeBeforeIteration) {
-        val toAdd = hashSetOf<T>()
-        elementsToCheck.forEach {
-            val neighbours = f(it)
-            yieldAll(neighbours)
-            yieldedCount += neighbours.size
-            toAdd.addAll(neighbours)
+    while (elementsToCheck.isNotEmpty()) {
+        val addedElements = hashSetOf<T>()
+        elementsToCheck.forEach { element ->
+            val neighbours = f(element)
+            addedElements += neighbours.filter { yieldedElements.add(it) }
+                .onEach { yield(it) }
         }
-        elementsToCheck = toAdd
-        sizeBeforeIteration = yieldedCount
+        elementsToCheck = addedElements
     }
 }
 
