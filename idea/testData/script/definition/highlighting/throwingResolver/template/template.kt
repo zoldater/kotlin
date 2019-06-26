@@ -11,7 +11,7 @@ class TestDependenciesResolver : DependenciesResolver {
             scriptContents: ScriptContents,
             environment: Environment
     ): DependenciesResolver.ResolveResult {
-        error("Exception from resolver")
+        error("Exception from resolver2")
     }
 }
 
