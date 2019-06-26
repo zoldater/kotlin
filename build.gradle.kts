@@ -29,11 +29,6 @@ buildscript {
         classpath(kotlin("gradle-plugin", bootstrapKotlinVersion))
         classpath("net.sf.proguard:proguard-gradle:6.0.3")
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:0.9.17")
-
-        // a workaround to add another one buildSrc with Cidr-specific tools to Gradle classpath
-        if (findProperty("cidrPluginsEnabled")?.toString()?.toBoolean() == true) {
-            classpath("org.jetbrains.kotlin.ultimate:buildSrc:1.0")
-        }
     }
 }
 

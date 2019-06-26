@@ -12,3 +12,9 @@ pluginManagement {
 }
 
 include "prepare-deps"
+
+def includeCidr = hasProperty("cidrPluginsEnabled") && cidrPluginsEnabled != 'false'
+if (includeCidr) {
+    include ":prepare-deps:kotlin-native-platform-deps"
+    project(":prepare-deps:kotlin-native-platform-deps").projectDir = file("../kotlin-ultimate/buildSrc/prepare-deps/kotlin-native-platform-deps")
+}
