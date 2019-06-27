@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.util.ExternalDependenciesGenerator
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.library.KotlinLibrary
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.DFS
 
@@ -34,7 +35,8 @@ fun compile(
     phaseConfig: PhaseConfig,
     allDependencies: List<KotlinLibrary>,
     friendDependencies: List<KotlinLibrary>,
-    mainArguments: List<String>?
+    mainArguments: List<String>?,
+    exportedDeclarations: Set<FqName> = emptySet()
 ): String {
     val (moduleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer) =
         loadIr(project, files, configuration, allDependencies, friendDependencies)
@@ -44,6 +46,7 @@ fun compile(
     val mainFunction = JsMainFunctionDetector.getMainFunctionOrNull(moduleFragment)
 
     val context = JsIrBackendContext(moduleDescriptor, irBuiltIns, symbolTable, moduleFragment, configuration)
+    context.exportedDeclarations += exportedDeclarations
 
     // Load declarations referenced during `context` initialization
     dependencyModules.forEach {
