@@ -47,7 +47,7 @@ open class KotlinWebpack : DefaultTask(), RequiresNpmDependencies {
         }
 
     val entry: File
-        @Input get() = compilation.compileKotlinTask.outputFile
+        @InputFile get() = compilation.compileKotlinTask.outputFile
 
     @Suppress("unused")
     val runtimeClasspath: FileCollection
