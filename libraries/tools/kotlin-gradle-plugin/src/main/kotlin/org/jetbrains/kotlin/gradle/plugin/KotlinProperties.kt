@@ -136,10 +136,13 @@ internal class PropertiesProvider(private val project: Project) {
     val nativeJvmArgs: String?
         get() = propertyWithDeprecatedVariant("kotlin.native.jvmArgs", "org.jetbrains.kotlin.native.jvmArgs")
 
-    private fun propertyWithDeprecatedVariant(propName: String, deprecatedPropName: String): String? =
-        property(propName) ?: property(deprecatedPropName)?.also {
+    private fun propertyWithDeprecatedVariant(propName: String, deprecatedPropName: String): String? {
+        val deprecatedProperty = property(deprecatedPropName)
+        if (deprecatedProperty != null) {
             SingleWarningPerBuild.show(project, "Project property '$deprecatedPropName' is deprecated. Please use '$propName' instead.")
         }
+        return property(propName) ?: deprecatedProperty
+    }
 
     private fun booleanProperty(propName: String): Boolean? =
         property(propName)?.toBoolean()
@@ -152,6 +155,6 @@ internal class PropertiesProvider(private val project: Project) {
         }
 
     companion object {
-        const val KOTLIN_NATIVE_HOME = "kotlin.native.home"
+        internal const val KOTLIN_NATIVE_HOME = "kotlin.native.home"
     }
 }
