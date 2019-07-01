@@ -31,7 +31,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.NotNullableUserDataProperty
 import org.jetbrains.kotlin.scripting.definitions.getScriptOriginalFile
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
-import kotlin.script.experimental.dependencies.AsyncDependenciesResolver
 
 class ScriptsCompilationConfigurationUpdater(
     private val project: Project,
@@ -169,11 +168,6 @@ class ScriptsCompilationConfigurationUpdater(
         val scriptFile = file.getScriptOriginalFile() ?: return false
         return cache[scriptFile] != null || scriptFile.scriptDependencies != null || scriptFile.scriptCompilationConfiguration != null
     }
-
-    fun isAsyncDependencyResolver(scriptDef: ScriptDefinition): Boolean =
-        scriptDef.asLegacyOrNull<KotlinScriptDefinition>()?.dependencyResolver?.let {
-            it is AsyncDependenciesResolver || it is LegacyResolverWrapper
-        } ?: false
 
     companion object {
         @JvmStatic
