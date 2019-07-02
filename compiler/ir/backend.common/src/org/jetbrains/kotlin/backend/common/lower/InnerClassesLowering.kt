@@ -79,35 +79,37 @@ class InnerClassesLowering(val context: BackendContext) : ClassLoweringPass {
             override fun visitGetValue(expression: IrGetValue): IrExpression {
                 expression.transformChildrenVoid(this)
 
-                val implicitThisClass = expression.symbol.classForImplicitThis
-                if (implicitThisClass == null || implicitThisClass == irClass) return expression
+                val implicitThisClass = expression.symbol.classForImplicitThis ?: return expression
 
                 val startOffset = expression.startOffset
                 val endOffset = expression.endOffset
                 val origin = expression.origin
                 val function = currentFunction?.irElement as? IrFunction
-                val enclosingThisReceiver = function?.dispatchReceiverParameter ?: irClass.thisReceiver!!
 
-                var irThis: IrExpression = IrGetValueImpl(startOffset, endOffset, enclosingThisReceiver.symbol, origin)
-                var innerClass = irClass
-                while (innerClass != implicitThisClass) {
-                    if (!innerClass.isInner) {
-                        // Captured 'this' unrelated to inner classes nesting hierarchy, leave it as is -
-                        // should be transformed by closures conversion.
-                        return expression
+                val receiverParameters = if (function == null || function is IrConstructor)
+                    listOfNotNull(irClass.thisReceiver)
+                else
+                    listOfNotNull(function.dispatchReceiverParameter, function.extensionReceiverParameter)
+                for (enclosingThisReceiver in receiverParameters) {
+                    var irThis: IrExpression = IrGetValueImpl(startOffset, endOffset, enclosingThisReceiver.symbol, origin)
+                    var innerClass = enclosingThisReceiver.type.classOrNull!!.owner
+                    while (innerClass.isInner && innerClass != implicitThisClass) {
+                        irThis = if (function is IrConstructor && irClass == innerClass) {
+                            // Might be before a super() call (e.g. an argument to one), in which case the JVM bytecode verifier will reject
+                            // an attempt to access the field. Good thing we have a local variable as well.
+                            IrGetValueImpl(startOffset, endOffset, function.valueParameters[0].symbol, origin)
+                        } else {
+                            val outerThisField = context.declarationFactory.getOuterThisField(innerClass)
+                            IrGetFieldImpl(startOffset, endOffset, outerThisField.symbol, outerThisField.type, irThis, origin)
+                        }
+                        innerClass = innerClass.parentAsClass
                     }
-
-                    irThis = if (function is IrConstructor && irClass == innerClass) {
-                        // Might be before a super() call (e.g. an argument to one), in which case the JVM bytecode verifier will reject
-                        // an attempt to access the field. Good thing we have a local variable as well.
-                        IrGetValueImpl(startOffset, endOffset, function.valueParameters[0].symbol, origin)
-                    } else {
-                        val outerThisField = context.declarationFactory.getOuterThisField(innerClass)
-                        IrGetFieldImpl(startOffset, endOffset, outerThisField.symbol, outerThisField.type, irThis, origin)
+                    if (innerClass == implicitThisClass) {
+                        return irThis
                     }
-                    innerClass = innerClass.parentAsClass
                 }
-                return irThis
+                // Unrelated to both parameters -- must've been captured from a parent function.
+                return expression
             }
         })
     }
