@@ -15,10 +15,8 @@ import java.io.FileWriter
 
 class TestInfo(val name: String, val fqName: FqName, val file: File)
 
-class UnitTestFileWriter(private val fileName: String, val index: Int) {
+class UnitTestFileWriter(private val fileName: String, private val index: Int, private val generatedTestNames: MutableSet<String>) {
     private val infos = arrayListOf<TestInfo>()
-
-    private val generatedTestNames = hashSetOf<String>()
 
     fun addTests(info: List<TestInfo>) {
         infos.addAll(info)

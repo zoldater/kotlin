@@ -38,6 +38,9 @@ class CodegenTestsOnAndroidGenerator private constructor(private val pathManager
 
     private val pendingUnitTestGenerators = hashMapOf<Int, UnitTestFileWriter>()
 
+    //keep it globally to avoid test grouping on TC
+    private val generatedTestNames = hashSetOf<String>()
+
     fun getFlavorUnitTestFilePath(index: Int): String {
         return pathManager.srcFolderInAndroidTmpFolder + "/androidTestKtest$index/java/" + testClassPackage.replace(
             ".",
@@ -150,7 +153,13 @@ class CodegenTestsOnAndroidGenerator private constructor(private val pathManager
                 outputDir.mkdirs()
             }
             Assert.assertTrue("Cannot create directory for compiled files", outputDir.exists())
-            val unitTestFileWriter = pendingUnitTestGenerators.getOrPut(index) { UnitTestFileWriter(getFlavorUnitTestFilePath(index), index) }
+            val unitTestFileWriter = pendingUnitTestGenerators.getOrPut(index) {
+                UnitTestFileWriter(
+                    getFlavorUnitTestFilePath(index),
+                    index,
+                    generatedTestNames
+                )
+            }
             unitTestFileWriter.addTests(unitTestDescriptions)
             outputFiles.writeAllTo(outputDir)
         }
@@ -190,9 +199,8 @@ class CodegenTestsOnAndroidGenerator private constructor(private val pathManager
                     continue
                 }
 
-                val fullFileText = FileUtil.loadFile(file, true).let {
-                    it.replace("COROUTINES_PACKAGE", "kotlin.coroutines")
-                }
+                val fullFileText =
+                    FileUtil.loadFile(file, true).replace("COROUTINES_PACKAGE", "kotlin.coroutines")
 
                 if (fullFileText.contains("// WITH_COROUTINES")) {
                     if (fullFileText.contains("kotlin.coroutines.experimental")) continue
@@ -229,13 +237,13 @@ class CodegenTestsOnAndroidGenerator private constructor(private val pathManager
         }
     }
 
-    private fun createTestFiles(file: File, expectedText: String): List<CodegenTestCase.TestFile> =
+    private fun createTestFiles(file: File, expectedText: String): List<TestFile> =
         KotlinTestUtils.createTestFiles(
             file.name,
             expectedText,
-            object : KotlinTestUtils.TestFileFactoryNoModules<CodegenTestCase.TestFile>() {
-                override fun create(fileName: String, text: String, directives: Map<String, String>): CodegenTestCase.TestFile {
-                    return CodegenTestCase.TestFile(fileName, text)
+            object : KotlinTestUtils.TestFileFactoryNoModules<TestFile>() {
+                override fun create(fileName: String, text: String, directives: Map<String, String>): TestFile {
+                    return TestFile(fileName, text)
                 }
             }, false,
             "kotlin.coroutines"
