@@ -37,10 +37,6 @@ class StarProjectionImpl(private val typeParameter: TypeParameterDescriptor) : T
     @TypeRefinement
     override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjection =
         refineIfNeeded(kotlinTypeRefiner)
-
-    override fun replaceType(newType: KotlinType): TypeProjection {
-        return TypeBasedStarProjectionImpl(newType)
-    }
 }
 
 @TypeRefinement
@@ -74,8 +70,4 @@ class TypeBasedStarProjectionImpl(
     @TypeRefinement
     override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjection =
         TypeBasedStarProjectionImpl(kotlinTypeRefiner.refineType(_type))
-
-    override fun replaceType(newType: KotlinType): TypeProjection {
-        return TypeBasedStarProjectionImpl(newType)
-    }
 }
