@@ -114,6 +114,11 @@ public class MultiplatformAnalysisTestGenerated extends AbstractMultiplatformAna
             runTest("idea/testData/multiplatformTypeRefinement/multilevelParents/");
         }
 
+        @TestMetadata("qualifiedReceiver")
+        public void testQualifiedReceiver() throws Exception {
+            runTest("idea/testData/multiplatformTypeRefinement/qualifiedReceiver/");
+        }
+
         @TestMetadata("recursiveTypes")
         public void testRecursiveTypes() throws Exception {
             runTest("idea/testData/multiplatformTypeRefinement/recursiveTypes/");
