@@ -84,14 +84,14 @@ public class MultiplatformAnalysisTestGenerated extends AbstractMultiplatformAna
             runTest("idea/testData/multiplatformTypeRefinement/diamondModuleDependency2/");
         }
 
-        @TestMetadata("lambdas")
-        public void testLambdas() throws Exception {
-            runTest("idea/testData/multiplatformTypeRefinement/lambdas/");
-        }
-
         @TestMetadata("jsNameClash")
         public void testJsNameClash() throws Exception {
             runTest("idea/testData/multiplatformTypeRefinement/jsNameClash/");
+        }
+
+        @TestMetadata("lambdas")
+        public void testLambdas() throws Exception {
+            runTest("idea/testData/multiplatformTypeRefinement/lambdas/");
         }
 
         @TestMetadata("languageConstructions")
@@ -107,6 +107,11 @@ public class MultiplatformAnalysisTestGenerated extends AbstractMultiplatformAna
         @TestMetadata("qualifiedReceiver")
         public void testQualifiedReceiver() throws Exception {
             runTest("idea/testData/multiplatformTypeRefinement/qualifiedReceiver/");
+        }
+
+        @TestMetadata("recursiveTypes")
+        public void testRecursiveTypes() throws Exception {
+            runTest("idea/testData/multiplatformTypeRefinement/recursiveTypes/");
         }
 
         @TestMetadata("simple")
