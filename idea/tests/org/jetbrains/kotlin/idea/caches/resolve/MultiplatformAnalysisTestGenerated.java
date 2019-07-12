@@ -104,6 +104,11 @@ public class MultiplatformAnalysisTestGenerated extends AbstractMultiplatformAna
             runTest("idea/testData/multiplatformTypeRefinement/multilevelParents/");
         }
 
+        @TestMetadata("qualifiedReceiver")
+        public void testQualifiedReceiver() throws Exception {
+            runTest("idea/testData/multiplatformTypeRefinement/qualifiedReceiver/");
+        }
+
         @TestMetadata("simple")
         public void testSimple() throws Exception {
             runTest("idea/testData/multiplatformTypeRefinement/simple/");
