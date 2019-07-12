@@ -10,6 +10,7 @@ buildscript {
     val buildSrcKotlinRepo: String? by extra(findProperty("buildSrc.kotlin.repo") as String?)
 
     repositories {
+        mavenLocal()
         if (cacheRedirectorEnabled) {
             maven("https://cache-redirector.jetbrains.com/jcenter.bintray.com")
         } else {
@@ -83,6 +84,7 @@ extra["versions.androidDxSources"] = "5.0.0_r2"
 extra["customDepsOrg"] = "kotlin.build"
 
 repositories {
+    mavenLocal()
     maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
     maven("https://plugins.gradle.org/m2/")
     jcenter()

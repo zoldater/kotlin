@@ -12,6 +12,7 @@ buildscript {
     kotlinBootstrapFrom(BootstrapOption.TeamCity("1.3.50-dev-526", onlySuccessBootstrap = false))
 
     repositories {
+        mavenLocal()
         bootstrapKotlinRepo?.let(::maven)
 
         val cacheRedirectorEnabled = findProperty("cacheRedirectorEnabled")?.toString()?.toBoolean() == true
@@ -328,6 +329,7 @@ allprojects {
     val mirrorRepo: String? = findProperty("maven.repository.mirror")?.toString()
 
     repositories {
+        mavenLocal()
         kotlinBuildLocalRepo(project)
         mirrorRepo?.let(::maven)
         jcenter()

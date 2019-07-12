@@ -1,5 +1,6 @@
 pluginManagement {
     repositories {
+        mavenLocal()
         if (cacheRedirectorEnabled == 'true') {
             logger.info("Using cache redirector for settings.gradle pluginManagement")
             maven {

@@ -53,6 +53,7 @@ val androidStudioOs by lazy {
 }
 
 repositories {
+    mavenLocal()
     if (androidStudioRelease != null) {
         ivy {
             url = URI("https://dl.google.com/dl/android/studio/ide-zips/$androidStudioRelease")
@@ -69,7 +70,7 @@ repositories {
 
     maven("https://www.jetbrains.com/intellij-repository/$intellijReleaseType")
     maven("https://plugins.jetbrains.com/maven")
-    maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
+    //maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
 }
 
 val intellij by configurations.creating

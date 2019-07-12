@@ -48,4 +48,4 @@ val generateVisitors by tasks.creating(NoDebugJavaExec::class) {
 
 val compileKotlin by tasks
 
-compileKotlin.dependsOn(generateVisitors)
+//compileKotlin.dependsOn(generateVisitors)
