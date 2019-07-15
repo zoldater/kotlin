@@ -19,10 +19,7 @@ package org.jetbrains.kotlin.idea.core
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ScrollType
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiWhiteSpace
-import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.*
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SmartList
@@ -223,7 +220,8 @@ fun <T : KtDeclaration> insertMembersAfter(
     members.ifEmpty { return emptyList() }
 
     return runWriteAction {
-        val insertedMembers = SmartList<T>()
+        val insertedMembers = SmartList<SmartPsiElementPointer<T>>()
+        fun insertedMembersElements() = insertedMembers.mapNotNull { it.element }
 
         val (parameters, otherMembers) = members.partition { it is KtParameter }
 
@@ -231,7 +229,7 @@ fun <T : KtDeclaration> insertMembersAfter(
             if (classOrObject !is KtClass) return@mapNotNullTo null
 
             @Suppress("UNCHECKED_CAST")
-            (classOrObject.createPrimaryConstructorParameterListIfAbsent().addParameter(it as KtParameter) as T)
+            SmartPointerManager.createPointer(classOrObject.createPrimaryConstructorParameterListIfAbsent().addParameter(it as KtParameter) as T)
         }
 
         if (otherMembers.isNotEmpty()) {
@@ -256,20 +254,20 @@ fun <T : KtDeclaration> insertMembersAfter(
                 }
 
                 @Suppress("UNCHECKED_CAST")
-                (body.addAfter(it, afterAnchor) as T).apply { afterAnchor = this }
+                SmartPointerManager.createPointer((body.addAfter(it, afterAnchor) as T).apply { afterAnchor = this })
             }
         }
 
-        ShortenReferences.DEFAULT.process(insertedMembers)
+        ShortenReferences.DEFAULT.process(insertedMembersElements())
 
         if (editor != null) {
-            moveCaretIntoGeneratedElement(editor, insertedMembers.first())
+            moveCaretIntoGeneratedElement(editor, insertedMembersElements().first())
         }
 
         val codeStyleManager = CodeStyleManager.getInstance(classOrObject.project)
-        insertedMembers.forEach { codeStyleManager.reformat(it) }
+        insertedMembersElements().forEach { codeStyleManager.reformat(it) }
 
-        insertedMembers
+        insertedMembersElements()
     }
 }
 
