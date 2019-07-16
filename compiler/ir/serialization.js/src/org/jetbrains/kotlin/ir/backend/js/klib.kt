@@ -60,7 +60,7 @@ fun loadKlib(klibPath: String) =
 
 internal val JS_KLIBRARY_CAPABILITY = ModuleDescriptor.Capability<KotlinLibrary>("JS KLIBRARY")
 
-private val emptyLoggingContext = object : LoggingContext {
+val emptyLoggingContext = object : LoggingContext {
     override var inVerbosePhase = false
 
     override fun log(message: () -> String) {}
@@ -149,7 +149,7 @@ private fun runAnalysisAndPreparePsi2Ir(depsDescriptors: ModulesStructure): Gene
     )
 }
 
-private fun GeneratorContext.generateModuleFragment(files: List<KtFile>, deserializer: JsIrLinker? = null) =
+fun GeneratorContext.generateModuleFragment(files: List<KtFile>, deserializer: JsIrLinker? = null) =
     Psi2IrTranslator(languageVersionSettings, configuration).generateModuleFragment(this, files, deserializer)
 
 
@@ -198,8 +198,7 @@ private fun loadKlibMetadata(
     return md
 }
 
-
-private class ModulesStructure(
+class ModulesStructure(
     private val project: Project,
     private val files: List<KtFile>,
     val compilerConfiguration: CompilerConfiguration,
