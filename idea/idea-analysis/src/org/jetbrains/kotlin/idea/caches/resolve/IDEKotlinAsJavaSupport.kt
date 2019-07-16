@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.idea.caches.resolve
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.impl.compiled.ClsClassImpl
@@ -24,6 +25,8 @@ import org.jetbrains.kotlin.idea.caches.project.IdeaModuleInfo
 import org.jetbrains.kotlin.idea.decompiler.classFile.KtClsFile
 import org.jetbrains.kotlin.idea.decompiler.navigation.SourceNavigationHelper
 import org.jetbrains.kotlin.idea.project.platform
+import org.jetbrains.kotlin.idea.statistics.LightClassCallResult
+import org.jetbrains.kotlin.idea.statistics.logLightClassCallStatistics
 import org.jetbrains.kotlin.idea.stubindex.*
 import org.jetbrains.kotlin.idea.util.ProjectRootsUtil
 import org.jetbrains.kotlin.idea.util.application.runReadAction
@@ -122,8 +125,12 @@ class IDEKotlinAsJavaSupport(private val project: Project) : KotlinAsJavaSupport
         val virtualFile = classOrObject.containingFile.virtualFile
         if (virtualFile != null) {
             when {
-                ProjectRootsUtil.isProjectSourceFile(project, virtualFile) ->
+                ProjectRootsUtil.isProjectSourceFile(project, virtualFile) -> {
+                    if (KtUltraLightSupport.forceUsingOldLightClasses || !Registry.`is`("kotlin.use.ultra.light.classes", true)) {
+                        logLightClassCallStatistics(LightClassCallResult.Disabled)
+                    }
                     return KtLightClassForSourceDeclaration.create(classOrObject)
+                }
                 ProjectRootsUtil.isLibraryClassFile(project, virtualFile) ->
                     return getLightClassForDecompiledClassOrObject(classOrObject)
                 ProjectRootsUtil.isLibrarySourceFile(project, virtualFile) ->
@@ -222,6 +229,10 @@ class IDEKotlinAsJavaSupport(private val project: Project) : KotlinAsJavaSupport
         val lightClassForFacade = KtLightClassForFacade.createForFacade(
             psiManager, facadeFqName, moduleInfo.contentScope()
         )
+
+        if (KtUltraLightSupport.forceUsingOldLightClasses || !Registry.`is`("kotlin.use.ultra.light.classes", true)) {
+            logLightClassCallStatistics(LightClassCallResult.Disabled)
+        }
 
         return if (lightClassForFacade !== null) withFakeLightClasses(lightClassForFacade) else emptyList()
     }

@@ -48,12 +48,13 @@ import org.jetbrains.kotlin.idea.caches.lightClasses.LazyLightClassDataHolder
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.resolve.frontendService
+import org.jetbrains.kotlin.idea.statistics.LightClassCallResult
+import org.jetbrains.kotlin.idea.statistics.logLightClassCallStatistics
 import org.jetbrains.kotlin.idea.stubindex.KotlinTypeAliasShortNameIndex
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.hasExpectModifier
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -62,7 +63,6 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.NoDescriptorForDeclarationException
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.utils.keysToMap
 import java.util.concurrent.ConcurrentMap
 
 class IDELightClassGenerationSupport(private val project: Project) : LightClassGenerationSupport() {
@@ -78,10 +78,40 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
         override val isReleasedCoroutine
             get() = module.languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
 
+        private val knownPluginsNames = arrayOf(
+            "kotlin-allopen",
+            "android-extensions",
+            "annotation-based",
+            "kotlin-imports-dumper",
+            "jvm-abi-gen",
+            "kotlin-annotation-processing",
+            "kotlinx-serialization",
+            "kotlin-noarg",
+            "kotlin-sam-with-receiver",
+            "kotlin-scripting",
+            "kotlin-source-sections"
+        )
+
+        private fun getStatisticsPluginType(classPaths: Array<String>): LightClassCallResult {
+
+            val containsUnknownPlugin = classPaths.any { pluginClassPath ->
+                knownPluginsNames.none { jbPlugin ->
+                    pluginClassPath.contains(jbPlugin)
+                }
+            }
+
+            return if (containsUnknownPlugin)
+                LightClassCallResult.ExternalPlugins
+            else LightClassCallResult.JetBrainsPluginsOnly
+        }
+
         override fun isTooComplexForUltraLightGeneration(element: KtDeclaration): Boolean {
             val facet = KotlinFacet.get(module)
             val pluginClasspaths = facet?.configuration?.settings?.compilerArguments?.pluginClasspaths
             if (!pluginClasspaths.isNullOrEmpty()) {
+
+                logLightClassCallStatistics(getStatisticsPluginType(pluginClasspaths))
+
                 val stringifiedClasspaths = pluginClasspaths.joinToString()
                 LOG.debug { "Using heavy light classes for ${element.forLogString()} because of compiler plugins $stringifiedClasspaths" }
                 return true
@@ -94,6 +124,7 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
                 }
                 return true
             }
+            logLightClassCallStatistics(LightClassCallResult.Success)
             return false
         }
 
@@ -159,6 +190,7 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
                 }
 
                 if (implementsKotlinCollection(declaration)) {
+                    logLightClassCallStatistics(LightClassCallResult.UnimplementedKotlinCollection)
                     return declaration.getSuperTypeList()
                 }
             }
@@ -180,7 +212,10 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
         files: Collection<KtFile>
     ): KtUltraLightClassForFacade? {
 
-        if (files.any { it.isScript() }) return null
+        if (files.any { it.isScript() }) {
+            logLightClassCallStatistics(LightClassCallResult.RequestedForScript)
+            return null
+        }
 
         val filesToSupports: List<Pair<KtFile, KtUltraLightSupport>> = files.map {
             val module = ModuleUtilCore.findModuleForPsiElement(it) ?: return null
@@ -197,12 +232,20 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
     }
 
     override fun createUltraLightClass(element: KtClassOrObject): KtUltraLightClass? {
-        if (element.shouldNotBeVisibleAsLightClass() ||
-            element is KtObjectDeclaration && element.isObjectLiteral() ||
+        if (element.shouldNotBeVisibleAsLightClass()) {
+            return null
+        }
+
+        if (element.containingKtFile.isScript()) {
+            logLightClassCallStatistics(LightClassCallResult.RequestedForScript)
+            return null
+        }
+
+        if (element is KtObjectDeclaration && element.isObjectLiteral() ||
             element.isLocal ||
-            element is KtEnumEntry ||
-            element.containingKtFile.isScript()
+            element is KtEnumEntry
         ) {
+            logLightClassCallStatistics(LightClassCallResult.UnimplementedLocalClass)
             return null
         }
 

@@ -6,7 +6,14 @@
 package org.jetbrains.kotlin.idea.statistics
 
 enum class LightClassCallResult {
-    Success, FailReason1, FailReason2
+    Success,
+    UnimplementedLocalClass,
+    UnimplementedKotlinCollection,
+    JetBrainsPluginsOnly,
+    ExternalPlugins,
+    Disabled,
+    RequestedForScript,
+    Unknown
 }
 
 fun logLightClassCallStatistics(result: LightClassCallResult) {
