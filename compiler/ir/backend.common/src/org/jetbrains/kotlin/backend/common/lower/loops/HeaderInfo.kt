@@ -98,9 +98,8 @@ internal class ProgressionHeaderInfo(
     val additionalVariables: List<IrVariable> = listOf()
 ) : HeaderInfo(progressionType, first, last, step, isReversed, direction, additionalNotEmptyCondition) {
 
-    private val _canOverflow: Boolean? = canOverflow
     val canOverflow: Boolean by lazy {
-        if (_canOverflow != null) return@lazy _canOverflow
+        if (canOverflow != null) return@lazy canOverflow
 
         // Induction variable can overflow if it is not a const, or is MAX/MIN_VALUE (depending on direction).
         val lastValueAsLong = last.constLongValue ?: return@lazy true  // If "last" is not a const Number or Char.
