@@ -12,14 +12,16 @@ import org.jetbrains.kotlin.context.ModuleContext
 import org.jetbrains.kotlin.descriptors.impl.CompositePackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.frontend.di.createContainerForLazyResolve
-import org.jetbrains.kotlin.ide.konan.NativeLibraryInfo
-import org.jetbrains.kotlin.ide.konan.createPackageFragmentProvider
+import org.jetbrains.kotlin.ide.konan.CachingIdeKonanLibraryMetadataLoader
+import org.jetbrains.kotlin.ide.konan.KonanLibraryInfo
 import org.jetbrains.kotlin.platform.konan.KonanPlatforms
 import org.jetbrains.kotlin.resolve.CodeAnalyzerInitializer
+import org.jetbrains.kotlin.resolve.CompilerDeserializationConfiguration
 import org.jetbrains.kotlin.resolve.TargetEnvironment
 import org.jetbrains.kotlin.resolve.konan.platform.NativePlatformAnalyzerServices
 import org.jetbrains.kotlin.resolve.lazy.ResolveSession
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactoryService.Companion.createDeclarationProviderFactory
+import org.jetbrains.kotlin.serialization.konan.createPackageFragmentProvider
 
 object NativeResolverForModuleFactory : ResolverForModuleFactory() {
     override fun <M : ModuleInfo> createResolverForModule(
@@ -55,14 +57,15 @@ object NativeResolverForModuleFactory : ResolverForModuleFactory() {
 
         val moduleInfo = moduleContent.moduleInfo
 
-        val konanLibrary = moduleInfo.getCapability(NativeLibraryInfo.NATIVE_LIBRARY_CAPABILITY)
+        val konanLibrary = moduleInfo.getCapability(KonanLibraryInfo.KONAN_LIBRARY)
         if (konanLibrary != null) {
-            val libPackageFragmentProvider =
-                konanLibrary.createPackageFragmentProvider(
-                    moduleContext.storageManager,
-                    languageVersionSettings,
-                    moduleDescriptor
-                )
+            val libPackageFragmentProvider = createPackageFragmentProvider(
+                konanLibrary,
+                CachingIdeKonanLibraryMetadataLoader,
+                moduleContext.storageManager,
+                moduleDescriptor,
+                CompilerDeserializationConfiguration(languageVersionSettings)
+            )
 
             fragmentProviders.add(libPackageFragmentProvider)
         }

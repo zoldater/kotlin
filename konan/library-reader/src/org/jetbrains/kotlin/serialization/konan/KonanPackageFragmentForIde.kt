@@ -6,8 +6,8 @@
 package org.jetbrains.kotlin.serialization.konan
 
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.konan.library.KonanLibrary
-import org.jetbrains.kotlin.konan.library.resolver.PackageAccessedHandler
+import org.jetbrains.kotlin.konan.library.KonanLibraryForIde
+import org.jetbrains.kotlin.konan.library.KonanLibraryMetadataLoader
 import org.jetbrains.kotlin.metadata.deserialization.NameResolverImpl
 import org.jetbrains.kotlin.metadata.konan.KonanProtoBuf
 import org.jetbrains.kotlin.name.FqName
@@ -19,10 +19,10 @@ import org.jetbrains.kotlin.serialization.deserialization.getClassId
 import org.jetbrains.kotlin.serialization.deserialization.getName
 import org.jetbrains.kotlin.storage.StorageManager
 
-class KonanPackageFragment(
+class KonanPackageFragmentForIde(
     fqName: FqName,
-    private val library: KonanLibrary,
-    private val packageAccessedHandler: PackageAccessedHandler?,
+    library: KonanLibraryForIde,
+    metadataLoader: KonanLibraryMetadataLoader,
     storageManager: StorageManager,
     module: ModuleDescriptor,
     partName: String
@@ -36,10 +36,12 @@ class KonanPackageFragment(
 
     // The proto field is lazy so that we can load only needed
     // packages from the library.
-    private val protoForNames: KonanProtoBuf.LinkDataPackageFragment by lazy { library.packageMetadata(fqName.asString(), partName) }
+    private val protoForNames: KonanProtoBuf.LinkDataPackageFragment by lazy {
+        metadataLoader.loadPackageFragment(library, fqName.asString(), partName)
+    }
 
     val proto: KonanProtoBuf.LinkDataPackageFragment
-        get() = protoForNames.also { packageAccessedHandler?.markPackageAccessed(fqName) }
+        get() = protoForNames
 
     private val nameResolver by lazy {
         NameResolverImpl(protoForNames.stringTable, protoForNames.nameTable)
@@ -73,15 +75,12 @@ class KonanPackageFragment(
     fun hasTopLevelClassifier(name: Name): Boolean = name in classifierNames
 
     private fun loadClassNames(): Collection<Name> {
-
         val classNameList = protoForNames.classes.classNameList
 
-        val names = classNameList.mapNotNull {
+        return classNameList.mapNotNull {
             val classId = nameResolver.getClassId(it)
             val shortName = classId.shortClassName
             if (!classId.isNestedClass) shortName else null
         }
-
-        return names
     }
 }

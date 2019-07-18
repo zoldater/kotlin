@@ -6,27 +6,31 @@
 package org.jetbrains.kotlin.descriptors.konan
 
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.konan.library.KonanLibrary
 import org.jetbrains.kotlin.konan.library.isInterop
+import org.jetbrains.kotlin.library.BaseKotlinLibrary
+import org.jetbrains.kotlin.resolve.ImplicitIntegerCoercion
 
 sealed class KonanModuleOrigin {
-
     companion object {
         val CAPABILITY = ModuleDescriptor.Capability<KonanModuleOrigin>("KonanModuleOrigin")
     }
 }
 
-sealed class CompiledKonanModuleOrigin: KonanModuleOrigin()
+sealed class CompiledKonanModuleOrigin : KonanModuleOrigin()
 
-class DeserializedKonanModuleOrigin(val library: KonanLibrary) : CompiledKonanModuleOrigin()
+class DeserializedKonanModuleOrigin(val library: BaseKotlinLibrary) : CompiledKonanModuleOrigin()
 
-object CurrentKonanModuleOrigin: CompiledKonanModuleOrigin()
+object CurrentKonanModuleOrigin : CompiledKonanModuleOrigin()
 
 object SyntheticModulesOrigin : KonanModuleOrigin()
 
-internal fun KonanModuleOrigin.isInteropLibrary(): Boolean = when (this) {
-    is DeserializedKonanModuleOrigin -> this.library.isInterop
+private fun KonanModuleOrigin.isInteropLibrary(): Boolean = when (this) {
+    is DeserializedKonanModuleOrigin -> library.isInterop
     CurrentKonanModuleOrigin, SyntheticModulesOrigin -> false
 }
 
-val ModuleDescriptor.konanModuleOrigin get() = this.getCapability(KonanModuleOrigin.CAPABILITY)!!
+val KonanModuleOrigin.moduleCapabilities
+    get() = mapOf(
+        KonanModuleOrigin.CAPABILITY to this,
+        ImplicitIntegerCoercion.MODULE_CAPABILITY to isInteropLibrary()
+    )

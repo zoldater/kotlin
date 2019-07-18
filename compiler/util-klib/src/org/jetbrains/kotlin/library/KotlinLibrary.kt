@@ -42,6 +42,9 @@ interface IrLibrary {
 val BaseKotlinLibrary.uniqueName: String
     get() = manifestProperties.getProperty(KLIB_PROPERTY_UNIQUE_NAME)!!
 
+val BaseKotlinLibrary.packageFqName: String?
+    get() = manifestProperties.getProperty(KLIB_PROPERTY_PACKAGE)
+
 val BaseKotlinLibrary.unresolvedDependencies: List<UnresolvedLibrary>
     get() = manifestProperties.propertyList(KLIB_PROPERTY_DEPENDS, escapeInQuotes = true)
             .map {

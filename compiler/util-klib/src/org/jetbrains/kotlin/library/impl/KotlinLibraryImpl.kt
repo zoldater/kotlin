@@ -40,7 +40,7 @@ open class BaseKotlinLibraryImpl(
 }
 
 open class MetadataLibraryImpl(
-    private val access: MetadataLibraryAccess<MetadataKotlinLibraryLayout>
+    val access: MetadataLibraryAccess<MetadataKotlinLibraryLayout>
 ) : MetadataLibrary {
 
     override val moduleHeaderData: ByteArray by lazy {

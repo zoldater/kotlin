@@ -9,8 +9,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseComponent
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil.createConcurrentWeakValueMap
-import org.jetbrains.kotlin.konan.library.KLIB_METADATA_FILE_EXTENSION
-import org.jetbrains.kotlin.konan.library.KLIB_MODULE_METADATA_FILE_NAME
+import org.jetbrains.kotlin.library.KLIB_METADATA_FILE_EXTENSION
+import org.jetbrains.kotlin.library.KLIB_MODULE_METADATA_FILE_NAME
 import org.jetbrains.kotlin.metadata.konan.KonanProtoBuf
 import org.jetbrains.kotlin.serialization.konan.parseModuleHeader
 import org.jetbrains.kotlin.serialization.konan.parsePackageFragment
