@@ -19,7 +19,8 @@ dependencies {
     }
 
     Platform[192].orHigher {
-        testCompileOnly(intellijPluginDep("java")) { includeJars("java-api") }
+        testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+        testRuntimeOnly(intellijPluginDep("java"))
     }
 
     testRuntime(intellijDep())
