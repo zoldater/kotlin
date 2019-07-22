@@ -89,7 +89,12 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
             "kotlin-noarg",
             "kotlin-sam-with-receiver",
             "kotlin-scripting",
-            "kotlin-source-sections"
+            "kotlin-source-sections",
+            "kotlin-reflect",
+            "kotlin-script-runtime",
+            "kotlin-scripting",
+            "kotlin-stdlib",
+            "kotlinx-coroutines"
         )
 
         private fun getStatisticsPluginType(classPaths: Array<String>): LightClassCallResult {
