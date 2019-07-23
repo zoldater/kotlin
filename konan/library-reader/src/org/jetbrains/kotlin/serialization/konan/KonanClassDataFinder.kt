@@ -14,22 +14,17 @@ import org.jetbrains.kotlin.serialization.deserialization.ClassDataFinder
 import org.jetbrains.kotlin.serialization.deserialization.getClassId
 
 class KonanClassDataFinder(
-    private val fragment: KonanProtoBuf.LinkDataPackageFragment,
+    fragment: KonanProtoBuf.LinkDataPackageFragment,
     private val nameResolver: NameResolver
 ) : ClassDataFinder {
 
-    override fun findClassData(classId: ClassId): ClassData? {
-        val proto = fragment.classes
-        val nameList = proto.classNameList
-
-        val index = nameList.indexOfFirst { nameResolver.getClassId(it) == classId }
-        if (index == -1) {
-            return null
+    private val classIdToProto =
+        fragment.classes.classesList.associateBy { klass ->
+            nameResolver.getClassId(klass.fqName)
         }
 
-        val foundClass = proto.getClasses(index) ?: error("Could not find data for serialized class $classId")
-
-        /* TODO: binary version supposed to be read from protobuf. */
-        return ClassData(nameResolver, foundClass, KonanMetadataVersion.INSTANCE, SourceElement.NO_SOURCE)
+    override fun findClassData(classId: ClassId): ClassData? {
+        val classProto = classIdToProto[classId] ?: return null
+        return ClassData(nameResolver, classProto, KonanMetadataVersion.INSTANCE, SourceElement.NO_SOURCE)
     }
 }

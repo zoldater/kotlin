@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.serialization.SerializerExtensionProtocol
 import org.jetbrains.kotlin.serialization.deserialization.*
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedPackageMemberScope
+import org.jetbrains.kotlin.serialization.konan.KonanClassDataFinder
 import org.jetbrains.kotlin.serialization.konan.KonanMetadataVersion
 
 class KotlinNativeMetadataDeserializerForDecompiler(
@@ -39,7 +40,7 @@ class KotlinNativeMetadataDeserializerForDecompiler(
 
         deserializationComponents = DeserializationComponents(
             storageManager, moduleDescriptor, DeserializationConfiguration.Default,
-            KotlinNativeProtoBasedClassDataFinder(proto, nameResolver),
+            KonanClassDataFinder(proto, nameResolver),
             AnnotationAndConstantLoaderImpl(moduleDescriptor, notFoundClasses, serializerProtocol), packageFragmentProvider,
             ResolveEverythingToKotlinAnyLocalClassifierResolver(builtIns), createLoggingErrorReporter(LOG),
             LookupTracker.DO_NOTHING, flexibleTypeDeserializer, emptyList(), notFoundClasses, ContractDeserializer.DEFAULT,
