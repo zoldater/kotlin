@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.serialization.SerializerExtensionProtocol
 import org.jetbrains.kotlin.serialization.deserialization.*
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedPackageMemberScope
+import org.jetbrains.kotlin.serialization.konan.KonanMetadataVersion
 
 class KotlinNativeMetadataDeserializerForDecompiler(
     packageFqName: FqName,
@@ -55,7 +56,7 @@ class KotlinNativeMetadataDeserializerForDecompiler(
             createDummyPackageFragment(facadeFqName),
             proto.`package`,
             nameResolver,
-            KotlinNativeMetadataVersion.DEFAULT_INSTANCE,
+            KonanMetadataVersion.INSTANCE,
             containerSource = null,
             components = deserializationComponents
         ) { emptyList() }

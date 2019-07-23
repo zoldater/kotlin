@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.serialization.deserialization.ClassData
 import org.jetbrains.kotlin.serialization.deserialization.ClassDataFinder
 import org.jetbrains.kotlin.serialization.deserialization.getClassId
+import org.jetbrains.kotlin.serialization.konan.KonanMetadataVersion
 
 class KotlinNativeProtoBasedClassDataFinder(
     proto: KonanProtoBuf.LinkDataPackageFragment,
@@ -23,10 +24,8 @@ class KotlinNativeProtoBasedClassDataFinder(
             nameResolver.getClassId(klass.fqName)
         }
 
-    internal val allClassIds: Collection<ClassId> get() = classIdToProto.keys
-
     override fun findClassData(classId: ClassId): ClassData? {
         val classProto = classIdToProto[classId] ?: return null
-        return ClassData(nameResolver, classProto, KotlinNativeMetadataVersion.DEFAULT_INSTANCE, classSource(classId))
+        return ClassData(nameResolver, classProto, KonanMetadataVersion.INSTANCE, classSource(classId))
     }
 }

@@ -10,32 +10,20 @@ import com.intellij.openapi.fileTypes.FileTypeConsumer
 import com.intellij.openapi.fileTypes.FileTypeFactory
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.library.KLIB_METADATA_FILE_EXTENSION
-import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
+import org.jetbrains.kotlin.serialization.konan.KonanMetadataVersion
 import org.jetbrains.kotlin.serialization.konan.KonanSerializerProtocol
 import org.jetbrains.kotlin.serialization.konan.NullFlexibleTypeDeserializer
 
-class KotlinNativeMetadataDecompiler : KotlinNativeMetadataDecompilerBase<KotlinNativeMetadataVersion>(
+class KotlinNativeMetadataDecompiler : KotlinNativeMetadataDecompilerBase<KonanMetadataVersion>(
     KotlinNativeMetaFileType, { KonanSerializerProtocol }, NullFlexibleTypeDeserializer,
-    { KotlinNativeMetadataVersion.DEFAULT_INSTANCE },
-    { KotlinNativeMetadataVersion.INVALID_VERSION },
+    { KonanMetadataVersion.INSTANCE },
+    { KonanMetadataVersion.INVALID_VERSION },
     KotlinNativeMetaFileType.STUB_VERSION
 ) {
 
     override fun doReadFile(file: VirtualFile): FileWithMetadata? {
         val proto = KotlinNativeLoadingMetadataCache.getInstance().getCachedPackageFragment(file)
         return FileWithMetadata.Compatible(proto, KonanSerializerProtocol) //todo: check version compatibility
-    }
-}
-
-class KotlinNativeMetadataVersion(vararg numbers: Int) : BinaryVersion(*numbers) {
-    override fun isCompatible(): Boolean = true //todo: ?
-
-    companion object {
-        @JvmField
-        val DEFAULT_INSTANCE = KotlinNativeMetadataVersion(1, 1, 0)
-
-        @JvmField
-        val INVALID_VERSION = KotlinNativeMetadataVersion()
     }
 }
 
