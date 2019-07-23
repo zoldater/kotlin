@@ -9,7 +9,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.PersistentLibraryKind
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.PathUtil
 import org.jetbrains.kotlin.analyzer.getCapability
@@ -32,8 +31,6 @@ import org.jetbrains.kotlin.idea.compiler.IDELanguageSettingsProvider
 import org.jetbrains.kotlin.konan.library.KONAN_STDLIB_NAME
 import org.jetbrains.kotlin.konan.library.KonanLibraryForIde
 import org.jetbrains.kotlin.konan.library.createKonanLibraryForIde
-import org.jetbrains.kotlin.library.KLIB_FILE_EXTENSION
-import org.jetbrains.kotlin.library.KLIB_METADATA_FILE_EXTENSION
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.impl.NativeIdePlatformKind
 import org.jetbrains.kotlin.platform.konan.KonanPlatforms
@@ -47,30 +44,13 @@ class NativePlatformKindResolution : IdePlatformKindResolution {
 
     override fun createLibraryInfo(project: Project, library: Library): List<LibraryInfo> {
         return library.getFiles(OrderRootType.CLASSES).mapNotNull { file ->
-            if (!isLibraryFileForPlatform(file)) return@createLibraryInfo emptyList()
+            if (!file.isKonanLibraryRoot) return@createLibraryInfo emptyList()
             val path = PathUtil.getLocalPath(file) ?: return@createLibraryInfo emptyList()
             KonanLibraryInfo(project, library, KFile(path))
         }
     }
 
-    override fun isLibraryFileForPlatform(virtualFile: VirtualFile): Boolean {
-        return when {
-            // The virtual file for a library packed in a ZIP file will have path like "/some/path/to/the/file.klib!/",
-            // and therefore will be recognized by VFS as a directory (isDirectory == true).
-            // So, first, let's check the extension.
-            virtualFile.extension == KLIB_FILE_EXTENSION -> true
-
-            virtualFile.isDirectory -> {
-                val linkdataDir = virtualFile.findChild("linkdata") ?: return false
-                // False means we hit .knm file
-                !VfsUtil.processFilesRecursively(linkdataDir) {
-                    it.extension != KLIB_METADATA_FILE_EXTENSION
-                }
-            }
-
-            else -> false
-        }
-    }
+    override fun isLibraryFileForPlatform(virtualFile: VirtualFile): Boolean = virtualFile.isKonanLibraryRoot
 
     override val libraryKind: PersistentLibraryKind<*>?
         get() = NativeLibraryKind

@@ -21,8 +21,13 @@ import org.jetbrains.kotlin.idea.decompiler.textBuilder.LoggingErrorReporter
 import org.jetbrains.kotlin.konan.file.File as KFile
 import org.jetbrains.kotlin.konan.library.KonanLibraryForIde
 import org.jetbrains.kotlin.konan.library.KonanLibraryMetadataLoader
+import org.jetbrains.kotlin.library.KLIB_FILE_EXTENSION
+import org.jetbrains.kotlin.library.KLIB_MANIFEST_FILE_NAME
+import org.jetbrains.kotlin.library.KLIB_PROPERTY_UNIQUE_NAME
 import org.jetbrains.kotlin.metadata.konan.KonanProtoBuf
 import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
+import java.io.IOException
+import java.util.*
 
 fun createFileStub(project: Project, text: String): PsiFileStub<*> {
     val virtualFile = LightVirtualFile("dummy.kt", KotlinFileType.INSTANCE, text)
@@ -35,6 +40,22 @@ fun createFileStub(project: Project, text: String): PsiFileStub<*> {
 }
 
 fun createLoggingErrorReporter(log: Logger) = LoggingErrorReporter(log)
+
+internal val VirtualFile.isKonanLibraryRoot: Boolean
+    get() {
+        val extension = extension
+        if (!extension.isNullOrEmpty() && extension != KLIB_FILE_EXTENSION) return false
+
+        val manifestFile = findChild(KLIB_MANIFEST_FILE_NAME)?.takeIf { !it.isDirectory } ?: return false
+
+        val manifestProperties = try {
+            manifestFile.inputStream.use { Properties().apply { load(it) } }
+        } catch (_: IOException) {
+            return false
+        }
+
+        return manifestProperties.containsKey(KLIB_PROPERTY_UNIQUE_NAME)
+    }
 
 internal object CachingIdeKonanLibraryMetadataLoader : KonanLibraryMetadataLoader() {
     override fun loadModuleHeader(
