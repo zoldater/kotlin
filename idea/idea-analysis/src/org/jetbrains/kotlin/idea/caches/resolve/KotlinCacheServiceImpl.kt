@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.analyzer.ResolverForProject.Companion.resolverForSdk
 import org.jetbrains.kotlin.analyzer.ResolverForProject.Companion.resolverForSpecialInfoName
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.caches.project.cacheByClass
 import org.jetbrains.kotlin.caches.project.cacheInvalidatingOnRootModifications
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.config.LanguageFeature
@@ -305,7 +306,10 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
                 val dependentModules = specialModuleInfo.getDependentModules()
                 val modulesFacade = globalFacade(settings)
                 val globalContext =
-                    modulesFacade.globalContext.contextWithCompositeExceptionTracker(project, "facadeForSpecialModuleInfo (ModuleSourceInfo)")
+                    modulesFacade.globalContext.contextWithCompositeExceptionTracker(
+                        project,
+                        "facadeForSpecialModuleInfo (ModuleSourceInfo)"
+                    )
                 makeProjectResolutionFacade(
                     "facadeForSpecialModuleInfo (ModuleSourceInfo)",
                     globalContext,
@@ -536,8 +540,13 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
     }
 }
 
-class BuiltInsCache(project: Project) {
-    private val innerCache = project.cacheInvalidatingOnRootModifications { ConcurrentHashMap<BuiltInsCacheKey, KotlinBuiltIns>() }
+class BuiltInsCache(private val project: Project) {
+    private val innerCache
+        get() = project.cacheByClass(
+            BuiltInsCache::class.java,
+            ProjectRootModificationTracker.getInstance(project),
+            LibraryModificationTracker.getInstance(project)
+        ) { ConcurrentHashMap<BuiltInsCacheKey, KotlinBuiltIns>() }
 
     init {
         innerCache[BuiltInsCacheKey.DefaultBuiltInsKey] = DefaultBuiltIns.Instance
