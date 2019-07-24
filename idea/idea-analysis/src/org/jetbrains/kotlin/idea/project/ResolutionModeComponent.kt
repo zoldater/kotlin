@@ -48,4 +48,4 @@ object ResolutionModeComponent {
 }
 
 val Project.useCompositeAnalysis: Boolean
-    get() = ResolutionModeComponent.getMode(this) == ResolutionModeComponent.Mode.COMPOSITE
+    get() = false // ResolutionModeComponent.getMode(this) == ResolutionModeComponent.Mode.COMPOSITE
