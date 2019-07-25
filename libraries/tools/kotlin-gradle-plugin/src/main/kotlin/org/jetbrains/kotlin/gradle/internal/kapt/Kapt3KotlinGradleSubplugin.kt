@@ -120,7 +120,7 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
         }
 
         fun Project.isUseWorkerApi(): Boolean {
-            return isWorkerAPISupported() && hasProperty(USE_WORKER_API) && property(USE_WORKER_API) == "true"
+            return isWorkerAPISupported() && !(hasProperty(USE_WORKER_API) && property(USE_WORKER_API) == "false")
         }
 
         fun Project.isIncrementalKapt(): Boolean {
