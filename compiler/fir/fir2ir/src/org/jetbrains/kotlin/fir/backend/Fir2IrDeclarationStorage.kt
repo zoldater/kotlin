@@ -191,6 +191,7 @@ class Fir2IrDeclarationStorage(
                         startOffset, endOffset, origin, symbol,
                         typeParameter.name, index,
                         typeParameter.isReified,
+                        false,
                         typeParameter.variance
                     ).apply {
                         descriptor.bind(this)
