@@ -37,8 +37,12 @@ class Stats(val name: String = "", val header: Array<String> = arrayOf("Name", "
                            { accumulator, next -> accumulator + (1.0 * (next - meanMs)).pow(2.0) })
         ) / timingsNs.size).toLong().nsToMs
 
+        println("##teamcity[testStarted name='$id : mean' captureStandardOutput='true']")
+
         println("##teamcity[buildStatisticValue key='$id' value='$meanMs']")
         println("##teamcity[buildStatisticValue key='$id stdDev' value='$stdDivMs']")
+
+        println("##teamcity[testFinished name='$id : mean' duration='$meanMs']")
 
         perfTestRawDataMs.addAll(timingsNs.map { it.nsToMs }.toList())
         append(arrayOf(id, meanMs, stdDivMs))
@@ -77,15 +81,14 @@ class Stats(val name: String = "", val header: Array<String> = arrayOf("Name", "
             mainPhase(iterations, setUp, test, tearDown, timingsNs, namePrefix, errors)
 
             for (attempt in 0 until iterations) {
-                for (n in listOf("$namePrefix #$attempt", "performance test: $namePrefix #$attempt")) {
-                    println("##teamcity[testStarted name='$n' captureStandardOutput='true']")
-                    if (errors[attempt] != null) {
-                        tcPrintErrors(n, listOf(errors[attempt]!!))
-                    }
-                    val spentMs = timingsNs[attempt].nsToMs
-                    println("##teamcity[buildStatisticValue key='$n' value='$spentMs']")
-                    println("##teamcity[testFinished name='$n' duration='$spentMs']")
+                val n = "$namePrefix #$attempt"
+                println("##teamcity[testStarted name='$n' captureStandardOutput='true']")
+                if (errors[attempt] != null) {
+                    tcPrintErrors(n, listOf(errors[attempt]!!))
                 }
+                val spentMs = timingsNs[attempt].nsToMs
+                println("##teamcity[buildStatisticValue key='$n' value='$spentMs']")
+                println("##teamcity[testFinished name='$n' duration='$spentMs']")
             }
 
             append(namePrefix, timingsNs)
