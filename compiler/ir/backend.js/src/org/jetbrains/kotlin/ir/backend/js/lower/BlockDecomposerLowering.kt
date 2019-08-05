@@ -38,6 +38,10 @@ abstract class AbstractBlockDecomposerLowering(context: CommonBackendContext) : 
     override fun lower(irDeclarationContainer: IrDeclarationContainer) {
         irDeclarationContainer.transformDeclarationsFlat { declaration ->
             when (declaration) {
+                is IrScript -> {
+                    lower(declaration)
+                    listOf(declaration)
+                }
                 is IrFunction -> {
                     lower(declaration)
                     listOf(declaration)
@@ -46,6 +50,10 @@ abstract class AbstractBlockDecomposerLowering(context: CommonBackendContext) : 
                 else -> listOf(declaration)
             }
         }
+    }
+
+    fun lower(irScript: IrScript) {
+        irScript.transform(decomposerTransformer, null)
     }
 
     fun lower(irFunction: IrFunction) {
@@ -93,7 +101,7 @@ class BlockDecomposerTransformer(
     private val context: CommonBackendContext,
     private val unreachableExpression: () -> IrExpression
 ) : IrElementTransformerVoid() {
-    private lateinit var function: IrFunction
+    private lateinit var function: IrDeclarationParent
     private var tmpVarCounter: Int = 0
 
     private val statementTransformer = StatementTransformer()
@@ -107,6 +115,34 @@ class BlockDecomposerTransformer(
     private val unitValue get() = JsIrBuilder.buildGetObjectValue(unitType, context.irBuiltIns.unitClass)
 
     private val booleanNotSymbol = context.irBuiltIns.booleanNotSymbol
+
+    override fun visitScript(declaration: IrScript): IrStatement {
+        function = declaration
+
+        with(declaration) {
+            val transformedDeclarations = mutableListOf<IrDeclaration>()
+            declarations.forEach {
+                val d = it.transform(statementTransformer, null) as IrDeclaration
+                transformedDeclarations.add(d)
+            }
+            declarations.clear()
+            declarations.addAll(transformedDeclarations)
+
+            val transformedStatements = mutableListOf<IrStatement>()
+            statements.forEach {
+                val transformer = if (it === statements.last()) expressionTransformer else statementTransformer
+                val s = it.transform(transformer, null)
+                if (s is IrComposite) {
+                    transformedStatements.addAll(s.statements)
+                } else {
+                    transformedStatements.add(s)
+                }
+            }
+            statements.clear()
+            statements.addAll(transformedStatements)
+        }
+        return declaration
+    }
 
     override fun visitFunction(declaration: IrFunction): IrStatement {
         function = declaration
