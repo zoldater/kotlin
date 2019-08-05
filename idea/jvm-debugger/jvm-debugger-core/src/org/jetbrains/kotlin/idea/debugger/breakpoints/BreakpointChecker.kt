@@ -38,7 +38,7 @@ class BreakpointChecker {
         val extensionPoint = Extensions.getArea(null)
             .getExtensionPoint<XBreakpointType<*, *>>(XBreakpointType.EXTENSION_POINT_NAME.name)
 
-        extensionPoint.extensionList
+        extensionPoint.extensions
             .filterIsInstance<XLineBreakpointType<*>>()
             .filter { it is KotlinBreakpointType }
     }
