@@ -79,6 +79,8 @@ internal class PerFileAnalysisCache(val file: KtFile, componentProvider: Compone
                 descendantsOfCurrent.clear()
             }
 
+            // Modified KtNamedFunction provides its own AnalysisResult
+            // TODO: could be generalized as well for other cases those could provide incremental analysis
             if (current is KtNamedFunction && current.inBlockModificationCount > 0) break
 
             descendantsOfCurrent.add(current)
@@ -88,8 +90,6 @@ internal class PerFileAnalysisCache(val file: KtFile, componentProvider: Compone
 
         return result
     }
-
-    private fun isAFile(element: PsiElement) = element is KtFile
 
     fun getAnalysisResults(element: KtElement): AnalysisResult {
         assert(element.containingKtFile == file) { "Wrong file. Expected $file, but was ${element.containingKtFile}" }
@@ -101,38 +101,40 @@ internal class PerFileAnalysisCache(val file: KtFile, componentProvider: Compone
             val cached = lookUp(analyzableParent)
             if (cached != null) return@synchronized cached.value
 
-            val result = if (analyzableParent is KtNamedFunction) {
-                CachedValuesManager.getManager(file.project).createCachedValue(
-                    {
-                        val calculatedAnalysisResult: AnalysisResult =
-                            if (analyzableParent.inBlockModificationCount != 0L) {
-                                val result = analyze(analyzableParent)
+            val result =
+                // TODO: could be generalized as well for other cases those could provide incremental analysis
+                if (analyzableParent is KtNamedFunction) {
+                    CachedValuesManager.getManager(file.project).createCachedValue(
+                        {
+                            val calculatedAnalysisResult: AnalysisResult =
+                                if (analyzableParent.inBlockModificationCount != 0L) {
+                                    val result = analyze(analyzableParent)
 
-                                val parentCache = cache[file] as SimpleCachedValue
-                                val parentAnalysis = parentCache.value
-                                val newBindingCtx = mergeContexts(result, parentAnalysis, analyzableParent)
+                                    val parentCache = cache[file] as SimpleCachedValue
+                                    val parentAnalysis = parentCache.value
+                                    val newBindingCtx = mergeContexts(result, parentAnalysis, analyzableParent)
 
-                                val newParentAnalysis = if (parentAnalysis.isError())
-                                    AnalysisResult.internalError(newBindingCtx, parentAnalysis.error)
-                                else AnalysisResult.success(
-                                    newBindingCtx,
-                                    parentAnalysis.moduleDescriptor,
-                                    parentAnalysis.shouldGenerateCode
-                                )
-                                cache[file] = SimpleCachedValue(newParentAnalysis)
+                                    val newParentAnalysis = if (parentAnalysis.isError())
+                                        AnalysisResult.internalError(newBindingCtx, parentAnalysis.error)
+                                    else AnalysisResult.success(
+                                        newBindingCtx,
+                                        parentAnalysis.moduleDescriptor,
+                                        parentAnalysis.shouldGenerateCode
+                                    )
+                                    cache[file] = SimpleCachedValue(newParentAnalysis)
 
-                                newParentAnalysis
-                            } else {
-                                cache[file]?.value ?: analyze(analyzableParent)
-                            }
+                                    newParentAnalysis
+                                } else {
+                                    cache[file]?.value ?: analyze(analyzableParent)
+                                }
 
-                        val dependencies = ModificationTracker { analyzableParent.inBlockModificationCount }
-                        CachedValueProvider.Result.create(calculatedAnalysisResult, dependencies)
-                    }, false
-                )
-            } else {
-                SimpleCachedValue(analyze(analyzableParent))
-            }
+                            val dependencies = ModificationTracker { analyzableParent.inBlockModificationCount }
+                            CachedValueProvider.Result.create(calculatedAnalysisResult, dependencies)
+                        }, false
+                    )
+                } else {
+                    SimpleCachedValue(analyze(analyzableParent))
+                }
             cache[analyzableParent] = result
 
             return@synchronized result.value
@@ -178,7 +180,7 @@ internal class PerFileAnalysisCache(val file: KtFile, componentProvider: Compone
                     if (diagnosticParent == element) {
                         break
                     }
-                    if (isAFile(diagnosticParent)) return@filter true
+                    if (diagnosticParent is KtFile) return@filter true
                 }
                 return@filter false
             }.toList()

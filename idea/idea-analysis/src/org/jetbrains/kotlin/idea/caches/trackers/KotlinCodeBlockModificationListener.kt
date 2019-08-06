@@ -160,7 +160,10 @@ class KotlinCodeBlockModificationListener(
         }
 
         private fun incOutOfBlockModificationCount(file: KtFile) {
-            file.collectDescendantsOfType<KtNamedFunction>().forEach { it.putUserData(IN_BLOCK_MODIFICATION_COUNT, 0) }
+            file.collectDescendantsOfType<KtNamedFunction>(canGoInside = { it !is KtNamedFunction })
+                .forEach {
+                    if ((it.getUserData(IN_BLOCK_MODIFICATION_COUNT) ?: 0) > 0) it.putUserData(IN_BLOCK_MODIFICATION_COUNT, 0)
+                }
 
             val count = file.getUserData(FILE_OUT_OF_BLOCK_MODIFICATION_COUNT) ?: 0
             file.putUserData(FILE_OUT_OF_BLOCK_MODIFICATION_COUNT, count + 1)
@@ -176,6 +179,7 @@ class KotlinCodeBlockModificationListener(
             for (element in elements) {
                 for (parent in element.psi.parents()) {
                     // support chain of KtNamedFunction -> KtClassBody -> KtClass -> KtFile
+                    // TODO: could be generalized as well for other cases those could provide incremental analysis
                     if (parent is KtNamedFunction && ((parent.parent?.parent?.parent ?: null) is KtFile)) {
                         incInBlockModificationCount(parent)
                         break
