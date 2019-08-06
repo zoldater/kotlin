@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticUtils
 import org.jetbrains.kotlin.frontend.di.createContainerForLazyBodyResolve
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
+import org.jetbrains.kotlin.idea.caches.trackers.cleanInBlockModificationCount
 import org.jetbrains.kotlin.idea.caches.trackers.inBlockModificationCount
 import org.jetbrains.kotlin.idea.project.IdeaModuleStructureOracle
 import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
@@ -79,9 +80,7 @@ internal class PerFileAnalysisCache(val file: KtFile, componentProvider: Compone
                 descendantsOfCurrent.clear()
             }
 
-            // Modified KtNamedFunction provides its own AnalysisResult
-            // TODO: could be generalized as well for other cases those could provide incremental analysis
-            if (current is KtNamedFunction && current.inBlockModificationCount > 0) break
+            if (isModified(current)) break
 
             descendantsOfCurrent.add(current)
         }
@@ -91,13 +90,27 @@ internal class PerFileAnalysisCache(val file: KtFile, componentProvider: Compone
         return result
     }
 
+    private fun isModified(current: PsiElement): Boolean {
+        // Modified KtNamedFunction provides its own AnalysisResult
+        // TODO: could be generalized as well for other cases those could provide incremental analysis
+
+        return current is KtNamedFunction && current.inBlockModificationCount > 0
+    }
+
     fun getAnalysisResults(element: KtElement): AnalysisResult {
         assert(element.containingKtFile == file) { "Wrong file. Expected $file, but was ${element.containingKtFile}" }
 
         val analyzableParent = KotlinResolveDataProvider.findAnalyzableParent(element)
 
-        return synchronized<AnalysisResult>(this) {
+        // cache does not contain AnalysisResult per each kt/psi element
+        // instead it looks up analysis for its parents - see lookUp(analyzableElement)
 
+        // top element (ktFile) always contains analysis for entire file
+        // cache contains analysis of one of parents if
+        // that parent (e.g. ktNamedFunction) is modified and could provide incremental analysis
+        // - in this case top element has details about what item performed incremental analysis (its parent ctx, parent diagnostics etc)
+
+        return synchronized<AnalysisResult>(this) {
             val cached = lookUp(analyzableParent)
             if (cached != null) return@synchronized cached.value
 
@@ -166,10 +179,17 @@ internal class PerFileAnalysisCache(val file: KtFile, componentProvider: Compone
         val sameElementParentCtx: StackedCompositeBindingContext? =
             if (parentCtx is StackedCompositeBindingContext) {
                 if (parentCtx.element == element) parentCtx else {
+                    // clean up cached analysis result for prev element as it is incorporated into this one
                     cache.remove(parentCtx.element)
+                    // have to clean up modification traces
+                    if (parentCtx.element is KtNamedFunction) parentCtx.element.cleanInBlockModificationCount()
+
                     null
                 }
             } else null
+
+        // parentDiagnostics contains only diagnostic outside of this element
+        // no reason to re-evaluate parentDiagnosticsAll if it is the same element
         val parentDiagnostics: List<Diagnostic> = sameElementParentCtx?.parentDiagnostics ?: run {
             // parentCtx diagnostics can have potentially outdated psi elements
             // so far - traverse from children to parent (expensive) to identify that it is out of this element diagnostic
@@ -188,7 +208,7 @@ internal class PerFileAnalysisCache(val file: KtFile, componentProvider: Compone
 
         val diagnostics = parentDiagnostics + thisDiagnosticsAll // copy all diagnostics those belongs to `element`
 
-        // how long it could be a list of delegates ?
+        // how long it could be a list of delegates ? is it worth to perform full analysis when we got too deep ?
         val depth = when (parentCtx) {
             is StackedCompositeBindingContext -> if (parentCtx.element == element) parentCtx.depth else (parentCtx.depth + 1)
             else -> 1
@@ -244,7 +264,7 @@ private class SimpleCachedValue<T>(private val value: T) : CachedValue<T> {
 }
 
 private class StackedCompositeBindingContext(
-    val depth: Int,
+    val depth: Int, // depth of stack over original ktFile bindingContext
     val element: KtElement,
     val children: Set<PsiElement>,
     val elementContext: BindingContext,

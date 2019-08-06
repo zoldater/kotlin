@@ -161,9 +161,7 @@ class KotlinCodeBlockModificationListener(
 
         private fun incOutOfBlockModificationCount(file: KtFile) {
             file.collectDescendantsOfType<KtNamedFunction>(canGoInside = { it !is KtNamedFunction })
-                .forEach {
-                    if ((it.getUserData(IN_BLOCK_MODIFICATION_COUNT) ?: 0) > 0) it.putUserData(IN_BLOCK_MODIFICATION_COUNT, 0)
-                }
+                .forEach { it.cleanInBlockModificationCount() }
 
             val count = file.getUserData(FILE_OUT_OF_BLOCK_MODIFICATION_COUNT) ?: 0
             file.putUserData(FILE_OUT_OF_BLOCK_MODIFICATION_COUNT, count + 1)
@@ -272,3 +270,8 @@ val KtFile.outOfBlockModificationCount: Long
 
 val KtNamedFunction.inBlockModificationCount: Long
     get() = getUserData(IN_BLOCK_MODIFICATION_COUNT) ?: 0
+
+fun KtNamedFunction.cleanInBlockModificationCount() {
+    if ((getUserData(IN_BLOCK_MODIFICATION_COUNT) ?: 0) > 0)
+        putUserData(IN_BLOCK_MODIFICATION_COUNT, 0)
+}
