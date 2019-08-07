@@ -8,8 +8,11 @@ package org.jetbrains.kotlin.backend.jvm.serialization
 import org.jetbrains.kotlin.backend.common.descriptors.*
 import org.jetbrains.kotlin.backend.common.ir.copyParameterDeclarationsFrom
 import org.jetbrains.kotlin.backend.common.ir.copyTypeParametersFrom
-import org.jetbrains.kotlin.backend.common.ir.isTopLevel
-import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
+import org.jetbrains.kotlin.backend.common.ir.createParameterDeclarations
+import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.descriptors.impl.DeclarationDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.PackageFragmentDescriptorImpl
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.*
@@ -21,10 +24,20 @@ import org.jetbrains.kotlin.ir.types.IrErrorType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import org.jetbrains.kotlin.utils.mapToIndex
 
 
-fun collectExternalReferences(toplevel: IrDeclarationContainer): List<IrDeclaration> {
+class ExternalReferencesInfo(
+    val packageFragments: List<IrPackageFragment>,
+    val references: Map<IrDeclaration, Int>
+)
+
+fun collectExternalReferences(toplevel: IrDeclarationContainer): ExternalReferencesInfo {
     val collection = ExternalReferenceCollection(toplevel)
     toplevel.declarations.forEach {
         it.accept(
@@ -40,29 +53,35 @@ fun collectExternalReferences(toplevel: IrDeclarationContainer): List<IrDeclarat
                 }
 
                 override fun visitPropertyReference(expression: IrPropertyReference, data: Nothing?) {
-                    // Copying a getter or setter will store the whole property in collection.references.
-                    collection.getCopy((expression.getter ?: expression.setter ?: expression.field)!!.owner)
+                    collection.getCopy(expression.symbol.owner)
                     super.visitPropertyReference(expression, data)
                 }
             },
             null
         )
     }
-    return collection.getToplevels()
+    val packageFragments = collection.getPackageFragments()
+    val packageFragmentToIndex = packageFragments.mapToIndex()
+    val references = collection.referenceToPackageFragmentMap.mapValues { packageFragmentToIndex[it.value]!! }
+    return ExternalReferencesInfo(packageFragments, references)
 }
 
 class ExternalReferenceCollection(
     val toplevel: IrDeclarationParent
 ) {
-    val references =  mutableMapOf<IrSymbol, IrSymbolOwner>()
+    val references = mutableMapOf<IrSymbol, IrSymbolOwner>()
+    val referenceToPackageFragmentMap = mutableMapOf<IrDeclaration, IrPackageFragment>()
 
-    fun getToplevels(): List<IrDeclaration> =
-        references.mapNotNull {
-            it.safeAs<IrDeclaration>()?.takeIf { it.isTopLevel }
-        }
+    fun getPackageFragments(): List<IrPackageFragment> =
+        referenceToPackageFragmentMap.values.toSet().toList()
+
+    fun <T> getCopy(symbolOwner: T): T  where T : IrDeclaration, T : IrSymbolOwner= getCopyInternal(symbolOwner).also {
+        referenceToPackageFragmentMap[it] = (it as IrDeclaration).findPackageFragment()
+    }
+
 
     // Make a copy, preserving only the information needed to reference the object from a different serialization unit.
-    fun <T: IrSymbolOwner> getCopy(symbolOwner: T): T {
+    fun <T : IrSymbolOwner> getCopyInternal(symbolOwner: T): T {
 
         if (symbolOwner == toplevel) return symbolOwner
         symbolOwner.safeAs<IrDeclaration>()?.findTopLevelDeclaration()?.let {
@@ -74,7 +93,7 @@ class ExternalReferenceCollection(
         when {
             symbolOwner is IrPackageFragment ->
                 return IrExternalPackageFragmentImpl(
-                    DescriptorlessExternalPackageFragmentSymbol(),
+                    CopiedExternalPackageFragmentSymbol(symbolOwner.packageFragmentDescriptor),
                     symbolOwner.fqName
                 ).apply {
                     symbol.bind(this)
@@ -82,7 +101,7 @@ class ExternalReferenceCollection(
                 } as T
 
             symbolOwner is IrDeclaration -> {
-                val parentCopy = getCopy(symbolOwner.parent as IrSymbolOwner) as IrDeclarationContainer
+                val parentCopy = getCopyInternal(symbolOwner.parent as IrSymbolOwner) as IrDeclarationContainer
                 val newDeclaration = symbolOwner.bodilessCopyTo(parentCopy).apply {
                     require(this is IrSymbolOwner)
                     references[symbolOwner.symbol] = this
@@ -139,7 +158,7 @@ class ExternalReferenceCollection(
 
     // Type parameters in return/field types are not remapped, but this should not matter for serialization.
     private fun IrDeclaration.bodilessCopyTo(newParent: IrDeclarationParent): IrDeclaration = when (this) {
-        is IrEnumEntry -> run {
+        is IrEnumEntry -> {
             val descriptor = WrappedEnumEntryDescriptor()
             IrEnumEntryImpl(
                 startOffset, endOffset, origin, IrEnumEntrySymbolImpl(descriptor), name
@@ -157,6 +176,7 @@ class ExternalReferenceCollection(
             ).apply {
                 descriptor.bind(this)
                 parent = newParent
+                createParameterDeclarations()
                 copyTypeParametersFrom(this@bodilessCopyTo)
             }
         }
@@ -182,6 +202,10 @@ class ExternalReferenceCollection(
                 descriptor.bind(this)
                 parent = newParent
                 copyParameterDeclarationsFrom(this@bodilessCopyTo)
+                // Do we need information that something is a fake override for referring to it? Maybe just replace origin?
+                this@bodilessCopyTo.overriddenSymbols.mapTo(overriddenSymbols) {
+                    getCopyInternal(it.owner).symbol
+                }
             }
         }
         is IrProperty -> {
@@ -204,6 +228,9 @@ class ExternalReferenceCollection(
             ).apply {
                 descriptor.bind(this)
                 parent = newParent
+                this@bodilessCopyTo.overriddenSymbols.mapTo(overriddenSymbols) {
+                    getCopyInternal(it.owner).symbol
+                }
             }
         }
         else -> error("Unsupported declaration type $this")
@@ -225,19 +252,19 @@ private class ExternalReferenceSymbolRemapper(val referenceCollection: ExternalR
     override fun getDeclaredLocalDelegatedProperty(symbol: IrLocalDelegatedPropertySymbol) = error("should never be called")
     override fun getDeclaredTypeParameter(symbol: IrTypeParameterSymbol) = error("should never be called")
     override fun getDeclaredValueParameter(symbol: IrValueParameterSymbol) = error("should never be called")
-    override fun getReferencedClass(symbol: IrClassSymbol) = referenceCollection.getCopy(symbol.owner).symbol
+    override fun getReferencedClass(symbol: IrClassSymbol) = referenceCollection.getCopyInternal(symbol.owner).symbol
     override fun getReferencedClassOrNull(symbol: IrClassSymbol?) = symbol?.let { getReferencedClass(it) }
-    override fun getReferencedEnumEntry(symbol: IrEnumEntrySymbol) = referenceCollection.getCopy(symbol.owner).symbol
+    override fun getReferencedEnumEntry(symbol: IrEnumEntrySymbol) = referenceCollection.getCopyInternal(symbol.owner).symbol
     override fun getReferencedVariable(symbol: IrVariableSymbol) = error("should never be called")
     override fun getReferencedLocalDelegatedProperty(symbol: IrLocalDelegatedPropertySymbol) = error("should never be called")
-    override fun getReferencedField(symbol: IrFieldSymbol) = referenceCollection.getCopy(symbol.owner).symbol
-    override fun getReferencedConstructor(symbol: IrConstructorSymbol) = referenceCollection.getCopy(symbol.owner).symbol
-    override fun getReferencedValue(symbol: IrValueSymbol) = referenceCollection.getCopy(symbol.owner).symbol
-    override fun getReferencedFunction(symbol: IrFunctionSymbol) = referenceCollection.getCopy(symbol.owner).symbol
-    override fun getReferencedProperty(symbol: IrPropertySymbol) = referenceCollection.getCopy(symbol.owner).symbol
-    override fun getReferencedSimpleFunction(symbol: IrSimpleFunctionSymbol) = referenceCollection.getCopy(symbol.owner).symbol
+    override fun getReferencedField(symbol: IrFieldSymbol) = referenceCollection.getCopyInternal(symbol.owner).symbol
+    override fun getReferencedConstructor(symbol: IrConstructorSymbol) = referenceCollection.getCopyInternal(symbol.owner).symbol
+    override fun getReferencedValue(symbol: IrValueSymbol) = referenceCollection.getCopyInternal(symbol.owner).symbol
+    override fun getReferencedFunction(symbol: IrFunctionSymbol) = referenceCollection.getCopyInternal(symbol.owner).symbol
+    override fun getReferencedProperty(symbol: IrPropertySymbol) = referenceCollection.getCopyInternal(symbol.owner).symbol
+    override fun getReferencedSimpleFunction(symbol: IrSimpleFunctionSymbol) = referenceCollection.getCopyInternal(symbol.owner).symbol
     override fun getReferencedReturnableBlock(symbol: IrReturnableBlockSymbol) = error("should never be called")
-    override fun getReferencedClassifier(symbol: IrClassifierSymbol) = referenceCollection.getCopy(symbol.owner).symbol  as IrClassifierSymbol
+    override fun getReferencedClassifier(symbol: IrClassifierSymbol) = referenceCollection.getCopyInternal(symbol.owner).symbol  as IrClassifierSymbol
 }
 
 // Copied with modifications from `deepCopyWithSymbols`
@@ -252,9 +279,9 @@ private fun <T : IrElement> T.deepCopyWithExternalReferences(
 
 // Copied from MoveBodilessDeclarationsToSeparatePlace.kt
 
-private class DescriptorlessExternalPackageFragmentSymbol : IrExternalPackageFragmentSymbol {
-    override val descriptor: PackageFragmentDescriptor
-        get() = error("Operation is unsupported")
+private class CopiedExternalPackageFragmentSymbol(val originalDescriptor: PackageFragmentDescriptor) : IrExternalPackageFragmentSymbol {
+    // This is only used in serializeDescriptorReference() to make sure that this is not a class descriptor
+    override val descriptor: PackageFragmentDescriptor = originalDescriptor
 
     private var _owner: IrExternalPackageFragment? = null
     override val owner get() = _owner!!
@@ -265,4 +292,6 @@ private class DescriptorlessExternalPackageFragmentSymbol : IrExternalPackageFra
         _owner = owner
     }
 }
+
+private fun IrDeclaration.findPackageFragment() = findTopLevelDeclaration().parent as IrPackageFragment
 
