@@ -91,7 +91,15 @@ class KotlinCodeBlockModificationListener(
                 val changedElements = changeSet.changedElements
                 // When a code fragment is reparsed, Intellij doesn't do an AST diff and considers the entire
                 // contents to be replaced, which is represented in a POM event as an empty list of changed elements
-                if (changedElements.any { getInsideCodeBlockModificationScope(it.psi) == null } || changedElements.isEmpty()) {
+                val outOfBlockChange =
+                    changedElements.any { getInsideCodeBlockModificationScope(it.psi) == null } || changedElements.isEmpty()
+
+                val inBlockChange = if (!outOfBlockChange) {
+                    // ignore formatting (whitespaces etc)
+                    if (!isFormattingChange(changeSet)) incInBlockModificationCount(changedElements) else false
+                } else false
+
+                if (outOfBlockChange || !inBlockChange) {
                     messageBusConnection.deliverImmediately()
 
                     if (ktFile.isPhysical && !isReplLine(ktFile.virtualFile)) {
@@ -106,11 +114,6 @@ class KotlinCodeBlockModificationListener(
                     }
 
                     incOutOfBlockModificationCount(ktFile)
-                } else {
-                    // ignore formatting (whitespaces etc)
-                    if (!isFormattingChange(changeSet)) {
-                        incInBlockModificationCount(changedElements)
-                    }
                 }
             }
         })
@@ -173,18 +176,23 @@ class KotlinCodeBlockModificationListener(
             tracker.incModificationCount()
         }
 
-        private fun incInBlockModificationCount(elements: Array<ASTNode>) {
+        private fun incInBlockModificationCount(elements: Array<ASTNode>): Boolean {
+            val inBlockElements = mutableSetOf<KtNamedFunction>()
             for (element in elements) {
                 for (parent in element.psi.parents()) {
                     // support chain of KtNamedFunction -> KtClassBody -> KtClass -> KtFile
                     // TODO: could be generalized as well for other cases those could provide incremental analysis
                     if (parent is KtNamedFunction && ((parent.parent?.parent?.parent ?: null) is KtFile)) {
-                        incInBlockModificationCount(parent)
+                        inBlockElements.add(parent)
                         break
                     }
                     if (parent is KtFile) break
                 }
             }
+            if (inBlockElements.isNotEmpty()) {
+                inBlockElements.forEach { incInBlockModificationCount(it) }
+            }
+            return inBlockElements.isNotEmpty()
         }
 
         private fun incInBlockModificationCount(namedFunction: KtNamedFunction) {
@@ -265,11 +273,9 @@ private val FILE_OUT_OF_BLOCK_MODIFICATION_COUNT = Key<Long>("FILE_OUT_OF_BLOCK_
 
 private val IN_BLOCK_MODIFICATION_COUNT = Key<Long>("IN_BLOCK_MODIFICATION_COUNT")
 
-val KtFile.outOfBlockModificationCount: Long
-    get() = getUserData(FILE_OUT_OF_BLOCK_MODIFICATION_COUNT) ?: 0
+val KtFile.outOfBlockModificationCount: Long by NotNullableUserDataProperty(FILE_OUT_OF_BLOCK_MODIFICATION_COUNT, 0)
 
-val KtNamedFunction.inBlockModificationCount: Long
-    get() = getUserData(IN_BLOCK_MODIFICATION_COUNT) ?: 0
+val KtNamedFunction.inBlockModificationCount: Long by NotNullableUserDataProperty(IN_BLOCK_MODIFICATION_COUNT, 0)
 
 fun KtNamedFunction.cleanInBlockModificationCount() {
     if ((getUserData(IN_BLOCK_MODIFICATION_COUNT) ?: 0) > 0)
