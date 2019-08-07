@@ -96,7 +96,7 @@ class KotlinCodeBlockModificationListener(
 
                 val inBlockChange = if (!outOfBlockChange) {
                     // ignore formatting (whitespaces etc)
-                    if (!isFormattingChange(changeSet)) incInBlockModificationCount(changedElements) else false
+                    if (!isFormattingChange(changeSet)) incInBlockModificationCount(changedElements) else true
                 } else false
 
                 if (outOfBlockChange || !inBlockChange) {
