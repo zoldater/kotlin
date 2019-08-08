@@ -151,7 +151,7 @@ class CommonResolverForModuleFactory(
                         shouldCheckExpectActual = false
                     )
                 },
-                builtInsProvider = { DefaultBuiltIns.Instance },
+                builtInsProvider = { DefaultBuiltIns() },
                 sdkDependency = { null }
             )
 
