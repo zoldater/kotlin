@@ -443,7 +443,7 @@ class ReferenceVariantsHelper(
             process(descriptor as CallableDescriptor)
         }
 
-        val syntheticScopes = resolutionFacade.getFrontendService(SyntheticScopes::class.java).forceEnableSamAdapters()
+        val syntheticScopes = resolutionFacade.getFrontendService(SyntheticScopes::class.java)
         if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
             val lookupLocation = (scope.ownerDescriptor.toSourceElement.getPsi() as? KtElement)?.let { KotlinLookupLocation(it) }
                 ?: NoLookupLocation.FROM_IDE
@@ -478,7 +478,7 @@ fun ResolutionScope.collectSyntheticStaticMembersAndConstructors(
     kindFilter: DescriptorKindFilter,
     nameFilter: (Name) -> Boolean
 ): List<FunctionDescriptor> {
-    val syntheticScopes = resolutionFacade.getFrontendService(SyntheticScopes::class.java).forceEnableSamAdapters()
+    val syntheticScopes = resolutionFacade.getFrontendService(SyntheticScopes::class.java)
     return (syntheticScopes.collectSyntheticStaticFunctions(this) + syntheticScopes.collectSyntheticConstructors(this))
         .filter { kindFilter.accepts(it) && nameFilter(it.name) }
 }
