@@ -71,9 +71,6 @@ class JvmIrSerializer(
             })
             .build()
         proto.externalRefs = serializeExternalReferences(copiedExternalReferences)
-//        for (ref in copiedExternalReferences) {
-//            proto.addExternalRefs(serializeIrDeclaration(ref))
-//        }
         proto.symbolTable = KotlinIr.IrSymbolTable.newBuilder()
             .addAllSymbols(protoSymbolArray)
             .build()

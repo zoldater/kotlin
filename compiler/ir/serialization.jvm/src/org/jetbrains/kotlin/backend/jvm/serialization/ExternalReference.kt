@@ -75,7 +75,7 @@ class ExternalReferenceCollection(
     fun getPackageFragments(): List<IrPackageFragment> =
         referenceToPackageFragmentMap.values.toSet().toList()
 
-    fun <T> getCopy(symbolOwner: T): T  where T : IrDeclaration, T : IrSymbolOwner= getCopyInternal(symbolOwner).also {
+    fun <T> getCopy(symbolOwner: T): T  where T : IrDeclaration, T : IrSymbolOwner = getCopyInternal(symbolOwner).also {
         referenceToPackageFragmentMap[it] = (it as IrDeclaration).findPackageFragment()
     }
 
