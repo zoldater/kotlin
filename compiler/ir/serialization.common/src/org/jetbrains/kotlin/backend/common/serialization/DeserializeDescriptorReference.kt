@@ -84,7 +84,7 @@ abstract class DescriptorReferenceDeserializer(
         isGetter: Boolean = false,
         isSetter: Boolean = false,
         isTypeParameter: Boolean = false
-    ): DeclarationDescriptor {
+    ): DeclarationDescriptor? {
         val packageFqName = packageFqNameString.let {
             if (it == "<root>") FqName.ROOT else FqName(it)
         }// TODO: whould we store an empty string in the protobuf?
@@ -163,7 +163,6 @@ abstract class DescriptorReferenceDeserializer(
                     }
                 }
             }
-        } ?:
-        error("Could not find serialized descriptor for index: ${index} ${packageFqName},${classFqName},${name}")
+        }
     }
 }

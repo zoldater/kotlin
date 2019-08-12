@@ -50,7 +50,7 @@ abstract class IrModuleDeserializer(
 
     abstract fun deserializeIrSymbol(proto: KotlinIr.IrSymbol): IrSymbol
     abstract fun deserializeIrType(proto: KotlinIr.IrTypeIndex): IrType
-    abstract fun deserializeDescriptorReference(proto: KotlinIr.DescriptorReference): DeclarationDescriptor
+    abstract fun deserializeDescriptorReference(proto: KotlinIr.DescriptorReference): DeclarationDescriptor?
     abstract fun deserializeString(proto: KotlinIr.String): String
     abstract fun deserializeLoopHeader(loopIndex: Int, loopBuilder: () -> IrLoopBase): IrLoopBase
 
