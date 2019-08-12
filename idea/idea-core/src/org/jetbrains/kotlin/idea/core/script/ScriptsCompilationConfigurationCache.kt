@@ -72,7 +72,7 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
             ?: return@createWeakMap GlobalSearchScope.EMPTY_SCOPE
 
         val roots = compilationConfiguration.dependenciesClassPath
-        val sdk = ScriptDependenciesManager.getScriptSdk(compilationConfiguration)
+        val sdk = javaHomeToSdk(compilationConfiguration.javaHome)
 
         @Suppress("FoldInitializerAndIfToElvis")
         if (sdk == null) {
@@ -89,15 +89,43 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
         return scriptsDependenciesClasspathScopeCache[file] ?: GlobalSearchScope.EMPTY_SCOPE
     }
 
+    private val scriptsSdksCache: MutableMap<VirtualFile, Sdk> = ConcurrentFactoryMap.createWeakMap {
+        val ktFile = PsiManager.getInstance(project).findFile(it) as? KtFile
+            ?: return@createWeakMap ScriptDependenciesManager.getScriptDefaultSdk(project)
+
+        return@createWeakMap scriptSdkOrDefault(scriptDependenciesCache.get(ktFile)?.valueOrNull()?.javaHome)
+    }
+
+    private fun scriptSdkOrDefault(javaHome: File?): Sdk? {
+        return javaHomeToSdk(javaHome) ?: ScriptDependenciesManager.getScriptDefaultSdk(project)
+    }
+
+    fun scriptSdkOrDefault(file: VirtualFile): Sdk? {
+        return scriptsSdksCache[file]
+    }
+
+    private fun javaHomeToSdk(javaHome: File?): Sdk? {
+        // workaround for mismatched gradle wrapper and plugin version
+        val javaHomeVF = try {
+            javaHome?.let { VfsUtil.findFileByIoFile(it, true) }
+        } catch (e: Throwable) {
+
+
+            null
+        } ?: return null
+
+        return getAllProjectSdks().find { it.homeDirectory == javaHomeVF }
+    }
+
     val allSdks by ClearableLazyValue(cacheLock) {
         scriptDependenciesCache.getAll()
-            .mapNotNull { ScriptDependenciesManager.getInstance(project).getScriptSdk(it.key, project) }
+            .mapNotNull { scriptSdkOrDefault(it.value.valueOrNull()?.javaHome) }
             .distinct()
     }
 
     private val allNonIndexedSdks by ClearableLazyValue(cacheLock) {
         scriptDependenciesCache.getAll()
-            .mapNotNull { ScriptDependenciesManager.getInstance(project).getScriptSdk(it.key, project) }
+            .mapNotNull { scriptSdkOrDefault(it.value.valueOrNull()?.javaHome) }
             .filterNonModuleSdk()
             .distinct()
     }
@@ -129,7 +157,7 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
         NonClasspathDirectoriesScope.compose(allDependenciesSources)
     }
 
-    private fun List<Sdk>.filterNonModuleSdk(): List<Sdk> {
+    private fun Collection<Sdk>.filterNonModuleSdk(): List<Sdk> {
         val moduleSdks = ModuleManager.getInstance(project).modules.map { ModuleRootManager.getInstance(it).sdk }
         return filterNot { moduleSdks.contains(it) }
     }
@@ -150,6 +178,7 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
         this::allDependenciesSourcesScope.clearValue()
 
         scriptsDependenciesClasspathScopeCache.clear()
+        scriptsSdksCache.clear()
 
         val kotlinScriptDependenciesClassFinder =
             Extensions.getArea(project).getExtensionPoint(PsiElementFinder.EP_NAME).extensions
@@ -170,8 +199,7 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
     }
 
     fun hasNotCachedRoots(compilationConfiguration: ScriptCompilationConfigurationWrapper): Boolean {
-        val scriptSdk = ScriptDependenciesManager.getScriptSdk(compilationConfiguration)
-            ?: ScriptDependenciesManager.getScriptDefaultSdk(project)
+        val scriptSdk = javaHomeToSdk(compilationConfiguration.javaHome) ?: ScriptDependenciesManager.getScriptDefaultSdk(project)
         return (scriptSdk != null && !allSdks.contains(scriptSdk)) ||
                 !allDependenciesClassFiles.containsAll(ScriptDependenciesManager.toVfsRoots(compilationConfiguration.dependenciesClassPath)) ||
                 !allDependenciesSources.containsAll(ScriptDependenciesManager.toVfsRoots(compilationConfiguration.dependenciesSources))

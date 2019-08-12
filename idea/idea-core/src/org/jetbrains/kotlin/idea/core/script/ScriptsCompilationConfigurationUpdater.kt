@@ -131,7 +131,6 @@ class ScriptsCompilationConfigurationUpdater(
                     return
                 }
 
-
                 // only update dependencies for scripts that were touched recently
                 if (cache[ktFile] == null) {
                     return

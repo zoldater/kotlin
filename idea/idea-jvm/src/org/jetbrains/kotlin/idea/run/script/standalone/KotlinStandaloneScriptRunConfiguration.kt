@@ -35,6 +35,7 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
 import com.intellij.refactoring.listeners.RefactoringElementAdapter
 import com.intellij.refactoring.listeners.RefactoringElementListener
 import org.jdom.Element
@@ -206,7 +207,10 @@ private class ScriptCommandLineState(
 
         params.classPath.add(PathUtil.kotlinPathsForIdeaPlugin.compilerPath)
 
-        val scriptClasspath = ScriptDependenciesManager.getInstance(environment.project).getScriptClasspath(scriptVFile)
+        val psiFile = PsiManager.getInstance(environment.project).findFile(scriptVFile) as? KtFile
+            ?: throw CantRunException("Specified file is not a Kotlin script")
+
+        val scriptClasspath = ScriptDependenciesManager.getInstance(environment.project).getScriptClasspath(psiFile)
         scriptClasspath.forEach {
             params.classPath.add(it.presentableUrl)
         }

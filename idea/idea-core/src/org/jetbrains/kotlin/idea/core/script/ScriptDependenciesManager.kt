@@ -23,7 +23,6 @@ import com.intellij.openapi.projectRoots.JavaSdkType
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.StandardFileSystems
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -35,7 +34,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.ScriptDependenciesProvider
 import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
-import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
 import java.io.File
 import kotlin.script.experimental.api.valueOrNull
 
@@ -70,11 +68,7 @@ class ScriptDependenciesManager internal constructor(
     fun getRefinedCompilationConfiguration(file: KtFile): ScriptCompilationConfigurationResult? =
         cacheUpdater.getCurrentCompilationConfiguration(file)
 
-    fun getScriptSdk(file: KtFile, project: Project): Sdk? {
-        return getScriptSdk(getRefinedCompilationConfiguration(file)?.valueOrNull())
-            ?: getScriptDefaultSdk(project)
-    }
-
+    fun getScriptSdk(file: VirtualFile): Sdk? = cache.scriptSdkOrDefault(file)
     fun getScriptDependenciesClassFilesScope(file: VirtualFile) = cache.scriptDependenciesClassFilesScope(file)
 
     fun getAllScriptsSdks() = cache.allSdks
@@ -89,17 +83,6 @@ class ScriptDependenciesManager internal constructor(
         @JvmStatic
         fun getInstance(project: Project): ScriptDependenciesManager =
             ServiceManager.getService(project, ScriptDependenciesManager::class.java)
-
-        fun getScriptSdk(compilationConfiguration: ScriptCompilationConfigurationWrapper?): Sdk? {
-            // workaround for mismatched gradle wrapper and plugin version
-            val javaHome = try {
-                compilationConfiguration?.javaHome?.let { VfsUtil.findFileByIoFile(it, true) }
-            } catch (e: Throwable) {
-                null
-            } ?: return null
-
-            return getAllProjectSdks().find { it.homeDirectory == javaHome }
-        }
 
         fun getScriptDefaultSdk(project: Project): Sdk? {
             val projectSdk = ProjectRootManager.getInstance(project).projectSdk?.takeIf { it.canBeUsedForScript() }
