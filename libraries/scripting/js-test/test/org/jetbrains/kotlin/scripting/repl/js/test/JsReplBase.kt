@@ -3,10 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.scripting.repl.js.test/*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
- * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
- */
+package org.jetbrains.kotlin.scripting.repl.js.test
 
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
@@ -16,6 +13,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
 import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
+import org.jetbrains.kotlin.scripting.definitions.platform
 import org.jetbrains.kotlin.scripting.repl.js.JsReplEvaluator
 import org.jetbrains.kotlin.scripting.repl.js.KJsReplCompiler
 import org.jetbrains.kotlin.scripting.repl.js.ReplMessageCollector
@@ -45,6 +43,7 @@ class JsReplBase : Closeable {
         val scriptConfiguration = ScriptCompilationConfiguration {
             baseClass("kotlin.Any")
             dependencies.append(JsDependency("compiler/ir/serialization.js/build/fullRuntime/klib"))
+            platform.put("JS")
         }
         configuration.add(
             ScriptingConfigurationKeys.SCRIPT_DEFINITIONS,

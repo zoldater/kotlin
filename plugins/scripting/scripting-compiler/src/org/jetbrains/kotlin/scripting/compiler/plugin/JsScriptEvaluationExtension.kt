@@ -29,21 +29,25 @@ import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.jvm.JsDependency
 
+fun loadScriptConfiguration(configuration: CompilerConfiguration) {
+    val scriptConfiguration = ScriptCompilationConfiguration {
+        baseClass("kotlin.Any")
+        dependencies.append(JsDependency("compiler/ir/serialization.js/build/fullRuntime/klib"))
+        platform.put("JS")
+    }
+    configuration.add(
+        ScriptingConfigurationKeys.SCRIPT_DEFINITIONS,
+        ScriptDefinition.FromConfigurations(ScriptingHostConfiguration(), scriptConfiguration, null)
+    )
+}
+
 class JsScriptEvaluationExtension : ScriptEvaluationExtension {
     override fun eval(
         arguments: CommonCompilerArguments,
         configuration: CompilerConfiguration,
         projectEnvironment: JavaCoreProjectEnvironment
     ): ExitCode {
-        val scriptConfiguration = ScriptCompilationConfiguration {
-            baseClass("kotlin.Any")
-            dependencies.append(JsDependency("compiler/ir/serialization.js/build/fullRuntime/klib"))
-            platform.put("JS")
-        }
-        configuration.add(
-            ScriptingConfigurationKeys.SCRIPT_DEFINITIONS,
-            ScriptDefinition.FromConfigurations(ScriptingHostConfiguration(), scriptConfiguration, null)
-        )
+        loadScriptConfiguration(configuration)
 
         val disposable = Disposer.newDisposable()
 

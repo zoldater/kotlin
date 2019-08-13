@@ -345,9 +345,7 @@ class RenderIrElementVisitor : IrElementVisitor<String, Nothing?> {
         }
 
     override fun visitScript(declaration: IrScript, data: Nothing?): String =
-        declaration.run {
-            "SCRIPT"
-        }
+        declaration.run { "SCRIPT" }
 
     override fun visitSimpleFunction(declaration: IrSimpleFunction, data: Nothing?): String =
         declaration.runTrimEnd {
