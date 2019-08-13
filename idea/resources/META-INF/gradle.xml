@@ -5,6 +5,9 @@
 
         <extensionPoint qualifiedName="org.jetbrains.kotlin.gradleModelFacade"
                         interface="org.jetbrains.kotlin.idea.inspections.gradle.KotlinGradleModelFacade"/>
+
+        <extensionPoint qualifiedName="org.jetbrains.kotlin.gradleDebuggerInjector"
+                        interface="org.jetbrains.kotlin.idea.debugger.GradleDebuggerInjector"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
