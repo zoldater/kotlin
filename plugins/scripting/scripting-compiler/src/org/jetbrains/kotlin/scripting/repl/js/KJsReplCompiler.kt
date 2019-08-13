@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
+import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsMangler
 import org.jetbrains.kotlin.ir.backend.js.utils.JsMainFunctionDetector
 import org.jetbrains.kotlin.ir.backend.js.utils.NameTables
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -92,6 +93,7 @@ class KJsReplCompiler(private val configuration: CompilerConfiguration, disposab
         irBuiltIns = IrBuiltIns(analyzerEngine.context.module.builtIns, psi2irContext.typeTranslator, symbolTable)
         deserializer = JsIrLinker(
             psi2irContext.moduleDescriptor,
+            JsMangler,
             emptyLoggingContext,
             irBuiltIns,
             symbolTable
