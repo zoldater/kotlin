@@ -59,10 +59,11 @@ class ScriptDependenciesManager internal constructor(private val project: Projec
      * Re-highlight opened scripts with changed configuration
      */
     fun saveCompilationConfigurationAfterImport(files: List<Pair<VirtualFile, ScriptCompilationConfigurationResult>>) {
-        for ((file, result) in files) {
-            saveCompilationConfiguration(file, result, showNotification = false, skipSaveToAttributes = false)
+        ScriptClassRootsIndexer.transaction(project) {
+            for ((file, result) in files) {
+                saveCompilationConfiguration(file, result, showNotification = false, skipSaveToAttributes = false)
+            }
         }
-        ScriptClassRootsIndexer.startIndexingIfNeeded(project)
     }
 
     /**
@@ -76,10 +77,11 @@ class ScriptDependenciesManager internal constructor(private val project: Projec
 
         val notCached = files.filterNot { cacheManager.isConfigurationUpToDate(it.originalFile.virtualFile) }
         if (notCached.isNotEmpty()) {
-            for (file in notCached) {
-                cacheManager.updateConfiguration(file)
+            ScriptClassRootsIndexer.transaction(project) {
+                for (file in notCached) {
+                    cacheManager.updateConfiguration(file)
+                }
             }
-            ScriptClassRootsIndexer.startIndexingIfNeeded(project)
             return true
         }
 
@@ -146,8 +148,9 @@ class ScriptDependenciesManager internal constructor(private val project: Projec
         }
 
         if (!cacheManager.isConfigurationUpToDate(virtualFile)) {
-            cacheManager.updateConfiguration(file)
-            ScriptClassRootsIndexer.startIndexingIfNeeded(project)
+            ScriptClassRootsIndexer.transaction(project) {
+                cacheManager.updateConfiguration(file)
+            }
         }
 
         return cacheManager.getCachedConfiguration(virtualFile)

@@ -14,8 +14,24 @@ import org.jetbrains.kotlin.idea.util.application.runWriteAction
 
 object ScriptClassRootsIndexer {
     var newRootsPresent = false
+        set(value) {
+            check(inTransaction)
+            field = value
+        }
+    var inTransaction = false
 
-    fun startIndexingIfNeeded(project: Project) {
+    inline fun transaction(project: Project, body: () -> Unit) {
+        inTransaction = true
+        try {
+            body()
+        } finally {
+            inTransaction = false
+            startIndexingIfNeeded(project)
+        }
+    }
+
+    @PublishedApi
+    internal fun startIndexingIfNeeded(project: Project) {
         if (!newRootsPresent) return
 
         newRootsPresent = false

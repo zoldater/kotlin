@@ -10,7 +10,10 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.core.script.ScriptClassRootsIndexer
 import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
 import org.jetbrains.kotlin.idea.core.script.debug
@@ -25,6 +28,8 @@ import org.jetbrains.kotlin.scripting.resolve.refineScriptCompilationConfigurati
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.write
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.script.experimental.dependencies.AsyncDependenciesResolver
 
 // TODO: rename and provide alias for compatibility - this is not only about dependencies anymore
@@ -45,41 +50,37 @@ class FromRefinedConfigurationLoader internal constructor(private val project: P
         file: KtFile,
         scriptDefinition: ScriptDefinition
     ) {
-        if (!isAsyncDependencyResolver(scriptDefinition)) {
-            runDependenciesUpdate(file, scriptDefinition)
-        } else {
-            lock.write {
-                if (backgroundTasksQueue == null) {
-                    backgroundTasksQueue = LoaderBackgroundTask()
-                    backgroundTasksQueue!!.addTask(file)
-                    backgroundTasksQueue!!.start()
-                } else {
-                    backgroundTasksQueue!!.addTask(file)
+        if (isAsyncDependencyResolver(scriptDefinition)) {
+            GlobalScope.launch {
+                ScriptClassRootsIndexer.transaction(project) {
+                    schedlueAsync(file)
                 }
+            }
+        } else {
+            runDependenciesUpdate(file, scriptDefinition)
+        }
+    }
 
-                startDelayedIndexing()
+    private suspend fun schedlueAsync(file: KtFile) {
+        lock.write {
+            if (backgroundTasksQueue == null) {
+                backgroundTasksQueue = LoaderBackgroundTask()
+                backgroundTasksQueue!!.addTask(file)
+                backgroundTasksQueue!!.start()
+            } else {
+                backgroundTasksQueue!!.addTask(file)
+            }
+
+            suspendCoroutine<Unit> {
+                backgroundTasksQueue!!.addOnFinishTask {
+                    it.resume(Unit)
+                }
             }
         }
     }
 
     private fun shouldShowNotification(): Boolean = !KotlinScriptingSettings.getInstance(project).isAutoReloadEnabled
 
-    private fun startDelayedIndexing() {
-        if (notifyRootChange) return
-
-        if (backgroundTasksQueue == null) {
-            return ScriptClassRootsIndexer.startIndexingIfNeeded(project)
-        }
-
-        notifyRootChange = true
-
-        backgroundTasksQueue!!.addOnFinishTask {
-            lock.write {
-                notifyRootChange = false
-            }
-            ScriptClassRootsIndexer.startIndexingIfNeeded(project)
-        }
-    }
 
     // internal for tests
     internal fun runDependenciesUpdate(file: KtFile, scriptDefinition: ScriptDefinition? = file.findScriptDefinition()) {
