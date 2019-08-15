@@ -5,42 +5,46 @@
 
 package org.jetbrains.kotlin.idea.core.script.dependencies
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
+import org.jetbrains.kotlin.idea.core.script.debug
 import org.jetbrains.kotlin.idea.core.script.scriptCompilationConfiguration
 import org.jetbrains.kotlin.idea.core.script.scriptDependencies
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.kotlin.scripting.resolve.KtFileScriptSource
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
+import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper.FromCompilationConfiguration
+import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper.FromLegacy
 import kotlin.script.experimental.api.asSuccess
 
 // TODO: rename and provide alias for compatibility - this is not only about dependencies anymore
-class FromFileAttributeScriptDependenciesLoader(project: Project) : ScriptDependenciesLoader(project) {
+class FromFileAttributeScriptDependenciesLoader : ScriptDependenciesLoader {
 
-    override fun isApplicable(
-        file: KtFile,
-        scriptDefinition: ScriptDefinition
-    ): Boolean {
+    override fun isApplicable(file: KtFile, scriptDefinition: ScriptDefinition): Boolean {
         return file.scriptDependencies != null || file.scriptCompilationConfiguration != null
     }
 
-    override fun loadDependencies(
-        file: KtFile,
-        scriptDefinition: ScriptDefinition
-    ) {
+    override fun loadDependencies(file: KtFile, scriptDefinition: ScriptDefinition) {
         val virtualFile = file.originalFile.virtualFile
-        virtualFile.scriptCompilationConfiguration?.let {
-            ScriptCompilationConfigurationWrapper.FromCompilationConfiguration(KtFileScriptSource(file), it).apply {
-                debug(virtualFile) { "refined configuration from fileAttributes = $it" }
-            }
+
+        val configurationFromAttributes = virtualFile.scriptCompilationConfiguration?.let {
+            FromCompilationConfiguration(KtFileScriptSource(file), it)
         } ?: virtualFile.scriptDependencies?.let {
-            ScriptCompilationConfigurationWrapper.FromLegacy(KtFileScriptSource(file), it, scriptDefinition).apply {
-                debug(virtualFile) { "dependencies from fileAttributes = $it" }
-            }
-        }?.let {
-            if (areDependenciesValid(virtualFile, it)) {
-                saveToCache(virtualFile, it.asSuccess(), skipSaveToAttributes = true)
+            FromLegacy(KtFileScriptSource(file), it, scriptDefinition)
+        }
+
+        if (configurationFromAttributes != null) {
+            debug(virtualFile) { "configuration from fileAttributes = $configurationFromAttributes" }
+
+            if (areDependenciesValid(virtualFile, configurationFromAttributes)) {
+                ScriptDependenciesManager.getInstance(file.project)
+                    .saveCompilationConfiguration(
+                        virtualFile,
+                        configurationFromAttributes.asSuccess(),
+                        showNotification = false,
+                        skipSaveToAttributes = true
+                    )
             } else {
                 virtualFile.scriptCompilationConfiguration = null
                 virtualFile.scriptDependencies = null
@@ -48,9 +52,7 @@ class FromFileAttributeScriptDependenciesLoader(project: Project) : ScriptDepend
         }
     }
 
-    override fun shouldShowNotification(): Boolean = false
-
-    private fun areDependenciesValid(file: VirtualFile, configuration: ScriptCompilationConfigurationWrapper.FromLegacy): Boolean {
+    private fun areDependenciesValid(file: VirtualFile, configuration: ScriptCompilationConfigurationWrapper): Boolean {
         return configuration.dependenciesClassPath.all {
             if (it.exists()) {
                 true

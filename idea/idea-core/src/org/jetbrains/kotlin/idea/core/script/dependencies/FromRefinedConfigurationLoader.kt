@@ -11,84 +11,97 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.Runnable
+import org.jetbrains.kotlin.idea.core.script.ScriptClassRootsIndexer
+import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
+import org.jetbrains.kotlin.idea.core.script.debug
 import org.jetbrains.kotlin.idea.core.script.settings.KotlinScriptingSettings
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.scripting.definitions.KotlinScriptDefinition
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 import org.jetbrains.kotlin.scripting.resolve.KtFileScriptSource
+import org.jetbrains.kotlin.scripting.resolve.LegacyResolverWrapper
 import org.jetbrains.kotlin.scripting.resolve.refineScriptCompilationConfiguration
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.write
+import kotlin.script.experimental.dependencies.AsyncDependenciesResolver
 
 // TODO: rename and provide alias for compatibility - this is not only about dependencies anymore
-class AsyncScriptDependenciesLoader internal constructor(project: Project) : ScriptDependenciesLoader(project) {
+class FromRefinedConfigurationLoader internal constructor(private val project: Project) : ScriptDependenciesLoader {
     private val lock = ReentrantReadWriteLock()
 
     private var notifyRootChange: Boolean = false
     private var backgroundTasksQueue: LoaderBackgroundTask? = null
 
-    override fun isApplicable(
-        file: KtFile,
-        scriptDefinition: ScriptDefinition
-    ): Boolean {
-        return isAsyncDependencyResolver(scriptDefinition)
-    }
+    override fun isApplicable(file: KtFile, scriptDefinition: ScriptDefinition) = true
+
+    private fun isAsyncDependencyResolver(scriptDef: ScriptDefinition): Boolean =
+        scriptDef.asLegacyOrNull<KotlinScriptDefinition>()?.dependencyResolver?.let {
+            it is AsyncDependenciesResolver || it is LegacyResolverWrapper
+        } ?: false
 
     override fun loadDependencies(
         file: KtFile,
         scriptDefinition: ScriptDefinition
     ) {
-        lock.write {
-            if (backgroundTasksQueue == null) {
-                backgroundTasksQueue = LoaderBackgroundTask()
-                backgroundTasksQueue!!.addTask(file)
-                backgroundTasksQueue!!.start()
-            } else {
-                backgroundTasksQueue!!.addTask(file)
-            }
-        }
-    }
-
-    override fun shouldShowNotification(): Boolean = !KotlinScriptingSettings.getInstance(project).isAutoReloadEnabled
-
-    override fun notifyRootsChanged(): Boolean {
-        lock.write {
-            if (notifyRootChange) return false
-
-            if (backgroundTasksQueue == null) {
-                return submitMakeRootsChange()
-            }
-
-            notifyRootChange = true
-
-            backgroundTasksQueue!!.addOnFinishTask {
-                lock.write {
-                    notifyRootChange = false
+        if (!isAsyncDependencyResolver(scriptDefinition)) {
+            runDependenciesUpdate(file, scriptDefinition)
+        } else {
+            lock.write {
+                if (backgroundTasksQueue == null) {
+                    backgroundTasksQueue = LoaderBackgroundTask()
+                    backgroundTasksQueue!!.addTask(file)
+                    backgroundTasksQueue!!.start()
+                } else {
+                    backgroundTasksQueue!!.addTask(file)
                 }
-                submitMakeRootsChange()
+
+                startDelayedIndexing()
             }
         }
-
-        return false
     }
 
-    private fun runDependenciesUpdate(file: KtFile) {
-        val scriptDef = file.findScriptDefinition() ?: return
+    private fun shouldShowNotification(): Boolean = !KotlinScriptingSettings.getInstance(project).isAutoReloadEnabled
 
-        debug(file) { "start async dependencies loading" }
+    private fun startDelayedIndexing() {
+        if (notifyRootChange) return
 
-        val result = refineScriptCompilationConfiguration(KtFileScriptSource(file), scriptDef, project)
+        if (backgroundTasksQueue == null) {
+            return ScriptClassRootsIndexer.startIndexingIfNeeded(project)
+        }
 
-        debug(file) { "finish async dependencies loading" }
+        notifyRootChange = true
 
-        processRefinedConfiguration(result, file.originalFile.virtualFile)
+        backgroundTasksQueue!!.addOnFinishTask {
+            lock.write {
+                notifyRootChange = false
+            }
+            ScriptClassRootsIndexer.startIndexingIfNeeded(project)
+        }
+    }
+
+    // internal for tests
+    internal fun runDependenciesUpdate(file: KtFile, scriptDefinition: ScriptDefinition? = file.findScriptDefinition()) {
+        if (scriptDefinition == null) return
+
+        debug(file) { "start dependencies loading" }
+
+        val result = refineScriptCompilationConfiguration(KtFileScriptSource(file), scriptDefinition, file.project)
+
+        debug(file) { "finish dependencies loading" }
+
+        ScriptDependenciesManager.getInstance(file.project).saveCompilationConfiguration(
+            file.originalFile.virtualFile,
+            result,
+            shouldShowNotification()
+        )
     }
 
     private inner class LoaderBackgroundTask {
         private val sequenceOfFiles: ConcurrentLinkedQueue<KtFile> = ConcurrentLinkedQueue()
-        private var forceStop : Boolean = false
-        private var startedSilently : Boolean = false
+        private var forceStop: Boolean = false
+        private var startedSilently: Boolean = false
 
         private var onFinish: (() -> Unit)? = null
 

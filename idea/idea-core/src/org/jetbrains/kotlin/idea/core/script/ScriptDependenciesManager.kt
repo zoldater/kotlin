@@ -29,7 +29,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.util.io.URLUtil
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.caches.project.getAllProjectSdks
-import org.jetbrains.kotlin.idea.core.script.dependencies.SyncScriptDependenciesLoader
+import org.jetbrains.kotlin.idea.core.script.dependencies.FromRefinedConfigurationLoader
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.ScriptDependenciesProvider
 import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
@@ -45,16 +45,88 @@ class IdeScriptDependenciesProvider(
     project: Project
 ) : ScriptDependenciesProvider(project) {
     override fun getScriptConfigurationResult(file: KtFile): ScriptCompilationConfigurationResult? {
-        return scriptDependenciesManager.getRefinedCompilationConfiguration(file)
+        return scriptDependenciesManager.getConfiguration(file)
     }
 }
 
 // TODO: rename and provide alias for compatibility - this is not only about dependencies anymore
-class ScriptDependenciesManager internal constructor(
-    private val cacheUpdater: ScriptsCompilationConfigurationUpdater,
-    private val cache: ScriptsCompilationConfigurationCache,
-    private val project: Project
-) {
+class ScriptDependenciesManager internal constructor(private val project: Project) {
+    private val cacheManager = ScriptConfigurationCacheManager(project)
+
+    /**
+     * Save configurations into cache
+     * Start indexing for new class/source roots
+     * Re-highlight opened scripts with changed configuration
+     */
+    fun saveCompilationConfigurationAfterImport(files: List<Pair<VirtualFile, ScriptCompilationConfigurationResult>>) {
+        for ((file, result) in files) {
+            saveCompilationConfiguration(file, result, showNotification = false, skipSaveToAttributes = false)
+        }
+        ScriptClassRootsIndexer.startIndexingIfNeeded(project)
+    }
+
+    /**
+     * Start configuration update for files if configuration isn't up to date
+     * Start indexing for new class/source roots
+     *
+     * @return true if update was started for any file, false if all configurations are cached
+     */
+    fun updateConfigurationsIfNotCached(files: List<KtFile>): Boolean {
+        if (!ScriptDefinitionsManager.getInstance(project).isReady()) return false
+
+        val notCached = files.filterNot { cacheManager.isConfigurationUpToDate(it.originalFile.virtualFile) }
+        if (notCached.isNotEmpty()) {
+            for (file in notCached) {
+                cacheManager.updateConfiguration(file)
+            }
+            ScriptClassRootsIndexer.startIndexingIfNeeded(project)
+            return true
+        }
+
+        return false
+    }
+
+    /**
+     * Save configuration for file into cache
+     *
+     * If new class/source roots are present changes the state of ScriptClassRootsIndexer to true
+     * @see ScriptClassRootsIndexer.startIndexingIfNeeded should be called after this method
+     *
+     * Indexing process isn't started in this method as an optimization to avoid multiple calls of ScriptClassRootsIndexer
+     *
+     * @see ScriptDependenciesManager.getConfiguration as an example
+     * @param file VirtualFile to save configuration for
+     * @param configuration configuration to save
+     * @param showNotification if true configuration isn't saved to cache immediately, only when user press a notification in the top of the editor
+     *  @see org.jetbrains.kotlin.idea.core.script.settings.KotlinScriptingSettings.isAutoReloadEnabled
+     * @param skipSaveToAttributes if true configuration isn't saved to FileAttributes to avoid unnecessary disk write
+     */
+    fun saveCompilationConfiguration(
+        file: VirtualFile,
+        configuration: ScriptCompilationConfigurationResult,
+        showNotification: Boolean,
+        skipSaveToAttributes: Boolean = false
+    ) {
+        cacheManager.saveIfNotCached(file, configuration, showNotification, skipSaveToAttributes)
+    }
+
+    /**
+     * Check if configuration is already cached for file (in cache or FileAttributes)
+     * Don't check if file was changed after the last update
+     * Supposed to be used to switch highlighting off for scripts without configuration
+     * to avoid all file being highlighted in red
+     */
+    fun isConfigurationCached(file: KtFile): Boolean {
+        return cacheManager.isConfigurationCached(file.originalFile.virtualFile)
+    }
+
+    /**
+     * Clear configuration caches
+     * Start re-highlighting for opened scripts
+     */
+    fun clearConfigurationCachesAndRehighlight() {
+        cacheManager.clearAndRehighlight()
+    }
 
     @Deprecated("Use getScriptClasspath(KtFile) instead")
     fun getScriptClasspath(file: VirtualFile): List<VirtualFile> {
@@ -63,21 +135,34 @@ class ScriptDependenciesManager internal constructor(
     }
 
     fun getScriptClasspath(file: KtFile): List<VirtualFile> =
-        toVfsRoots(cacheUpdater.getCurrentCompilationConfiguration(file)?.valueOrNull()?.dependenciesClassPath.orEmpty())
+        toVfsRoots(getConfiguration(file)?.valueOrNull()?.dependenciesClassPath.orEmpty())
 
-    fun getRefinedCompilationConfiguration(file: KtFile): ScriptCompilationConfigurationResult? =
-        cacheUpdater.getCurrentCompilationConfiguration(file)
+    fun getConfiguration(file: KtFile): ScriptCompilationConfigurationResult? {
+        val virtualFile = file.originalFile.virtualFile
 
-    fun getScriptDependenciesClassFilesScope(file: VirtualFile) = cache.scriptDependenciesClassFilesScope(file)
-    fun getScriptSdk(file: VirtualFile) = cache.getScriptSdk(file)
+        val cached = cacheManager.getCachedConfiguration(virtualFile)
+        if (cached != null) {
+            return cached
+        }
 
-    fun getAllScriptsSdks() = cache.allSdks
+        if (!cacheManager.isConfigurationUpToDate(virtualFile)) {
+            cacheManager.updateConfiguration(file)
+            ScriptClassRootsIndexer.startIndexingIfNeeded(project)
+        }
 
-    fun getAllScriptsDependenciesClassFilesScope() = cache.allDependenciesClassFilesScope
-    fun getAllScriptDependenciesSourcesScope() = cache.allDependenciesSourcesScope
+        return cacheManager.getCachedConfiguration(virtualFile)
+    }
 
-    fun getAllScriptsDependenciesClassFiles() = cache.allDependenciesClassFiles
-    fun getAllScriptDependenciesSources() = cache.allDependenciesSources
+    fun getScriptDependenciesClassFilesScope(file: VirtualFile) = cacheManager.scriptDependenciesClassFilesScope(file)
+    fun getScriptSdk(file: VirtualFile) = cacheManager.scriptSdk(file)
+
+    fun getFirstScriptsSdk() = cacheManager.firstScriptSdk
+
+    fun getAllScriptsDependenciesClassFilesScope() = cacheManager.allDependenciesClassFilesScope
+    fun getAllScriptDependenciesSourcesScope() = cacheManager.allDependenciesSourcesScope
+
+    fun getAllScriptsDependenciesClassFiles() = cacheManager.allDependenciesClassFiles
+    fun getAllScriptDependenciesSources() = cacheManager.allDependenciesSources
 
     companion object {
         @JvmStatic
@@ -122,13 +207,13 @@ class ScriptDependenciesManager internal constructor(
 
         @TestOnly
         fun updateScriptDependenciesSynchronously(file: PsiFile, project: Project) {
-            val loader = SyncScriptDependenciesLoader(project)
+            val loader = FromRefinedConfigurationLoader(project)
             val scriptDefinition = file.findScriptDefinition() ?: return
             assert(file is KtFile) {
                 "PsiFile should be a KtFile, otherwise script dependencies cannot be loaded"
             }
-            loader.loadDependencies(file as KtFile, scriptDefinition)
-            loader.notifyRootsChanged()
+            loader.runDependenciesUpdate(file as KtFile, scriptDefinition)
+            ScriptClassRootsIndexer.startIndexingIfNeeded(project)
         }
     }
 }

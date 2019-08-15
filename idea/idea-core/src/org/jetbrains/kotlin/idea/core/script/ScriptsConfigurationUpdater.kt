@@ -16,9 +16,7 @@
 
 package org.jetbrains.kotlin.idea.core.script
 
-import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -27,86 +25,40 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.core.script.dependencies.AsyncScriptDependenciesLoader
 import org.jetbrains.kotlin.idea.core.script.dependencies.FromFileAttributeScriptDependenciesLoader
+import org.jetbrains.kotlin.idea.core.script.dependencies.FromRefinedConfigurationLoader
 import org.jetbrains.kotlin.idea.core.script.dependencies.OutsiderFileDependenciesLoader
-import org.jetbrains.kotlin.idea.core.script.dependencies.SyncScriptDependenciesLoader
 import org.jetbrains.kotlin.idea.util.ProjectRootsUtil
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.NotNullableUserDataProperty
 import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 import org.jetbrains.kotlin.scripting.definitions.isNonScript
-import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
 
-class ScriptsCompilationConfigurationUpdater(
-    private val project: Project,
-    private val cache: ScriptsCompilationConfigurationCache
-) {
+class ScriptsConfigurationUpdater internal constructor(private val project: Project) {
     private val scriptsQueue = Alarm(Alarm.ThreadToUse.SWING_THREAD, project)
     private val scriptChangesListenerDelay = 1400
 
     private val loaders = arrayListOf(
-        FromFileAttributeScriptDependenciesLoader(project),
-        OutsiderFileDependenciesLoader(project),
-        AsyncScriptDependenciesLoader(project),
-        SyncScriptDependenciesLoader(project)
+        FromFileAttributeScriptDependenciesLoader(),
+        OutsiderFileDependenciesLoader(),
+        FromRefinedConfigurationLoader(project)
     )
+
+    fun updateDependencies(file: KtFile) {
+        if (!ScriptDefinitionsManager.getInstance(project).isReady()) return
+
+        val scriptDefinition = file.findScriptDefinition() ?: return
+        loaders.filter {
+            it.isApplicable(file, scriptDefinition)
+        }.forEach {
+            it.loadDependencies(file, scriptDefinition)
+        }
+    }
 
     init {
         listenForChangesInScripts()
-    }
-
-    fun getCurrentCompilationConfiguration(file: KtFile): ScriptCompilationConfigurationResult? {
-        val virtualFile = file.originalFile.virtualFile
-
-        cache[virtualFile]?.let { return it }
-
-        // Try-catch block is a temporary workaround for ProcessCanceledException
-        // that may happen during VirtualFile to PsiFile transformation
-        try {
-            updateDependencies(file)
-        } finally {
-            makeRootsChangeIfNeeded()
-        }
-
-        return cache[virtualFile]
-    }
-
-    fun updateDependenciesIfNeeded(files: List<KtFile>): Boolean {
-        if (!ScriptDefinitionsManager.getInstance(project).isReady()) return false
-
-        var wasDependenciesUpdateStarted = false
-        for (file in files) {
-            if (!areDependenciesCached(file)) {
-                wasDependenciesUpdateStarted = true
-                updateDependencies(file)
-            }
-        }
-
-        if (wasDependenciesUpdateStarted) {
-            makeRootsChangeIfNeeded()
-        }
-
-        return wasDependenciesUpdateStarted
-    }
-
-    private fun updateDependencies(file: KtFile) {
-        if (!ScriptDefinitionsManager.getInstance(project).isReady()) return
-        if (!cache.shouldRunDependenciesUpdate(file)) return
-
-        val scriptDefinition = file.findScriptDefinition() ?: return
-        loaders.filter { it.isApplicable(file, scriptDefinition) }.forEach { it.loadDependencies(file, scriptDefinition) }
-    }
-
-    private fun makeRootsChangeIfNeeded() {
-        loaders.firstOrNull {
-            it.notifyRootsChanged()
-        }
     }
 
     private fun listenForChangesInScripts() {
@@ -122,8 +74,7 @@ class ScriptsCompilationConfigurationUpdater(
             private fun runScriptDependenciesUpdateIfNeeded(file: VirtualFile) {
                 val ktFile = getKtFileToStartConfigurationUpdate(file) ?: return
 
-                updateDependencies(ktFile)
-                makeRootsChangeIfNeeded()
+                ScriptDependenciesManager.getInstance(project).updateConfigurationsIfNotCached(listOf(ktFile))
             }
         })
 
@@ -133,18 +84,12 @@ class ScriptsCompilationConfigurationUpdater(
                 val file = FileDocumentManager.getInstance().getFile(document)?.takeIf { it.isInLocalFileSystem } ?: return
                 val ktFile = getKtFileToStartConfigurationUpdate(file) ?: return
 
-                // only update dependencies for scripts that were touched recently
-                if (cache[file] == null) {
-                    return
-                }
-
                 scriptsQueue.cancelAllRequests()
 
                 scriptsQueue.addRequest(
                     {
                         FileDocumentManager.getInstance().saveDocument(document)
-                        updateDependencies(ktFile)
-                        makeRootsChangeIfNeeded()
+                        ScriptDependenciesManager.getInstance(project).updateConfigurationsIfNotCached(listOf(ktFile))
                     },
                     scriptChangesListenerDelay,
                     true
@@ -172,24 +117,4 @@ class ScriptsCompilationConfigurationUpdater(
 
         return null
     }
-
-    private fun areDependenciesCached(file: VirtualFile): Boolean {
-        return cache[file] != null || file.scriptDependencies != null || file.scriptCompilationConfiguration != null
-    }
-
-    companion object {
-        @JvmStatic
-        fun getInstance(project: Project): ScriptsCompilationConfigurationUpdater =
-            ServiceManager.getService(project, ScriptsCompilationConfigurationUpdater::class.java)
-
-        fun areDependenciesCached(file: KtFile): Boolean {
-            return getInstance(file.project).areDependenciesCached(file.virtualFile)
-        }
-    }
 }
-
-@set: TestOnly
-var Application.isScriptDependenciesUpdaterDisabled by NotNullableUserDataProperty(
-    Key.create("SCRIPT_DEPENDENCIES_UPDATER_DISABLED"),
-    false
-)

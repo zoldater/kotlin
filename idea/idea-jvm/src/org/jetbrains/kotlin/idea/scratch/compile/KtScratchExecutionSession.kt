@@ -166,7 +166,7 @@ class KtScratchExecutionSession(
         }
 
         ScriptDependenciesManager.getInstance(originalFile.project)
-            .getRefinedCompilationConfiguration(originalFile)?.valueOrNull()?.let {
+            .getConfiguration(originalFile)?.valueOrNull()?.let {
                 javaParameters.classPath.addAll(it.dependenciesClassPath.map { f -> f.absolutePath })
             }
 

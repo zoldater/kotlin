@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.idea.core.script
 
 import com.intellij.ProjectTopics
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -18,16 +17,12 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
-import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.NonClasspathDirectoriesScope
 import com.intellij.util.containers.ConcurrentFactoryMap
 import com.intellij.util.containers.SLRUMap
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.idea.caches.project.getAllProjectSdks
-import org.jetbrains.kotlin.idea.core.util.EDT
-import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationCaches.Companion.MAX_SCRIPTS_CACHED
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -38,7 +33,7 @@ import kotlin.reflect.KProperty0
 import kotlin.reflect.jvm.isAccessible
 import kotlin.script.experimental.api.valueOrNull
 
-class ScriptsCompilationConfigurationCache(private val project: Project) {
+class ScriptConfigurationCaches internal constructor(private val project: Project) {
 
     companion object {
         const val MAX_SCRIPTS_CACHED = 50
@@ -48,7 +43,7 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
         val connection = project.messageBus.connect()
         connection.subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
             override fun rootsChanged(event: ModuleRootEvent) {
-                clearCaches()
+                clearClassRootsCaches()
             }
         })
     }
@@ -56,20 +51,24 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
     private val cacheLock = ReentrantReadWriteLock()
 
     private val scriptDependenciesCache = SLRUCacheWithLock<VirtualFile, ScriptCompilationConfigurationResult>()
-    private val scriptsModificationStampsCache = SLRUCacheWithLock<KtFile, Long>()
+    private val scriptsModificationStampsCache = SLRUCacheWithLock<VirtualFile, Long>()
 
-    operator fun get(file: VirtualFile): ScriptCompilationConfigurationResult? = scriptDependenciesCache.get(file)
+    fun getCachedConfiguration(file: VirtualFile): ScriptCompilationConfigurationResult? = scriptDependenciesCache.get(file)
 
-    fun shouldRunDependenciesUpdate(file: KtFile): Boolean {
-        return scriptsModificationStampsCache.replace(file, file.modificationStamp) != file.modificationStamp
+    fun isConfigurationUpToDate(file: VirtualFile): Boolean {
+        return scriptsModificationStampsCache.replace(file, file.modificationStamp) == file.modificationStamp
     }
 
-    private val scriptsDependenciesClasspathScopeCache: MutableMap<VirtualFile, GlobalSearchScope> = ConcurrentFactoryMap.createWeakMap {
+    fun replaceConfiguration(file: VirtualFile, new: ScriptCompilationConfigurationResult) {
+        scriptDependenciesCache.replace(file, new)
+    }
+
+    val scriptsDependenciesClasspathScopeCache: MutableMap<VirtualFile, GlobalSearchScope> = ConcurrentFactoryMap.createWeakMap {
         val compilationConfiguration = scriptDependenciesCache.get(it)?.valueOrNull()
             ?: return@createWeakMap GlobalSearchScope.EMPTY_SCOPE
 
         val roots = compilationConfiguration.dependenciesClassPath
-        val sdk = getScriptSdk(it)
+        val sdk = scriptsSdksCache[it]
 
         @Suppress("FoldInitializerAndIfToElvis")
         if (sdk == null) {
@@ -82,19 +81,11 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
         )
     }
 
-    fun scriptDependenciesClassFilesScope(file: VirtualFile): GlobalSearchScope {
-        return scriptsDependenciesClasspathScopeCache[file] ?: GlobalSearchScope.EMPTY_SCOPE
-    }
-
-    private val scriptsSdksCache: MutableMap<VirtualFile, Sdk?> = ConcurrentFactoryMap.createWeakMap { file ->
+    val scriptsSdksCache: MutableMap<VirtualFile, Sdk?> = ConcurrentFactoryMap.createWeakMap { file ->
         val compilationConfiguration = scriptDependenciesCache.get(file)?.valueOrNull()
             ?: return@createWeakMap null
 
         return@createWeakMap getScriptSdk(compilationConfiguration) ?: ScriptDependenciesManager.getScriptDefaultSdk(project)
-    }
-
-    fun getScriptSdk(file: VirtualFile): Sdk? {
-        return scriptsSdksCache[file]
     }
 
     private fun getScriptSdk(compilationConfiguration: ScriptCompilationConfigurationWrapper?): Sdk? {
@@ -108,15 +99,21 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
         return getAllProjectSdks().find { it.homeDirectory == javaHome }
     }
 
-    val allSdks by ClearableLazyValue(cacheLock) {
+    val firstScriptSdk: Sdk?
+        get() {
+            val firstCachedScript = scriptDependenciesCache.getAll().firstOrNull()?.key ?: return null
+            return scriptsSdksCache[firstCachedScript]
+        }
+
+    private val allSdks by ClearableLazyValue(cacheLock) {
         scriptDependenciesCache.getAll()
-            .mapNotNull { getScriptSdk(it.key) }
+            .mapNotNull { scriptsSdksCache[it.key] }
             .distinct()
     }
 
     private val allNonIndexedSdks by ClearableLazyValue(cacheLock) {
         scriptDependenciesCache.getAll()
-            .mapNotNull { getScriptSdk(it.key) }
+            .mapNotNull { scriptsSdksCache[it.key] }
             .filterNonModuleSdk()
             .distinct()
     }
@@ -153,12 +150,20 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
         return filterNot { moduleSdks.contains(it) }
     }
 
-    private fun onChange(files: List<VirtualFile>) {
-        clearCaches()
-        updateHighlighting(files)
+    fun clearConfigurationCaches(): List<VirtualFile> {
+        debug { "configuration caches cleared" }
+
+        val keys = scriptDependenciesCache.getAll().map { it.key }.toList()
+
+        scriptDependenciesCache.clear()
+        scriptsModificationStampsCache.clear()
+
+        return keys
     }
 
-    private fun clearCaches() {
+    fun clearClassRootsCaches() {
+        debug { "class roots caches cleared" }
+
         this::allSdks.clearValue()
         this::allNonIndexedSdks.clearValue()
 
@@ -169,6 +174,7 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
         this::allDependenciesSourcesScope.clearValue()
 
         scriptsDependenciesClasspathScopeCache.clear()
+        scriptsSdksCache.clear()
 
         val kotlinScriptDependenciesClassFinder =
             Extensions.getArea(project).getExtensionPoint(PsiElementFinder.EP_NAME).extensions
@@ -176,53 +182,36 @@ class ScriptsCompilationConfigurationCache(private val project: Project) {
                 .single()
 
         kotlinScriptDependenciesClassFinder.clearCache()
-    }
 
-    private fun updateHighlighting(files: List<VirtualFile>) {
         ScriptDependenciesModificationTracker.getInstance(project).incModificationCount()
-
-        GlobalScope.launch(EDT(project)) {
-            files.filter { it.isValid }.forEach {
-                PsiManager.getInstance(project).findFile(it)?.let { psiFile ->
-                    DaemonCodeAnalyzer.getInstance(project).restart(psiFile)
-                }
-            }
-        }
     }
 
     fun hasNotCachedRoots(compilationConfiguration: ScriptCompilationConfigurationWrapper): Boolean {
         val scriptSdk = getScriptSdk(compilationConfiguration) ?: ScriptDependenciesManager.getScriptDefaultSdk(project)
-        return (scriptSdk != null && !allSdks.contains(scriptSdk)) ||
-                !allDependenciesClassFiles.containsAll(ScriptDependenciesManager.toVfsRoots(compilationConfiguration.dependenciesClassPath)) ||
-                !allDependenciesSources.containsAll(ScriptDependenciesManager.toVfsRoots(compilationConfiguration.dependenciesSources))
-    }
-
-    fun clear() {
-        val keys = scriptDependenciesCache.getAll().map { it.key }.toList()
-
-        scriptDependenciesCache.clear()
-        scriptsModificationStampsCache.clear()
-
-        updateHighlighting(keys)
-    }
-
-    fun save(file: VirtualFile, new: ScriptCompilationConfigurationResult): Boolean {
-        val old = scriptDependenciesCache.replace(file, new)
-        val changed = new != old
-        if (changed) {
-            onChange(listOf(file))
+        val wasSdkChanged = scriptSdk != null && !allSdks.contains(scriptSdk)
+        if (wasSdkChanged) {
+            debug { "sdk was changed: $compilationConfiguration" }
+            return true
         }
 
-        return changed
+        val newClassRoots = ScriptDependenciesManager.toVfsRoots(compilationConfiguration.dependenciesClassPath)
+        for (newClassRoot in newClassRoots) {
+            if (!allDependenciesClassFiles.contains(newClassRoot)) {
+                debug { "class root was changed: $newClassRoot" }
+                return true
+            }
+        }
+
+        val newSourceRoots = ScriptDependenciesManager.toVfsRoots(compilationConfiguration.dependenciesSources)
+        for (newSourceRoot in newSourceRoots) {
+            if (!allDependenciesSources.contains(newSourceRoot)) {
+                debug { "source root was changed: $newSourceRoot" }
+                return true
+            }
+        }
+        return false
     }
 
-    fun delete(file: VirtualFile): Boolean {
-        val changed = scriptDependenciesCache.remove(file)
-        if (changed) {
-            onChange(listOf(file))
-        }
-        return changed
-    }
 }
 
 private fun <R> KProperty0<R>.clearValue() {
@@ -257,8 +246,8 @@ private class SLRUCacheWithLock<K, V> {
     private val lock = ReentrantReadWriteLock()
 
     val cache = SLRUMap<K, V>(
-        ScriptsCompilationConfigurationCache.MAX_SCRIPTS_CACHED,
-        ScriptsCompilationConfigurationCache.MAX_SCRIPTS_CACHED
+        MAX_SCRIPTS_CACHED,
+        MAX_SCRIPTS_CACHED
     )
 
     fun get(value: K): V? = lock.write {
