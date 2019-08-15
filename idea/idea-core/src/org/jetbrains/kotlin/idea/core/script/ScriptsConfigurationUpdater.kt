@@ -88,7 +88,6 @@ class ScriptsConfigurationUpdater internal constructor(private val project: Proj
 
                 scriptsQueue.addRequest(
                     {
-                        FileDocumentManager.getInstance().saveDocument(document)
                         ScriptDependenciesManager.getInstance(project).updateConfigurationsIfNotCached(listOf(ktFile))
                     },
                     scriptChangesListenerDelay,
