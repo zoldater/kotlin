@@ -142,6 +142,7 @@ class ScriptsCompilationConfigurationUpdater(
 
                 scriptsQueue.addRequest(
                     {
+                        FileDocumentManager.getInstance().saveDocument(document)
                         updateDependencies(ktFile)
                         makeRootsChangeIfNeeded()
                     },
