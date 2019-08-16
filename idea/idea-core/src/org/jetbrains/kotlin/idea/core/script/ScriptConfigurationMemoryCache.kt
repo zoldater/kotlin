@@ -23,7 +23,6 @@ import com.intellij.util.containers.ConcurrentFactoryMap
 import com.intellij.util.containers.SLRUMap
 import org.jetbrains.kotlin.idea.caches.project.getAllProjectSdks
 import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationMemoryCache.Companion.MAX_SCRIPTS_CACHED
-import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.write
@@ -31,7 +30,6 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
 import kotlin.reflect.jvm.isAccessible
-import kotlin.script.experimental.api.valueOrNull
 
 class ScriptConfigurationMemoryCache internal constructor(private val project: Project) {
 
@@ -50,21 +48,21 @@ class ScriptConfigurationMemoryCache internal constructor(private val project: P
 
     private val cacheLock = ReentrantReadWriteLock()
 
-    private val scriptDependenciesCache = SLRUCacheWithLock<VirtualFile, ScriptCompilationConfigurationResult>()
+    private val scriptDependenciesCache = SLRUCacheWithLock<VirtualFile, ScriptCompilationConfigurationWrapper>()
     private val scriptsModificationStampsCache = SLRUCacheWithLock<VirtualFile, Long>()
 
-    fun getCachedConfiguration(file: VirtualFile): ScriptCompilationConfigurationResult? = scriptDependenciesCache.get(file)
+    fun getCachedConfiguration(file: VirtualFile): ScriptCompilationConfigurationWrapper? = scriptDependenciesCache.get(file)
 
     fun isConfigurationUpToDate(file: VirtualFile): Boolean {
         return scriptsModificationStampsCache.replace(file, file.modificationStamp) == file.modificationStamp
     }
 
-    fun replaceConfiguration(file: VirtualFile, new: ScriptCompilationConfigurationResult) {
+    fun replaceConfiguration(file: VirtualFile, new: ScriptCompilationConfigurationWrapper) {
         scriptDependenciesCache.replace(file, new)
     }
 
     val scriptsDependenciesClasspathScopeCache: MutableMap<VirtualFile, GlobalSearchScope> = ConcurrentFactoryMap.createWeakMap {
-        val compilationConfiguration = scriptDependenciesCache.get(it)?.valueOrNull()
+        val compilationConfiguration = scriptDependenciesCache.get(it)
             ?: return@createWeakMap GlobalSearchScope.EMPTY_SCOPE
 
         val roots = compilationConfiguration.dependenciesClassPath
@@ -82,7 +80,7 @@ class ScriptConfigurationMemoryCache internal constructor(private val project: P
     }
 
     val scriptsSdksCache: MutableMap<VirtualFile, Sdk?> = ConcurrentFactoryMap.createWeakMap { file ->
-        val compilationConfiguration = scriptDependenciesCache.get(file)?.valueOrNull()
+        val compilationConfiguration = scriptDependenciesCache.get(file)
             ?: return@createWeakMap null
 
         return@createWeakMap getScriptSdk(compilationConfiguration) ?: ScriptDependenciesManager.getScriptDefaultSdk(project)
@@ -123,7 +121,7 @@ class ScriptConfigurationMemoryCache internal constructor(private val project: P
             .flatMap { it.rootProvider.getFiles(OrderRootType.CLASSES).toList() }
 
         val scriptDependenciesClasspath = scriptDependenciesCache.getAll()
-            .flatMap { it.value.valueOrNull()?.dependenciesClassPath ?: emptyList() }.distinct()
+            .flatMap { it.value.dependenciesClassPath }.distinct()
 
         sdkFiles + ScriptDependenciesManager.toVfsRoots(scriptDependenciesClasspath)
     }
@@ -133,7 +131,7 @@ class ScriptConfigurationMemoryCache internal constructor(private val project: P
             .flatMap { it.rootProvider.getFiles(OrderRootType.SOURCES).toList() }
 
         val scriptDependenciesSources = scriptDependenciesCache.getAll()
-            .flatMap { it.value.valueOrNull()?.dependenciesSources ?: emptyList() }.distinct()
+            .flatMap { it.value.dependenciesSources }.distinct()
         sdkSources + ScriptDependenciesManager.toVfsRoots(scriptDependenciesSources)
     }
 

@@ -28,12 +28,13 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.io.URLUtil
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.caches.project.getAllProjectSdks
-import org.jetbrains.kotlin.idea.core.script.dependencies.FromRefinedConfigurationLoader
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.ScriptDependenciesProvider
-import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
+import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
 import java.io.File
+import kotlin.script.experimental.api.asSuccess
+import kotlin.script.experimental.api.makeFailureResult
 
 // NOTE: this service exists exclusively because ScriptDependencyManager
 // cannot be registered as implementing two services (state would be duplicated)
@@ -42,8 +43,18 @@ class IdeScriptDependenciesProvider(
     project: Project
 ) : ScriptDependenciesProvider(project) {
     override fun getScriptConfigurationResult(file: KtFile): ScriptCompilationConfigurationResult? {
+        val configuration = getScriptConfiguration(file)
+        val reports = IdeScriptReportSink.getReports(file)
+        if (configuration == null && reports.isNotEmpty()) {
+            return makeFailureResult(reports)
+        }
+        return configuration?.asSuccess(reports)
+    }
+
+    override fun getScriptConfiguration(file: KtFile): ScriptCompilationConfigurationWrapper? {
         return scriptDependenciesManager.getConfiguration(file)
     }
+
 }
 
 /**
@@ -87,7 +98,7 @@ interface ScriptConfigurationManager {
     fun getScriptClasspath(file: VirtualFile): List<VirtualFile>
 
     fun getScriptClasspath(file: KtFile): List<VirtualFile>
-    fun getConfiguration(file: KtFile): ScriptCompilationConfigurationResult?
+    fun getConfiguration(file: KtFile): ScriptCompilationConfigurationWrapper?
     fun getScriptDependenciesClassFilesScope(file: VirtualFile): GlobalSearchScope
     fun getScriptSdk(file: VirtualFile): Sdk?
     fun getFirstScriptsSdk(): Sdk?

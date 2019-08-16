@@ -84,58 +84,59 @@ class ScriptConfigurationFileAttributeCache(val manager: ScriptConfigurationMana
         }
     }
 
-    private val KtFile.scriptDependencies: ScriptDependencies?
-        get() = this.getScriptOriginalFile()?.virtualFile?.scriptDependencies
-
-    private var VirtualFile.scriptDependencies: ScriptDependencies? by cachedFileAttribute(
-        name = "kotlin-script-dependencies",
-        version = 3,
-        read = {
-            ScriptDependencies(
-                classpath = readFileList(),
-                imports = readStringList(),
-                javaHome = readNullable(DataInput::readFile),
-                scripts = readFileList(),
-                sources = readFileList()
-            )
-        },
-        write = {
-            with(it) {
-                writeFileList(classpath)
-                writeStringList(imports)
-                writeNullable(javaHome, DataOutput::writeFile)
-                writeFileList(scripts)
-                writeFileList(sources)
-            }
-        }
-    )
-
-    private var KtFile.scriptCompilationConfiguration: ScriptCompilationConfiguration?
-        get() = this.getScriptOriginalFile()?.virtualFile?.scriptCompilationConfiguration
-        set(value) {
-            this.getScriptOriginalFile()?.virtualFile?.scriptCompilationConfiguration = value
-        }
-
-    private var VirtualFile.scriptCompilationConfiguration: ScriptCompilationConfiguration? by cachedFileAttribute(
-        name = "kotlin-script-compilation-configuration",
-        version = 1,
-        read = {
-            val size = readInt()
-            val bytes = ByteArray(size)
-            read(bytes, 0, size)
-            val bis = ByteArrayInputStream(bytes)
-            ObjectInputStream(bis).use { ois ->
-                ois.readObject() as ScriptCompilationConfiguration
-            }
-        },
-        write = {
-            val os = ByteArrayOutputStream()
-            ObjectOutputStream(os).use { oos ->
-                oos.writeObject(it)
-            }
-            val bytes = os.toByteArray()
-            writeInt(bytes.size)
-            write(bytes)
-        }
-    )
 }
+
+private val KtFile.scriptDependencies: ScriptDependencies?
+    get() = this.getScriptOriginalFile()?.virtualFile?.scriptDependencies
+
+private var VirtualFile.scriptDependencies: ScriptDependencies? by cachedFileAttribute(
+    name = "kotlin-script-dependencies",
+    version = 3,
+    read = {
+        ScriptDependencies(
+            classpath = readFileList(),
+            imports = readStringList(),
+            javaHome = readNullable(DataInput::readFile),
+            scripts = readFileList(),
+            sources = readFileList()
+        )
+    },
+    write = {
+        with(it) {
+            writeFileList(classpath)
+            writeStringList(imports)
+            writeNullable(javaHome, DataOutput::writeFile)
+            writeFileList(scripts)
+            writeFileList(sources)
+        }
+    }
+)
+
+private var KtFile.scriptCompilationConfiguration: ScriptCompilationConfiguration?
+    get() = this.getScriptOriginalFile()?.virtualFile?.scriptCompilationConfiguration
+    set(value) {
+        this.getScriptOriginalFile()?.virtualFile?.scriptCompilationConfiguration = value
+    }
+
+private var VirtualFile.scriptCompilationConfiguration: ScriptCompilationConfiguration? by cachedFileAttribute(
+    name = "kotlin-script-compilation-configuration",
+    version = 1,
+    read = {
+        val size = readInt()
+        val bytes = ByteArray(size)
+        read(bytes, 0, size)
+        val bis = ByteArrayInputStream(bytes)
+        ObjectInputStream(bis).use { ois ->
+            ois.readObject() as ScriptCompilationConfiguration
+        }
+    },
+    write = {
+        val os = ByteArrayOutputStream()
+        ObjectOutputStream(os).use { oos ->
+            oos.writeObject(it)
+        }
+        val bytes = os.toByteArray()
+        writeInt(bytes.size)
+        write(bytes)
+    }
+)

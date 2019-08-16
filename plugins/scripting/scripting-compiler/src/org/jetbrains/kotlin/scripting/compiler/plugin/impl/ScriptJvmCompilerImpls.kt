@@ -96,7 +96,7 @@ private fun compileImpl(
 
     val dependenciesProvider = ScriptDependenciesProvider.getInstance(context.environment.project)
     val getScriptConfiguration = { ktFile: KtFile ->
-        dependenciesProvider?.getScriptConfigurationResult(ktFile)?.valueOrNull()?.configuration
+        dependenciesProvider?.getScriptConfiguration(ktFile)?.configuration
             ?: context.baseScriptCompilationConfiguration
     }
 

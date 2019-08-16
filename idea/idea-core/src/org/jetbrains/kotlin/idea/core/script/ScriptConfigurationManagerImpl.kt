@@ -29,7 +29,9 @@ import org.jetbrains.kotlin.idea.core.util.EDT
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
+import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
 import org.jetbrains.kotlin.scripting.resolve.ScriptReportSink
+import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.valueOrNull
 
 class ScriptConfigurationManagerImpl internal constructor(
@@ -106,9 +108,9 @@ class ScriptConfigurationManagerImpl internal constructor(
     }
 
     override fun getScriptClasspath(file: KtFile): List<VirtualFile> =
-        toVfsRoots(getConfiguration(file)?.valueOrNull()?.dependenciesClassPath.orEmpty())
+        toVfsRoots(getConfiguration(file)?.dependenciesClassPath.orEmpty())
 
-    override fun getConfiguration(file: KtFile): ScriptCompilationConfigurationResult? {
+    override fun getConfiguration(file: KtFile): ScriptCompilationConfigurationWrapper? {
         val virtualFile = file.originalFile.virtualFile
 
         val cached = getCachedConfiguration(virtualFile)
@@ -160,7 +162,7 @@ class ScriptConfigurationManagerImpl internal constructor(
     }
 
     /**
-     * Save [newConfiguration] for [file] into caches and update highlih.
+     * Save [newResult] for [file] into caches and update highlih.
      * Should be called inside `rootsManager.transaction { ... }`.
      *
      * @param skipNotification forces loading new configuration even if auto reload is disabled.
@@ -170,79 +172,87 @@ class ScriptConfigurationManagerImpl internal constructor(
      */
     internal fun saveConfiguration(
         file: VirtualFile,
-        newConfiguration: ScriptCompilationConfigurationResult,
+        newResult: ScriptCompilationConfigurationResult,
         skipNotification: Boolean = false,
         skipSaveToAttributes: Boolean = false
     ) {
-        debug(file) { "configuration received = $newConfiguration" }
+        debug(file) { "configuration received = $newResult" }
 
-        val oldConfiguration = getCachedConfiguration(file)
-        if (oldConfiguration == newConfiguration) {
-            file.removeScriptDependenciesNotificationPanel(project)
-        } else {
-            val autoReload = skipNotification
-                    || oldConfiguration == null
-                    || oldConfiguration.valueOrNull() == newConfiguration.valueOrNull()
-                    || KotlinScriptingSettings.getInstance(project).isAutoReloadEnabled
-                    || ApplicationManager.getApplication().isUnitTestMode
+        saveReports(file, newResult.reports)
 
-            if (autoReload) {
+        val newConfiguration = newResult.valueOrNull()
+        if (newConfiguration != null) {
+            val oldConfiguration = getCachedConfiguration(file)
+            if (oldConfiguration == newConfiguration) {
                 file.removeScriptDependenciesNotificationPanel(project)
-                saveChangedConfiguration(file, oldConfiguration, newConfiguration, skipSaveToAttributes)
             } else {
-                debug(file) {
-                    "configuration changed, notification is shown: old = $oldConfiguration, new = $newConfiguration"
-                }
-                file.addScriptDependenciesNotificationPanel(
-                    newConfiguration, project,
-                    onClick = {
+                val autoReload = skipNotification
+                        || oldConfiguration == null
+                        || KotlinScriptingSettings.getInstance(project).isAutoReloadEnabled
+                        || ApplicationManager.getApplication().isUnitTestMode
+
+                if (autoReload) {
+                    if (oldConfiguration != null) {
                         file.removeScriptDependenciesNotificationPanel(project)
-                        rootsManager.transaction {
-                            saveChangedConfiguration(file, getCachedConfiguration(file), it, skipSaveToAttributes)
-                        }
                     }
-                )
+                    saveChangedConfiguration(file, newConfiguration, skipSaveToAttributes)
+                } else {
+                    debug(file) {
+                        "configuration changed, notification is shown: old = $oldConfiguration, new = $newConfiguration"
+                    }
+                    file.addScriptDependenciesNotificationPanel(
+                        newConfiguration, project,
+                        onClick = {
+                            file.removeScriptDependenciesNotificationPanel(project)
+                            rootsManager.transaction {
+                                saveChangedConfiguration(file, it, skipSaveToAttributes)
+                            }
+                        }
+                    )
+                }
             }
         }
     }
 
     private fun saveChangedConfiguration(
         file: VirtualFile,
-        oldConfiguration: ScriptCompilationConfigurationResult?,
-        newConfiguration: ScriptCompilationConfigurationResult,
+        newConfiguration: ScriptCompilationConfigurationWrapper?,
         skipSaveToAttributes: Boolean
     ) {
-        val oldReports = IdeScriptReportSink.getReports(file)
-        val newReports = newConfiguration.reports
-        if (oldReports != newReports) {
-            debug(file) { "new script reports = $newReports" }
+        debug(file) { "configuration changed = $newConfiguration" }
 
-            ServiceManager.getService(
-                project,
-                ScriptReportSink::class.java
-            ).attachReports(file, newReports)
-        }
+        if (newConfiguration != null) {
+            rootsManager.checkNonCachedRoots(memoryCache, file, newConfiguration)
 
-        val oldValue = oldConfiguration?.valueOrNull()
-        val newValue = newConfiguration.valueOrNull()
-        if (oldValue != newValue) {
-            debug(file) { "configuration changed = $newConfiguration" }
+            if (!skipSaveToAttributes) {
+                debug(file) { "configuration saved to file attributes: $newConfiguration" }
 
-            if (newValue != null) {
-                rootsManager.checkNonCachedRoots(memoryCache, file, newValue)
-
-                if (!skipSaveToAttributes) {
-                    debug(file) { "configuration saved to file attributes: $newConfiguration" }
-
-                    fileAttributesCache.save(file, newValue)
-                }
-
-                memoryCache.replaceConfiguration(file, newConfiguration)
-                memoryCache.clearClassRootsCaches()
+                fileAttributesCache.save(file, newConfiguration)
             }
+
+            memoryCache.replaceConfiguration(file, newConfiguration)
+            memoryCache.clearClassRootsCaches()
         }
 
         updateHighlighting(listOf(file))
+    }
+
+    private fun saveReports(
+        file: VirtualFile,
+        newReports: List<ScriptDiagnostic>
+    ) {
+        val oldReports = IdeScriptReportSink.getReports(file)
+        if (oldReports != newReports) {
+            debug(file) { "new script reports = $newReports" }
+
+            ServiceManager.getService(project, ScriptReportSink::class.java).attachReports(file, newReports)
+
+            GlobalScope.launch(EDT(project)) {
+                if (project.isDisposed) return@launch
+
+                EditorNotifications.getInstance(project).updateAllNotifications()
+            }
+        }
     }
 
     private fun updateHighlighting(files: List<VirtualFile>) {
@@ -253,9 +263,6 @@ class ScriptConfigurationManagerImpl internal constructor(
 
             val openFiles = FileEditorManager.getInstance(project).openFiles
             val openScripts = files.filter { it.isValid && openFiles.contains(it) }
-            if (openScripts.isNotEmpty()) {
-                EditorNotifications.getInstance(project).updateAllNotifications()
-            }
 
             openScripts.forEach {
                 PsiManager.getInstance(project).findFile(it)?.let { psiFile ->
@@ -265,7 +272,7 @@ class ScriptConfigurationManagerImpl internal constructor(
         }
     }
 
-    private fun getCachedConfiguration(file: VirtualFile): ScriptCompilationConfigurationResult? =
+    private fun getCachedConfiguration(file: VirtualFile): ScriptCompilationConfigurationWrapper? =
         memoryCache.getCachedConfiguration(file)
 
     private fun isConfigurationCached(file: VirtualFile): Boolean {

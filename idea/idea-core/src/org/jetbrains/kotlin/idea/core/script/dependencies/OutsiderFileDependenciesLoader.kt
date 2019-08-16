@@ -7,11 +7,11 @@ package org.jetbrains.kotlin.idea.core.script.dependencies
 
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManagerImpl
-import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
 import org.jetbrains.kotlin.idea.highlighter.OutsidersPsiFileSupportUtils
 import org.jetbrains.kotlin.idea.highlighter.OutsidersPsiFileSupportWrapper
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
+import kotlin.script.experimental.api.asSuccess
 
 class OutsiderFileDependenciesLoader(val manager: ScriptConfigurationManagerImpl) : ScriptDependenciesLoader {
     override fun isApplicable(
@@ -32,6 +32,6 @@ class OutsiderFileDependenciesLoader(val manager: ScriptConfigurationManagerImpl
         val fileOrigin = OutsidersPsiFileSupportUtils.getOutsiderFileOrigin(project, virtualFile) ?: return
         val psiFileOrigin = PsiManager.getInstance(project).findFile(fileOrigin) as? KtFile ?: return
         val compilationConfiguration = manager.getConfiguration(psiFileOrigin) ?: return
-        manager.saveConfiguration(virtualFile, compilationConfiguration, skipNotification = true)
+        manager.saveConfiguration(virtualFile, compilationConfiguration.asSuccess(), skipNotification = true)
     }
 }
