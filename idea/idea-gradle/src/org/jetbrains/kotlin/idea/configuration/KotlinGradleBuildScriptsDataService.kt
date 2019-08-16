@@ -16,7 +16,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.kotlin.gradle.GradleKotlinBuildScriptModel
-import org.jetbrains.kotlin.idea.core.script.ScriptsCompilationConfigurationUpdater
+import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
 import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
 import org.jetbrains.kotlin.scripting.resolve.VirtualFileScriptSource
@@ -48,26 +48,28 @@ class KotlinGradleBuildScriptsDataService : AbstractProjectDataService<GradleSou
             }
         }
 
-        scripts.values.forEach { buildScript ->
-            val scriptFile = File(buildScript.file)
-            val virtualFile = VfsUtil.findFile(scriptFile.toPath(), true)!!
+        ScriptDependenciesManager.getInstance(project).saveCompilationConfigurationAfterImport(
+            scripts.values.map { buildScript ->
+                val scriptFile = File(buildScript.file)
+                val virtualFile = VfsUtil.findFile(scriptFile.toPath(), true)!!
 
-            project.service<ScriptsCompilationConfigurationUpdater>().accept(
-                virtualFile,
-                ResultWithDiagnostics.Success(
-                    ScriptCompilationConfigurationWrapper.FromLegacy(
-                        VirtualFileScriptSource(virtualFile),
-                        ScriptDependencies(
-                            scripts = listOf(scriptFile),
-                            classpath = (buildScript.classPath + extra).map { File(it) },
-                            sources = buildScript.sourcePath.map { File(it) },
-                            imports = buildScript.imports
-                        ),
-                        virtualFile.findScriptDefinition(project)
+                Pair(
+                    virtualFile,
+                    ResultWithDiagnostics.Success(
+                        ScriptCompilationConfigurationWrapper.FromLegacy(
+                            VirtualFileScriptSource(virtualFile),
+                            ScriptDependencies(
+                                scripts = listOf(scriptFile),
+                                classpath = (buildScript.classPath + extra).map { File(it) },
+                                sources = buildScript.sourcePath.map { File(it) },
+                                imports = buildScript.imports
+                            ),
+                            virtualFile.findScriptDefinition(project)
+                        )
                     )
                 )
-            )
-        }
+            }
+        )
     }
 
     companion object {
