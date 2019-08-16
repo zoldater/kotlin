@@ -1,17 +1,6 @@
 /*
- * Copyright 2010-2017 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.idea.core.script
@@ -28,34 +17,16 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
-import org.jetbrains.kotlin.idea.core.script.dependencies.FromFileAttributeScriptDependenciesLoader
-import org.jetbrains.kotlin.idea.core.script.dependencies.FromRefinedConfigurationLoader
-import org.jetbrains.kotlin.idea.core.script.dependencies.OutsiderFileDependenciesLoader
 import org.jetbrains.kotlin.idea.util.ProjectRootsUtil
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 import org.jetbrains.kotlin.scripting.definitions.isNonScript
 
-class ScriptsConfigurationUpdater internal constructor(private val project: Project) {
+class ScriptsListener(
+    private val project: Project,
+    private val scriptsManager: ScriptConfigurationManagerImpl
+) {
     private val scriptsQueue = Alarm(Alarm.ThreadToUse.SWING_THREAD, project)
     private val scriptChangesListenerDelay = 1400
-
-    private val loaders = arrayListOf(
-        FromFileAttributeScriptDependenciesLoader(),
-        OutsiderFileDependenciesLoader(),
-        FromRefinedConfigurationLoader(project)
-    )
-
-    fun updateDependencies(file: KtFile) {
-        if (!ScriptDefinitionsManager.getInstance(project).isReady()) return
-
-        val scriptDefinition = file.findScriptDefinition() ?: return
-        loaders.filter {
-            it.isApplicable(file, scriptDefinition)
-        }.forEach {
-            it.loadDependencies(file, scriptDefinition)
-        }
-    }
 
     init {
         listenForChangesInScripts()
@@ -74,7 +45,7 @@ class ScriptsConfigurationUpdater internal constructor(private val project: Proj
             private fun runScriptDependenciesUpdateIfNeeded(file: VirtualFile) {
                 val ktFile = getKtFileToStartConfigurationUpdate(file) ?: return
 
-                ScriptDependenciesManager.getInstance(project).updateConfigurationsIfNotCached(listOf(ktFile))
+                scriptsManager.updateConfigurationsIfNotCached(listOf(ktFile))
             }
         })
 
@@ -87,9 +58,7 @@ class ScriptsConfigurationUpdater internal constructor(private val project: Proj
                 scriptsQueue.cancelAllRequests()
 
                 scriptsQueue.addRequest(
-                    {
-                        ScriptDependenciesManager.getInstance(project).updateConfigurationsIfNotCached(listOf(ktFile))
-                    },
+                    { scriptsManager.updateConfigurationsIfNotCached(listOf(ktFile)) },
                     scriptChangesListenerDelay,
                     true
                 )

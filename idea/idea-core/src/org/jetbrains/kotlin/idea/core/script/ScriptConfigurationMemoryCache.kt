@@ -22,7 +22,7 @@ import com.intellij.psi.search.NonClasspathDirectoriesScope
 import com.intellij.util.containers.ConcurrentFactoryMap
 import com.intellij.util.containers.SLRUMap
 import org.jetbrains.kotlin.idea.caches.project.getAllProjectSdks
-import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationCaches.Companion.MAX_SCRIPTS_CACHED
+import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationMemoryCache.Companion.MAX_SCRIPTS_CACHED
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -33,7 +33,7 @@ import kotlin.reflect.KProperty0
 import kotlin.reflect.jvm.isAccessible
 import kotlin.script.experimental.api.valueOrNull
 
-class ScriptConfigurationCaches internal constructor(private val project: Project) {
+class ScriptConfigurationMemoryCache internal constructor(private val project: Project) {
 
     companion object {
         const val MAX_SCRIPTS_CACHED = 50
