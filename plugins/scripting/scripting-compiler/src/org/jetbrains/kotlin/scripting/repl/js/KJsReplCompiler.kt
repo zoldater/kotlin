@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.scripting.repl.js
 
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.impl.PsiFileFactoryImpl
@@ -16,9 +15,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.repl.*
-import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.ir.backend.js.*
@@ -46,10 +43,9 @@ import kotlin.script.experimental.host.StringScriptSource
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-class KJsReplCompiler(private val configuration: CompilerConfiguration, disposable: Disposable) : ReplCompiler {
-    private val environment = KotlinCoreEnvironment.createForProduction(
-        disposable, configuration, EnvironmentConfigFiles.JS_CONFIG_FILES
-    )
+class KJsReplCompiler(
+    private val environment: KotlinCoreEnvironment
+) : ReplCompiler {
     private val analyzerEngine = JsReplCodeAnalyzer(environment)
     private val symbolTable = SymbolTable()
     private val deserializer: JsIrLinker
@@ -62,7 +58,7 @@ class KJsReplCompiler(private val configuration: CompilerConfiguration, disposab
     val stdlibCompiledResult: String
 
     init {
-        val messageCollector = configuration[CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY] as MessageCollector
+        val messageCollector = environment.configuration[CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY] as MessageCollector
 
         setIdeaIoUseFallback()
 
@@ -152,7 +148,7 @@ class KJsReplCompiler(private val configuration: CompilerConfiguration, disposab
         val snippet = codeLine.code
         val snippetId = codeLine.no
 
-        val messageCollector = configuration[CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY] as MessageCollector
+        val messageCollector = environment.configuration[CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY] as MessageCollector
 
         setIdeaIoUseFallback()
 

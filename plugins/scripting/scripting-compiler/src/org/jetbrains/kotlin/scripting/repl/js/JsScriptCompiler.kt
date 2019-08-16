@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.scripting.repl.js
 import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult.*
 import kotlin.script.experimental.api.*
 
-class JsScriptCompiler(private val compiler: KJsReplCompiler) : ScriptCompiler {
+class JsScriptCompiler(val compiler: KJsReplCompiler) : ScriptCompiler {
     override suspend fun invoke(
         script: SourceCode,
         scriptCompilationConfiguration: ScriptCompilationConfiguration

@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.scripting.repl.js.test
 
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -33,7 +35,7 @@ class JsReplBase : Closeable {
     val compiler: KJsReplCompiler
     val jsEngine: JsReplEvaluator
 
-    private var snippetId: Int = 1 //index 0 for libs
+    private var snippetId: Int = 1 //index 0 for klib
     fun newSnippetId(): Int = snippetId++
 
     init {
@@ -50,7 +52,10 @@ class JsReplBase : Closeable {
             ScriptDefinition.FromConfigurations(ScriptingHostConfiguration(), scriptConfiguration, null)
         )
 
-        compiler = KJsReplCompiler(configuration, disposable)
+        val environment = KotlinCoreEnvironment.createForProduction(
+            disposable, configuration, EnvironmentConfigFiles.JS_CONFIG_FILES
+        )
+        compiler = KJsReplCompiler(environment)
 
         jsEngine = JsReplEvaluator()
         jsEngine.eval(

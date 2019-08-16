@@ -18,7 +18,6 @@ dependencies {
     compile(project(":js:js.translator"))
     compile(project(":js:js.serializer"))
     compile(project(":js:js.dce"))
-    compile(project(":kotlin-scripting-compiler"))
 
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
 

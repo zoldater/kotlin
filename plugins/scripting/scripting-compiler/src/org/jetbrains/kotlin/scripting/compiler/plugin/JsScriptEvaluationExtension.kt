@@ -6,25 +6,18 @@
 package org.jetbrains.kotlin.scripting.compiler.plugin
 
 import com.intellij.core.JavaCoreProjectEnvironment
-import com.intellij.openapi.util.Disposer
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
-import org.jetbrains.kotlin.cli.common.extensions.ScriptEvaluationExtension
+import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinitionProvider
-import java.io.File
-import kotlin.script.experimental.host.toScriptSource
-import org.jetbrains.kotlin.scripting.repl.js.KJsReplCompiler
-import org.jetbrains.kotlin.scripting.repl.js.CompiledToJsScript
-import org.jetbrains.kotlin.scripting.repl.js.JsScriptCompiler
-import org.jetbrains.kotlin.scripting.repl.js.JsScriptEvaluator
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.kotlin.scripting.definitions.platform
+import org.jetbrains.kotlin.scripting.repl.js.CompiledToJsScript
+import org.jetbrains.kotlin.scripting.repl.js.JsScriptCompiler
+import org.jetbrains.kotlin.scripting.repl.js.JsScriptEvaluator
+import org.jetbrains.kotlin.scripting.repl.js.KJsReplCompiler
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.jvm.JsDependency
@@ -41,68 +34,57 @@ fun loadScriptConfiguration(configuration: CompilerConfiguration) {
     )
 }
 
-class JsScriptEvaluationExtension : ScriptEvaluationExtension {
-    override fun eval(
-        arguments: CommonCompilerArguments,
-        configuration: CompilerConfiguration,
-        projectEnvironment: JavaCoreProjectEnvironment
-    ): ExitCode {
+class JsScriptEvaluationExtension : AbstractScriptEvaluationExtension() {
+
+    override fun getSourcePath(arguments: CommonCompilerArguments): String {
+        return (arguments as K2JSCompilerArguments).scriptPath!!
+    }
+
+    override fun setupScriptConfiguration(configuration: CompilerConfiguration, sourcePath: String) {
         loadScriptConfiguration(configuration)
+    }
 
-        val disposable = Disposer.newDisposable()
+    override fun createEnvironment(
+        projectEnvironment: JavaCoreProjectEnvironment,
+        configuration: CompilerConfiguration
+    ): KotlinCoreEnvironment {
+        return KotlinCoreEnvironment.createForProduction(
+            projectEnvironment,
+            configuration,
+            EnvironmentConfigFiles.JS_CONFIG_FILES
+        )
+    }
 
-        val replCompiler = KJsReplCompiler(configuration, disposable)
-        val compiler = JsScriptCompiler(replCompiler)
-        val evaluator = JsScriptEvaluator()
+    override fun createScriptEvaluator(): ScriptEvaluator {
+        return JsScriptEvaluator()
+    }
 
-        val sourcePath = (arguments as K2JSCompilerArguments).scriptPath!!
-        val scriptFile = File(sourcePath)
-        val sourceCode = scriptFile.toScriptSource()
+    private var environment: KotlinCoreEnvironment? = null
+    private val scriptCompiler: JsScriptCompiler by lazy {
+        JsScriptCompiler(KJsReplCompiler(environment!!))
+    }
 
-        val messageCollector = configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
-        val scriptDefinitionProvider = ScriptDefinitionProvider.getInstance(projectEnvironment.project)
-        if (scriptDefinitionProvider == null) {
-            messageCollector.report(CompilerMessageSeverity.ERROR, "Unable to process the script, scripting plugin is not configured")
-            return ExitCode.COMPILATION_ERROR
-        }
-        val definition = scriptDefinitionProvider.findDefinition(scriptFile) ?: scriptDefinitionProvider.getDefaultDefinition()
-        val scriptArgs =
-            if (arguments.freeArgs.isNotEmpty()) arguments.freeArgs.subList(1, arguments.freeArgs.size) else emptyList<String>()
-        val evaluationConfiguration = definition.evaluationConfiguration.with {
-            constructorArgs(scriptArgs.toTypedArray())
-        }
-        val scriptCompilationConfiguration = definition.compilationConfiguration
+    override suspend fun compilerInvoke(
+        environment: KotlinCoreEnvironment,
+        script: SourceCode,
+        scriptCompilationConfiguration: ScriptCompilationConfiguration
+    ): ResultWithDiagnostics<CompiledScript<*>> {
+        this.environment = environment
+        return scriptCompiler.invoke(script, scriptCompilationConfiguration)
+    }
 
-        return runBlocking {
-            val compiledScript = compiler.invoke(sourceCode, scriptCompilationConfiguration).valueOr {
-                return@runBlocking ExitCode.COMPILATION_ERROR
-            }
-
-            evaluator.invoke(
-                CompiledToJsScript(
-                    replCompiler.stdlibCompiledResult,
-                    scriptCompilationConfiguration
-                ),
-                evaluationConfiguration
-            )
-            val evalResult = evaluator.invoke(compiledScript, evaluationConfiguration).valueOr {
-                return@runBlocking ExitCode.INTERNAL_ERROR
-            }
-
-            when (evalResult.returnValue) {
-                is ResultValue.Value -> {
-                    println((evalResult.returnValue as ResultValue.Value).value)
-                    ExitCode.OK
-                }
-                is ResultValue.Error -> {
-                    System.err.println(evalResult.returnValue as ResultValue.Error)
-                    ExitCode.SCRIPT_EXECUTION_ERROR
-                }
-                else -> ExitCode.OK
-            }
-        }.also {
-            Disposer.dispose(disposable)
-        }
+    override suspend fun preprocessEvaluation(
+        scriptEvaluator: ScriptEvaluator,
+        scriptCompilationConfiguration: ScriptCompilationConfiguration,
+        evaluationConfiguration: ScriptEvaluationConfiguration
+    ) {
+        scriptEvaluator.invoke(
+            CompiledToJsScript(
+                scriptCompiler.compiler.stdlibCompiledResult,
+                scriptCompilationConfiguration
+            ),
+            evaluationConfiguration
+        )
     }
 
     override fun isAccepted(arguments: CommonCompilerArguments): Boolean {
