@@ -54,7 +54,11 @@ class ScriptConfigurationMemoryCache internal constructor(private val project: P
     fun getCachedConfiguration(file: VirtualFile): ScriptCompilationConfigurationWrapper? = scriptDependenciesCache.get(file)
 
     fun isConfigurationUpToDate(file: VirtualFile): Boolean {
-        return scriptsModificationStampsCache.replace(file, file.modificationStamp) == file.modificationStamp
+        return scriptsModificationStampsCache.get(file) == file.modificationStamp
+    }
+
+    fun setUpToDate(file: VirtualFile) {
+        scriptsModificationStampsCache.replace(file, file.modificationStamp)
     }
 
     fun replaceConfiguration(file: VirtualFile, new: ScriptCompilationConfigurationWrapper) {

@@ -118,7 +118,7 @@ class ScriptConfigurationManagerImpl internal constructor(
             return cached
         }
 
-        if (!isConfigurationUpToDate(virtualFile)) {
+        if (ScriptDefinitionsManager.getInstance(project).isReady() && !isConfigurationUpToDate(virtualFile)) {
             rootsManager.transaction {
                 reloadConfiguration(file)
             }
@@ -151,7 +151,7 @@ class ScriptConfigurationManagerImpl internal constructor(
     }
 
     private fun reloadConfiguration(file: KtFile) {
-        if (!ScriptDefinitionsManager.getInstance(project).isReady()) return
+        memoryCache.setUpToDate(file.originalFile.virtualFile)
 
         val scriptDefinition = file.findScriptDefinition() ?: return
         loaders.filter {
