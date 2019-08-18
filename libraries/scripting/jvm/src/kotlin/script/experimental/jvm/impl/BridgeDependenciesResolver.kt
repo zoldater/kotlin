@@ -98,7 +98,7 @@ internal fun ScriptContents.toScriptSource(): SourceCode = when {
 }
 
 fun List<ScriptDependency>?.toClassPathOrEmpty() = this?.flatMap {
-    if (it !is JvmDependency) emptyList() else it.classpath
+    (it as? JvmDependency)?.classpath ?: emptyList()
 } ?: emptyList()
 
 internal fun List<SourceCode>?.toFilesOrEmpty() = this?.map {

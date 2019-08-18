@@ -312,6 +312,16 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
         return JsMetadataVersion(*versionArray)
     }
 
+    private fun loadPlugins(
+        configuration: CompilerConfiguration,
+        paths: KotlinPaths? = null,
+        passedPluginClasspaths: Iterable<String> = emptyList(),
+        pluginOptions: MutableList<String> = mutableListOf()
+    ): ExitCode {
+        val pluginClasspaths: Iterable<String> = commonLoadPlugins(configuration, paths, passedPluginClasspaths)
+        return PluginCliParser.loadPluginsSafe(pluginClasspaths, pluginOptions, configuration)
+    }
+
     companion object {
         private val moduleKindMap = mapOf(
             K2JsArgumentConstants.MODULE_PLAIN to ModuleKind.PLAIN,
@@ -359,38 +369,13 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
     }
 }
 
-fun loadPluginsForTests(configuration: CompilerConfiguration) = loadPlugins(configuration)
+fun loadPluginsForTests(configuration: CompilerConfiguration): ExitCode {
+    var pluginClasspaths: Iterable<String> = emptyList()
+    val kotlinPaths = PathUtil.kotlinPathsForCompiler
+    val libPath = kotlinPaths.libPath.takeIf { it.exists() && it.isDirectory } ?: File(".")
+    val (jars, _) =
+        PathUtil.KOTLIN_SCRIPTING_PLUGIN_CLASSPATH_JARS.mapNotNull { File(libPath, it) }.partition { it.exists() }
+    pluginClasspaths = jars.map { it.canonicalPath } + pluginClasspaths
 
-private fun loadPlugins(
-    configuration: CompilerConfiguration,
-    paths: KotlinPaths? = null,
-    passedPluginClasspaths: Iterable<String> = emptyList(),
-    pluginOptions: MutableList<String> = mutableListOf()
-) : ExitCode {
-    var pluginClasspaths: Iterable<String> = passedPluginClasspaths
-    val explicitOrLoadedScriptingPlugin =
-        pluginClasspaths.any { File(it).name.startsWith(PathUtil.KOTLIN_SCRIPTING_COMPILER_PLUGIN_NAME) } ||
-                try {
-                    PluginCliParser::class.java.classLoader.loadClass("org.jetbrains.kotlin.extensions.ScriptingCompilerConfigurationExtension")
-                    true
-                } catch (_: Throwable) {
-                    false
-                }
-    if (!explicitOrLoadedScriptingPlugin) {
-        val kotlinPaths = paths ?: PathUtil.kotlinPathsForCompiler
-        val libPath = kotlinPaths.libPath.takeIf { it.exists() && it.isDirectory } ?: File(".")
-        val (jars, missingJars) =
-            PathUtil.KOTLIN_SCRIPTING_PLUGIN_CLASSPATH_JARS.mapNotNull { File(libPath, it) }.partition { it.exists() }
-        if (missingJars.isEmpty()) {
-            pluginClasspaths = jars.map { it.canonicalPath } + pluginClasspaths
-        } else {
-            val messageCollector = configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
-            messageCollector.report(
-                LOGGING,
-                "Scripting plugin will not be loaded: not all required jars are present in the classpath (missing files: $missingJars)"
-            )
-        }
-    }
-
-    return PluginCliParser.loadPluginsSafe(pluginClasspaths, pluginOptions, configuration)
+    return PluginCliParser.loadPluginsSafe(pluginClasspaths, mutableListOf(), configuration)
 }
