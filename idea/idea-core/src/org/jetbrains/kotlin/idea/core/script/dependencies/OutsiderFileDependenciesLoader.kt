@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.idea.core.script.dependencies
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManagerImpl
 import org.jetbrains.kotlin.idea.highlighter.OutsidersPsiFileSupportUtils
-import org.jetbrains.kotlin.idea.highlighter.OutsidersPsiFileSupportWrapper
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
@@ -16,6 +15,7 @@ import kotlin.script.experimental.api.asSuccess
 
 class OutsiderFileDependenciesLoader(val manager: ScriptConfigurationManagerImpl) : ScriptDependenciesLoader {
     override suspend fun loadDependencies(
+        firstLoad: Boolean,
         file: KtFile,
         scriptDefinition: ScriptDefinition
     ): ScriptCompilationConfigurationResult? {

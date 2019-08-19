@@ -19,5 +19,9 @@ internal interface ScriptDependenciesLoader {
     val skipNotification: Boolean
         get() = false
 
-    suspend fun loadDependencies(file: KtFile, scriptDefinition: ScriptDefinition): ScriptCompilationConfigurationResult?
+    suspend fun loadDependencies(
+        firstLoad: Boolean,
+        file: KtFile,
+        scriptDefinition: ScriptDefinition
+    ): ScriptCompilationConfigurationResult?
 }

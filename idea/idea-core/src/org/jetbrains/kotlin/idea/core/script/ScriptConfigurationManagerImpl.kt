@@ -19,6 +19,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.EditorNotifications
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager.Companion.toVfsRoots
 import org.jetbrains.kotlin.idea.core.script.dependencies.FromRefinedConfigurationLoader
@@ -151,14 +152,27 @@ class ScriptConfigurationManagerImpl internal constructor(
     }
 
     private fun reloadConfiguration(file: KtFile) {
-        memoryCache.setUpToDate(file.originalFile.virtualFile)
+        val virtualFile = file.originalFile.virtualFile
+        memoryCache.setUpToDate(virtualFile)
 
         val scriptDefinition = file.findScriptDefinition() ?: return
+
+        val firstLoad = memoryCache.getCachedConfiguration(virtualFile) != null
+
+        // todo: run last
         loaders.forEach {
-            GlobalScope.launch {
-                it.loadDependencies(file, scriptDefinition)
+            runBlocking {
+                val result = it.loadDependencies(firstLoad, file, scriptDefinition)
+                if (result != null) {
+                    // save and return
+                }
+
             }
         }
+
+        // todo: run last
+        // run async
+
     }
 
     /**

@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.idea.core.script.debug
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.KotlinScriptDefinition
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
-import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 import org.jetbrains.kotlin.scripting.resolve.KtFileScriptSource
 import org.jetbrains.kotlin.scripting.resolve.LegacyResolverWrapper
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
@@ -23,10 +22,8 @@ class FromRefinedConfigurationLoader internal constructor() : ScriptDependencies
         } ?: false
     }
 
-    private fun isAsyncDependencyResolver(scriptDef: ScriptDefinition): Boolean =
-
-
     override suspend fun loadDependencies(
+        firstLoad: Boolean,
         file: KtFile,
         scriptDefinition: ScriptDefinition
     ): ScriptCompilationConfigurationResult? {
@@ -37,11 +34,6 @@ class FromRefinedConfigurationLoader internal constructor() : ScriptDependencies
         debug(file) { "finish dependencies loading" }
 
         return result
-    }
-
-    // internal for tests
-    internal fun runDependenciesUpdate(file: KtFile, scriptDefinition: ScriptDefinition? = file.findScriptDefinition()) {
-        TODO()
     }
 }
 

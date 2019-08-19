@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.idea.core.script.dependencies
 
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManagerImpl
 import org.jetbrains.kotlin.idea.core.script.debug
 import org.jetbrains.kotlin.idea.core.util.*
 import org.jetbrains.kotlin.psi.KtFile
@@ -22,7 +21,7 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.asSuccess
 import kotlin.script.experimental.dependencies.ScriptDependencies
 
-class ScriptConfigurationFileAttributeCache(val manager: ScriptConfigurationManagerImpl) : ScriptDependenciesLoader {
+class ScriptConfigurationFileAttributeCache : ScriptDependenciesLoader {
     operator fun contains(file: VirtualFile): Boolean =
         file.scriptDependencies != null || file.scriptCompilationConfiguration != null
 
@@ -32,7 +31,11 @@ class ScriptConfigurationFileAttributeCache(val manager: ScriptConfigurationMana
     override val skipSaveToAttributes: Boolean
         get() = true
 
-    override suspend fun loadDependencies(file: KtFile, scriptDefinition: ScriptDefinition): ScriptCompilationConfigurationResult? {
+    override suspend fun loadDependencies(
+        firstLoad: Boolean,
+        file: KtFile,
+        scriptDefinition: ScriptDefinition
+    ): ScriptCompilationConfigurationResult? {
         val virtualFile = file.originalFile.virtualFile
 
         val configurationFromAttributes =
