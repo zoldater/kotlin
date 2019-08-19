@@ -11,27 +11,19 @@ import org.jetbrains.kotlin.idea.highlighter.OutsidersPsiFileSupportUtils
 import org.jetbrains.kotlin.idea.highlighter.OutsidersPsiFileSupportWrapper
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
+import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
 import kotlin.script.experimental.api.asSuccess
 
 class OutsiderFileDependenciesLoader(val manager: ScriptConfigurationManagerImpl) : ScriptDependenciesLoader {
-    override fun isApplicable(
+    override suspend fun loadDependencies(
         file: KtFile,
         scriptDefinition: ScriptDefinition
-    ): Boolean {
-        val virtualFile = file.virtualFile ?: return false
-        return OutsidersPsiFileSupportWrapper.isOutsiderFile(virtualFile)
-    }
-
-    override fun loadDependencies(
-        file: KtFile,
-        scriptDefinition: ScriptDefinition
-    ) {
-        val virtualFile = file.virtualFile ?: return
+    ): ScriptCompilationConfigurationResult? {
+        val virtualFile = file.virtualFile ?: return null
         val project = file.project
 
-        val fileOrigin = OutsidersPsiFileSupportUtils.getOutsiderFileOrigin(project, virtualFile) ?: return
-        val psiFileOrigin = PsiManager.getInstance(project).findFile(fileOrigin) as? KtFile ?: return
-        val compilationConfiguration = manager.getConfiguration(psiFileOrigin) ?: return
-        manager.saveConfiguration(virtualFile, compilationConfiguration.asSuccess(), skipNotification = true)
+        val fileOrigin = OutsidersPsiFileSupportUtils.getOutsiderFileOrigin(project, virtualFile) ?: return null
+        val psiFileOrigin = PsiManager.getInstance(project).findFile(fileOrigin) as? KtFile ?: return null
+        return manager.getConfiguration(psiFileOrigin)?.asSuccess()
     }
 }

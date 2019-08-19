@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.kotlin.scripting.definitions.getScriptOriginalFile
 import org.jetbrains.kotlin.scripting.resolve.KtFileScriptSource
+import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper.FromCompilationConfiguration
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper.FromLegacy
@@ -28,32 +29,28 @@ class ScriptConfigurationFileAttributeCache(val manager: ScriptConfigurationMana
     operator fun contains(file: KtFile): Boolean =
         file.scriptDependencies != null || file.scriptCompilationConfiguration != null
 
-    override fun isApplicable(file: KtFile, scriptDefinition: ScriptDefinition) =
-        file in this
+    override val skipSaveToAttributes: Boolean
+        get() = true
 
-    override fun loadDependencies(file: KtFile, scriptDefinition: ScriptDefinition) {
+    override suspend fun loadDependencies(file: KtFile, scriptDefinition: ScriptDefinition): ScriptCompilationConfigurationResult? {
         val virtualFile = file.originalFile.virtualFile
 
-        val configurationFromAttributes = virtualFile.scriptCompilationConfiguration?.let {
-            FromCompilationConfiguration(KtFileScriptSource(file), it)
-        } ?: virtualFile.scriptDependencies?.let {
-            FromLegacy(KtFileScriptSource(file), it, scriptDefinition)
+        val configurationFromAttributes =
+            virtualFile.scriptCompilationConfiguration?.let {
+                FromCompilationConfiguration(KtFileScriptSource(file), it)
+            } ?: virtualFile.scriptDependencies?.let {
+                FromLegacy(KtFileScriptSource(file), it, scriptDefinition)
+            } ?: return null
+
+
+        debug(virtualFile) { "configuration from fileAttributes = $configurationFromAttributes" }
+
+        if (!areDependenciesValid(virtualFile, configurationFromAttributes)) {
+            save(virtualFile, null)
+            return null
         }
 
-        if (configurationFromAttributes != null) {
-            debug(virtualFile) { "configuration from fileAttributes = $configurationFromAttributes" }
-
-            if (areDependenciesValid(virtualFile, configurationFromAttributes)) {
-                manager.saveConfiguration(
-                    virtualFile,
-                    configurationFromAttributes.asSuccess(),
-                    skipNotification = true,
-                    skipSaveToAttributes = true
-                )
-            } else {
-                save(virtualFile, null)
-            }
-        }
+        return configurationFromAttributes.asSuccess()
     }
 
     private fun areDependenciesValid(file: VirtualFile, configuration: ScriptCompilationConfigurationWrapper): Boolean {

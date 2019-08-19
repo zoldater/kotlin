@@ -7,9 +7,17 @@ package org.jetbrains.kotlin.idea.core.script.dependencies
 
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
+import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationResult
 
 // TODO: rename - this is not only about dependencies anymore
 internal interface ScriptDependenciesLoader {
-    fun isApplicable(file: KtFile, scriptDefinition: ScriptDefinition): Boolean
-    fun loadDependencies(file: KtFile, scriptDefinition: ScriptDefinition)
+    fun isAsync(file: KtFile, scriptDef: ScriptDefinition) = false
+
+    val skipSaveToAttributes: Boolean
+        get() = false
+
+    val skipNotification: Boolean
+        get() = false
+
+    suspend fun loadDependencies(file: KtFile, scriptDefinition: ScriptDefinition): ScriptCompilationConfigurationResult?
 }

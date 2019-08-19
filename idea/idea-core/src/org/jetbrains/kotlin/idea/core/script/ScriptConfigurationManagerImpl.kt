@@ -154,10 +154,10 @@ class ScriptConfigurationManagerImpl internal constructor(
         memoryCache.setUpToDate(file.originalFile.virtualFile)
 
         val scriptDefinition = file.findScriptDefinition() ?: return
-        loaders.filter {
-            it.isApplicable(file, scriptDefinition)
-        }.forEach {
-            it.loadDependencies(file, scriptDefinition)
+        loaders.forEach {
+            GlobalScope.launch {
+                it.loadDependencies(file, scriptDefinition)
+            }
         }
     }
 
