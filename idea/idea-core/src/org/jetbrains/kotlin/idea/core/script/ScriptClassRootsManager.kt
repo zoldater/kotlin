@@ -13,7 +13,6 @@ import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -66,7 +65,7 @@ internal class ScriptClassRootsManager(val project: Project) {
     @Synchronized
     private fun startIndexingIfNeeded() {
         if (!newRootsPresent) return
-        newRootsPresent = true
+        newRootsPresent = false
 
         val doNotifyRootsChanged = Runnable {
             runWriteAction {
