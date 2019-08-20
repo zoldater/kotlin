@@ -110,7 +110,7 @@ class ExpressionCodegen(
 
     val context = classCodegen.context
 
-    private val state = classCodegen.state
+    val state = classCodegen.state
 
     private val fileEntry = classCodegen.context.psiSourceManager.getFileEntry(irFunction.fileParent)
 
