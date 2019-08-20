@@ -6,10 +6,13 @@
 @file:Suppress("PackageDirectoryMismatch") // Old package for compatibility
 package org.jetbrains.kotlin.gradle.plugin.mpp
 
+import com.android.build.gradle.BasePlugin
+import com.android.builder.model.AndroidProject
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.attributes.Usage.JAVA_RUNTIME_JARS
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.utils.dashSeparatedName
 import org.jetbrains.kotlin.gradle.utils.isGradleVersionAtLeast
@@ -199,5 +202,40 @@ open class KotlinAndroidTarget(
                 overrideConfigurationArtifacts = setOf(artifact)
             )
         }
+    }
+
+    private fun createAndroidProject(
+        gradleProject: org.gradle.api.Project
+    ): AndroidProject? {
+        val pluginContainer = gradleProject.plugins
+        for (p in pluginContainer) {
+            if (p is BasePlugin) {
+                val registry: ToolingModelBuilderRegistry = p.modelBuilderRegistry
+                val modelName = AndroidProject::class.java.name
+                val builder = registry.getBuilder(modelName)
+                assert(builder.canBuild(modelName)) { modelName }
+
+                val ext = gradleProject.extensions.extraProperties
+
+                ext.set(
+                    AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED,
+                    AndroidProject.MODEL_LEVEL_4_NEW_DEP_MODEL.toString()
+                )
+
+                try {
+                    return builder.buildAll(modelName, gradleProject) as AndroidProject
+                } finally {
+                    ext.set(AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED, null)
+                }
+            }
+        }
+
+        return null
+    }
+
+    fun getDepGraph(): List<String>? {
+        val androidProject = createAndroidProject(project) ?: return null
+        val deps = androidProject.variants.iterator().next().mainArtifact.dependencyGraphs.compileDependencies
+        return deps.map { it.artifactAddress }
     }
 }

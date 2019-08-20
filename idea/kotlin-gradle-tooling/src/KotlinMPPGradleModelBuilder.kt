@@ -5,7 +5,10 @@
 
 package org.jetbrains.kotlin.gradle
 
-import org.gradle.api.*
+import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
@@ -57,7 +60,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
             targets,
             ExtraFeaturesImpl(coroutinesState, isHMPPEnabled(project)),
             kotlinNativeHome,
-            dependencyMapper.toDependencyMap()
+            dependencyMapper.toDependencyMap(),
+            null
         )
     }
 
@@ -297,6 +301,12 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         val jar = buildTargetJar(gradleTarget, project)
         val testTasks = buildTestTasks(project, gradleTarget)
         val artifacts = konanArtifacts(gradleTarget)
+        var androidDeps: List<String>? = null
+        if (platform == KotlinPlatform.ANDROID) {
+            val getBuildGraphs = targetClass.getMethodOrNull("getDepGraph")
+            @Suppress("UNCHECKED_CAST")
+            androidDeps = getBuildGraphs?.invoke(gradleTarget) as List<String>
+        }
         val target = KotlinTargetImpl(
             gradleTarget.name,
             targetPresetName,
@@ -305,7 +315,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
             compilations,
             testTasks,
             jar,
-            artifacts
+            artifacts,
+            androidDeps
         )
         compilations.forEach {
             it.disambiguationClassifier = target.disambiguationClassifier

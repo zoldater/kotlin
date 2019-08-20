@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.gradle
 
 import org.gradle.api.tasks.Exec
 import java.io.File
-import kotlin.collections.HashSet
 
 class KotlinSourceSetImpl(
     override val name: String,
@@ -135,7 +134,8 @@ data class KotlinTargetImpl(
     override val compilations: Collection<KotlinCompilation>,
     override val testTasks: Collection<KotlinTestTask>,
     override val jar: KotlinTargetJar?,
-    override val konanArtifacts: List<KonanArtifactModel>
+    override val konanArtifacts: List<KonanArtifactModel>,
+    override val androidDeps: List<String>?
 ) : KotlinTarget {
     override fun toString() = name
 
@@ -155,7 +155,8 @@ data class KotlinTargetImpl(
             }
         },
         KotlinTargetJarImpl(target.jar?.archiveFile),
-        target.konanArtifacts.map { KonanArtifactModelImpl(it) }.toList()
+        target.konanArtifacts.map { KonanArtifactModelImpl(it) }.toList(),
+        target.androidDeps
     )
 }
 

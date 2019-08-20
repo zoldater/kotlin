@@ -143,6 +143,7 @@ interface KotlinTarget : Serializable {
     val testTasks: Collection<KotlinTestTask>
     val jar: KotlinTargetJar?
     val konanArtifacts: List<KonanArtifactModel>
+    val androidDeps: List<String>?
 
     companion object {
         const val METADATA_TARGET_NAME = "metadata"
