@@ -106,6 +106,7 @@ enum class LanguageFeature(
     ProhibitGenericArrayClassLiteral(KOTLIN_1_4),
     NonParenthesizedAnnotationsOnFunctionalTypes(KOTLIN_1_4),
     UseGetterNameForPropertyAnnotationsMethodOnJvm(KOTLIN_1_4),
+    AllowBreakAndContinueInsideWhen(KOTLIN_1_4),
 
     ProperVisibilityForCompanionObjectInstanceField(sinceVersion = null, kind = BUG_FIX),
     // Temporarily disabled, see KT-27084/KT-22379
@@ -243,7 +244,7 @@ enum class LanguageVersion(val major: Int, val minor: Int) : DescriptionAware {
         val FIRST_SUPPORTED = KOTLIN_1_2
 
         @JvmField
-        val LATEST_STABLE = KOTLIN_1_3
+        val LATEST_STABLE = KOTLIN_1_4
     }
 }
 
