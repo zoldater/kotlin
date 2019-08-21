@@ -125,12 +125,12 @@ val reflectShadowJar by task<ShadowJar> {
 
 val stripMetadata by tasks.registering {
     dependsOn(reflectShadowJar)
-    val inputJar = reflectShadowJar.get().outputs.files.singleFile
+    val inputJar = provider { reflectShadowJar.get().outputs.files.singleFile }
     val outputJar = File("$libsDir/kotlin-reflect-stripped.jar")
     inputs.file(inputJar)
     outputs.file(outputJar)
     doLast {
-        stripMetadata(logger, "kotlin/reflect/jvm/internal/impl/.*", inputJar, outputJar)
+        stripMetadata(logger, "kotlin/reflect/jvm/internal/impl/.*", inputJar.get(), outputJar)
     }
 }
 
