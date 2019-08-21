@@ -58,6 +58,7 @@ abstract class BasicWasmBoxTest(
             val psiFiles = createPsiFiles(kotlinFiles.map { File(it.fileName).canonicalPath }.sorted())
             val config = createConfig()
             translateFiles(
+                file,
                 psiFiles.map(TranslationUnit::SourceFile),
                 File(outputWatFile),
                 File(outputJsFile),
@@ -80,6 +81,7 @@ abstract class BasicWasmBoxTest(
     }
 
     private fun translateFiles(
+        testFile: File,
         units: List<TranslationUnit>,
         outputWatFile: File,
         outputJsFile: File,
@@ -88,18 +90,21 @@ abstract class BasicWasmBoxTest(
         testFunction: String
     ) {
         val filesToCompile = units.map { (it as TranslationUnit.SourceFile).file }
-        val debugMode = false
+        val debugMode = true
 
         val phaseConfig = if (debugMode) {
             val allPhasesSet = wasmPhases.toPhaseMap().values.toSet()
             val dumpOutputDir = File(outputWatFile.parent, outputWatFile.nameWithoutExtension + "-irdump")
             println("\n ------ Dumping phases to file://$dumpOutputDir")
+            println("\n ------  KT file://${testFile.absolutePath}")
+            println("\n ------ WAT file://$outputWatFile")
+            println(" ------  JS file://$outputJsFile")
             PhaseConfig(
                 wasmPhases,
                 dumpToDirectory = dumpOutputDir.path,
                 toDumpStateAfter = allPhasesSet,
                 toValidateStateAfter = allPhasesSet,
-                dumpOnlyFqName = null
+                dumpOnlyFqName = "box"
             )
         } else {
             PhaseConfig(wasmPhases)

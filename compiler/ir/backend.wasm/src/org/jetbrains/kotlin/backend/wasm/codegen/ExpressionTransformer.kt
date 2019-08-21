@@ -29,7 +29,7 @@ class ExpressionTransformer : BaseTransformer<WasmInstruction, WasmCodegenContex
 
     override fun <T> visitConst(expression: IrConst<T>, data: WasmCodegenContext): WasmInstruction {
         return when (val kind = expression.kind) {
-            is IrConstKind.Null -> TODO()
+            is IrConstKind.Null -> WasmRefNull
             is IrConstKind.String -> {
                 val value = kind.valueOf(expression)
                 val index = data.stringLiterals.size
@@ -107,9 +107,14 @@ class ExpressionTransformer : BaseTransformer<WasmInstruction, WasmCodegenContex
     }
 
     override fun visitTypeOperator(expression: IrTypeOperatorCall, data: WasmCodegenContext): WasmInstruction {
-        val wasmArgument = expressionToWasmInstruction(expression.argument, data)
         when (expression.operator) {
-            IrTypeOperator.IMPLICIT_COERCION_TO_UNIT -> return wasmArgument
+            IrTypeOperator.IMPLICIT_COERCION_TO_UNIT -> {
+                val statements = statementToWasmInstruction(expression.argument, data)
+                if (statements.size == 1)
+                    return statements[0]
+
+                return WasmBlock(statements, null)
+            }
         }
         TODO("IrTypeOperatorCall:\n ${expression.dump()}")
     }
@@ -123,12 +128,14 @@ class ExpressionTransformer : BaseTransformer<WasmInstruction, WasmCodegenContex
     }
 
     override fun visitContainerExpression(expression: IrContainerExpression, data: WasmCodegenContext): WasmInstruction {
-        val expressions = expression.statements.map { it.accept(this, data) }
-
-        if (!expression.type.isUnit())
-            return WasmBlock(expressions + listOf(WasmDrop(emptyList())))
-
-        return WasmBlock(expressions)
+        assert(expression.statements.isNotEmpty()) {
+            "Empty blocks are not supported in expression context"
+        }
+        val watStatements = expression.statements.dropLast(1).flatMap { statementToWasmInstruction(it, data) }
+        val watExpression = expressionToWasmInstruction(expression.statements.last() as IrExpression, data)
+        if (watStatements.isEmpty())
+            return watExpression
+        return WasmBlock(watStatements + listOf(watExpression), resultType = data.resultType(expression.type))
     }
 
     override fun visitExpression(expression: IrExpression, data: WasmCodegenContext): WasmInstruction {
@@ -136,11 +143,11 @@ class ExpressionTransformer : BaseTransformer<WasmInstruction, WasmCodegenContex
     }
 
     override fun visitBreak(jump: IrBreak, data: WasmCodegenContext): WasmInstruction {
-        TODO()
+        return WasmBr(data.getBreakLabelName(jump.loop))
     }
 
     override fun visitContinue(jump: IrContinue, data: WasmCodegenContext): WasmInstruction {
-        TODO()
+        return WasmBr(data.getContinueLabelName(jump.loop))
     }
 
     override fun visitReturn(expression: IrReturn, data: WasmCodegenContext): WasmInstruction {
@@ -172,12 +179,13 @@ class ExpressionTransformer : BaseTransformer<WasmInstruction, WasmCodegenContex
     }
 
     override fun visitWhen(expression: IrWhen, data: WasmCodegenContext): WasmInstruction {
+        val resultType = data.resultType(expression.type)
         return expression.branches.foldRight(null) { br: IrBranch, inst: WasmInstruction? ->
             val body = expressionToWasmInstruction(br.result, data)
             if (isElseBranch(br)) body
             else {
                 val condition = expressionToWasmInstruction(br.condition, data)
-                WasmIf(condition, WasmThen(body), inst?.let { WasmElse(inst) })
+                WasmIf(condition, resultType, WasmThen(listOf(body)), inst?.let { WasmElse(listOf(inst)) })
             }
         }!!
     }

@@ -53,3 +53,6 @@ class WasmExport(
         GLOBAL("global")
     }
 }
+
+// Start function
+class WasmStart(val name: String) : WasmModuleField()

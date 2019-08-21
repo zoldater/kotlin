@@ -48,7 +48,8 @@ public class String : Comparable<String>, CharSequence {
     @WasmImport("runtime", "String_compareTo")
     public override fun compareTo(other: String): Int
 
-    @ExcludedFromCodegen
+
+    @WasmImport("runtime", "String_equals")
     public override fun equals(other: Any?): Boolean
 
     public override fun toString(): String = this

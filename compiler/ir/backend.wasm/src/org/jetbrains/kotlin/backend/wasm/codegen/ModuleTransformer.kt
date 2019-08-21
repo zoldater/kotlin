@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.backend.wasm.WasmBackendContext
 import org.jetbrains.kotlin.backend.wasm.WasmCompilerResult
 import org.jetbrains.kotlin.backend.wasm.ast.WasmExport
 import org.jetbrains.kotlin.backend.wasm.ast.WasmModule
+import org.jetbrains.kotlin.backend.wasm.ast.WasmStart
 import org.jetbrains.kotlin.backend.wasm.ast.wasmModuleToWat
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.jsAssignment
@@ -23,14 +24,16 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 
 class IrModuleToWasm(private val backendContext: WasmBackendContext) {
     fun generateModule(module: IrModuleFragment): WasmCompilerResult {
-        val nameTable = generateWatTopLevelNames(module.files)
+        val packageFragments = module.files + listOf(backendContext.internalPackageFragment)
+        val nameTable = generateWatTopLevelNames(packageFragments)
         val context = WasmCodegenContext(nameTable, backendContext)
-        val irDeclarations = module.files.flatMap { it.declarations }
+        val irDeclarations = packageFragments.flatMap { it.declarations }
         val wasmDeclarations = irDeclarations.mapNotNull { it.accept(DeclarationTransformer(), context) }
         val exports = generateExports(module, context)
 
 
-        val wasmModule = WasmModule(context.imports + wasmDeclarations + exports)
+        val wasmStart = WasmStart(context.getGlobalName(backendContext.startFunction))
+        val wasmModule = WasmModule(context.imports + wasmDeclarations + listOf(wasmStart) + exports)
         val wat = wasmModuleToWat(wasmModule)
         return WasmCompilerResult(wat, generateStringLiteralsSupport(context.stringLiterals))
     }

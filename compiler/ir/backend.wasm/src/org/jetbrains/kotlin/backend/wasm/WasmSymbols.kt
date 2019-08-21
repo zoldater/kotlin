@@ -24,14 +24,16 @@ class WasmSymbols(
     private val symbolTable: ReferenceSymbolTable
 ) : Symbols<WasmBackendContext>(context, symbolTable) {
 
-    override val ThrowNullPointerException
-        get() = TODO()
-    override val ThrowNoWhenBranchMatchedException
-        get() = TODO()
-    override val ThrowTypeCastException
-        get() = TODO()
-    override val ThrowUninitializedPropertyAccessException
-        get() = TODO()
+    private val wasmInternalPackage = context.module.getPackage(FqName("kotlin.wasm.internal"))
+
+    val throwWithMessageStub = getInternalFunction("throwWithMessageStub")
+    val unreachable = getInternalFunction("wasm_unreachable")
+
+    override val ThrowNullPointerException = throwWithMessageStub
+    override val ThrowNoWhenBranchMatchedException = throwWithMessageStub
+    override val ThrowTypeCastException = throwWithMessageStub
+    override val ThrowUninitializedPropertyAccessException = throwWithMessageStub
+
     override val defaultConstructorMarker
         get() = TODO()
     override val stringBuilder
@@ -57,7 +59,6 @@ class WasmSymbols(
     override val returnIfSuspended
         get() = TODO()
 
-    private val wasmInternalPackage = context.module.getPackage(FqName("kotlin.wasm.internal"))
 
     val equalityFunctions = mapOf(
         context.irBuiltIns.booleanType to getInternalFunction("wasm_i32_eq"),

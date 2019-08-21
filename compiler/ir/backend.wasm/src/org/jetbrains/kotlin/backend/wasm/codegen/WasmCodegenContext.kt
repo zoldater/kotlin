@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.backend.wasm.WasmBackendContext
 import org.jetbrains.kotlin.backend.wasm.ast.WasmModuleField
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
+import org.jetbrains.kotlin.ir.expressions.IrLoop
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 
 class WasmCodegenContext(
@@ -17,6 +18,8 @@ class WasmCodegenContext(
 ) {
     val imports = mutableListOf<WasmModuleField>()
     var localNames: Map<IrValueDeclaration, String> = emptyMap()
+    var labels: Map<LoopLabel, String> = emptyMap()
+
     val stringLiterals = mutableListOf<String>()
 
     fun getGlobalName(declaration: IrDeclarationWithName): String =
@@ -26,4 +29,16 @@ class WasmCodegenContext(
     fun getLocalName(declaration: IrValueDeclaration): String =
         localNames[declaration]
             ?: error("Can't find local name for ${declaration.fqNameWhenAvailable}")
+
+    fun getBreakLabelName(loop: IrLoop): String =
+        labels[LoopLabel(loop, LoopLabelType.BREAK)]
+            ?: error("Can't find break label name")
+
+    fun getContinueLabelName(loop: IrLoop): String =
+        labels[LoopLabel(loop, LoopLabelType.CONTINUE)]
+            ?: error("Can't find continue label name")
+
+    fun getLoopLabelName(loop: IrLoop): String =
+        labels[LoopLabel(loop, LoopLabelType.LOOP)]
+            ?: error("Can't find continue label name")
 }

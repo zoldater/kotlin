@@ -39,6 +39,14 @@ const runtime = {
         return 0;
     },
 
+    /**
+     * @return {boolean}
+     */
+    String_equals(str, other) {
+        // if (typeof str != "string") throw `Illegal argument str: ${str}`;
+        return str === other;
+    },
+    
     String_getLiteral(index) {
         return runtime.stringLiterals[index];
     }

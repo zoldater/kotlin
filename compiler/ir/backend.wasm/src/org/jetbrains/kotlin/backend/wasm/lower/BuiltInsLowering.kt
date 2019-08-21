@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.wasm.lower
 
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.wasm.WasmBackendContext
+import org.jetbrains.kotlin.ir.backend.js.lower.calls.findEqualsMethod
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
@@ -25,7 +26,11 @@ class BuiltInsLowering(val context: WasmBackendContext) : FileLoweringPass {
             irBuiltins.eqeqSymbol, irBuiltins.eqeqeqSymbol, in irBuiltins.ieee754equalsFunByOperandType.values -> {
                 val type = call.getValueArgument(0)!!.type
                 val newSymbol = symbols.equalityFunctions[type]
-                    ?: error("Unsupported equality operator with type: ${type.render()}")
+                if (newSymbol == null) {
+                    val equalsMethod = type.findEqualsMethod()?.symbol
+                        ?: error("Unsupported equality operator with type: ${type.render()}")
+                    return irCall(call, equalsMethod, argumentsAsReceivers = true)
+                }
                 return irCall(call, newSymbol)
             }
             in symbols.irBuiltInsToWasmIntrinsics.keys -> {

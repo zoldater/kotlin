@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.lower.*
 import org.jetbrains.kotlin.backend.common.lower.inline.FunctionInlining
 import org.jetbrains.kotlin.backend.common.phaser.*
 import org.jetbrains.kotlin.backend.wasm.lower.BuiltInsLowering
+import org.jetbrains.kotlin.backend.wasm.lower.FieldInitializersLowering
 import org.jetbrains.kotlin.backend.wasm.lower.WasmBlockDecomposerLowering
 import org.jetbrains.kotlin.backend.wasm.lower.excludeDeclarationsFromCodegen
 import org.jetbrains.kotlin.ir.backend.js.JsLoweredDeclarationOrigin
@@ -303,6 +304,12 @@ private val staticMembersLoweringPhase = makeWasmModulePhase(
     description = "Move static member declarations to top-level"
 )
 
+private val fieldInitializersLoweringPhase = makeWasmModulePhase(
+    ::FieldInitializersLowering,
+    name = "FieldInitializersLowering",
+    description = "Move field initializers to start function"
+)
+
 private val builtInsLoweringPhase = makeWasmModulePhase(
     ::BuiltInsLowering,
     name = "BuiltInsLowering",
@@ -327,12 +334,12 @@ val wasmPhases = namedIrModulePhase<WasmBackendContext>(
     lower = validateIrBeforeLowering then
             excludeDeclarationsFromCodegenPhase then
             expectDeclarationsRemovingPhase then
-            provisionalFunctionExpressionPhase then
 
             // TODO: Need some helpers from stdlib
             // arrayConstructorPhase then
 
             functionInliningPhase then
+            provisionalFunctionExpressionPhase then
             lateinitLoweringPhase then
             tailrecLoweringPhase then
 
@@ -349,7 +356,6 @@ val wasmPhases = namedIrModulePhase<WasmBackendContext>(
             initializersLoweringPhase then
             // Common prefix ends
 
-            builtInsLoweringPhase then
 
 //            TODO: Commonize enumEntryToGetInstanceFunction
 //                  Commonize array literal creation
@@ -409,6 +415,8 @@ val wasmPhases = namedIrModulePhase<WasmBackendContext>(
             objectDeclarationLoweringPhase then
             objectUsageLoweringPhase then
             staticMembersLoweringPhase then
+            fieldInitializersLoweringPhase then
+            builtInsLoweringPhase then
 
             validateIrAfterLowering
 )

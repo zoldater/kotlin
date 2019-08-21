@@ -20,8 +20,13 @@ fun WasmCodegenContext.transformType(irType: IrType): WasmValueType =
         irType.isChar() -> WasmI32
         irType.isFloat() -> WasmF32
         irType.isDouble() -> WasmF64
-        irType.isString() -> WasmAnyRef
+        irType.isString() || irType.isNullableString() -> WasmAnyRef
         irType.isAny() || irType.isNullableAny() -> WasmAnyRef
         else ->
             TODO("Unsupported type: ${irType.render()}")
     }
+
+fun WasmCodegenContext.resultType(type: IrType): WasmValueType? {
+    if (type.isUnit() || type.isNothing()) return null
+    return transformType(type)
+}

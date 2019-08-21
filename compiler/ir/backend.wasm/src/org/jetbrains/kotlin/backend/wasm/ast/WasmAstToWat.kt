@@ -8,13 +8,14 @@ package org.jetbrains.kotlin.backend.wasm.ast
 // TODO: Abstract out S-expression part of dumping?
 
 fun WasmInstruction.toWat(ident: String = ""): String =
-    "$ident($mnemonic${immediate.toWat()}${operands.joinToString("") { " " + it.toWat("") }})"
+    "$ident($mnemonic${immediate.toWat()}${operands.joinToString("") { "\n" + it.toWat("$ident  ") }})"
 
 fun WasmImmediate.toWat(): String = when (this) {
     WasmImmediate.None -> ""
     is WasmImmediate.DeclarationReference -> " $$name"
     // SpiderMonkey jsshell won't parse Uppercase letters in literals
     is WasmImmediate.LiteralValue<*> -> " $value".toLowerCase()
+    is WasmImmediate.ResultType -> type?.let { " (result ${type.mnemonic})" } ?: ""
 }
 
 fun wasmModuleToWat(module: WasmModule): String =
@@ -49,11 +50,15 @@ fun wasmGlobalToWat(global: WasmGlobal): String {
 fun wasmExportToWat(export: WasmExport): String =
     export.run { "  (export \"$exportedName\" (${kind.keyword} $$wasmName))" }
 
+fun wasmStartToWat(start: WasmStart): String =
+    start.run { "  (start $${start.name})" }
+
 fun wasmModuleFieldToWat(moduleField: WasmModuleField): String =
     when (moduleField) {
         is WasmFunction -> wasmFunctionToWat(moduleField)
         is WasmGlobal -> wasmGlobalToWat(moduleField)
         is WasmExport -> wasmExportToWat(moduleField)
+        is WasmStart -> wasmStartToWat(moduleField)
         is WasmModuleFieldList -> moduleField.fields.joinToString("") { wasmModuleFieldToWat(it) + "\n" }
     }
 

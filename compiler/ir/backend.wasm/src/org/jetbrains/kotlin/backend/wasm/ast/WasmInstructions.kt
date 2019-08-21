@@ -10,6 +10,7 @@ sealed class WasmImmediate {
     object None : WasmImmediate()
     class DeclarationReference(val name: String) : WasmImmediate()
     class LiteralValue<T : Number>(val value: T) : WasmImmediate()
+    class ResultType(val type: WasmValueType?) : WasmImmediate()
 }
 
 sealed class WasmInstruction(
@@ -23,11 +24,18 @@ class WasmSimpleInstruction(mnemonic: String, operands: List<WasmInstruction>) :
 
 class WasmNop : WasmInstruction("nop")
 
+object WasmUnreachable : WasmInstruction("unreachable")
+
+object WasmRefNull : WasmInstruction("ref.null")
+
 class WasmReturn(values: List<WasmInstruction>) :
     WasmInstruction("return", operands = values)
 
 class WasmDrop(instructions: List<WasmInstruction>) :
     WasmInstruction("drop", operands = instructions)
+
+class WasmNot(boolValue: WasmInstruction) :
+    WasmInstruction("i32.eqz", operands = listOf(boolValue))
 
 class WasmCall(name: String, operands: List<WasmInstruction>) :
     WasmInstruction("call", WasmImmediate.DeclarationReference(name), operands)
@@ -44,17 +52,47 @@ class WasmSetGlobal(name: String, value: WasmInstruction) :
 class WasmSetLocal(name: String, value: WasmInstruction) :
     WasmInstruction("set_local", WasmImmediate.DeclarationReference(name), listOf(value))
 
-class WasmIf(condition: WasmInstruction, thenInstructions: WasmThen?, elseInstruction: WasmElse?) :
-    WasmInstruction("if", operands = listOfNotNull(condition, thenInstructions, elseInstruction))
+class WasmIf(condition: WasmInstruction, resultType: WasmValueType?, thenInstructions: WasmThen?, elseInstruction: WasmElse?) :
+    WasmInstruction(
+        "if",
+        immediate = WasmImmediate.ResultType(resultType),
+        operands = listOfNotNull(condition, thenInstructions, elseInstruction)
+    )
 
-class WasmThen(inst: WasmInstruction) :
-    WasmInstruction("then", operands = listOf(inst))
+class WasmBrIf(condition: WasmInstruction, label: String) :
+    WasmInstruction(
+        "br_if",
+        immediate = WasmImmediate.DeclarationReference(label),
+        operands = listOfNotNull(condition)
+    )
 
-class WasmElse(inst: WasmInstruction) :
-    WasmInstruction("else", operands = listOf(inst))
 
-class WasmBlock(instructions: List<WasmInstruction>) :
-    WasmInstruction("block", operands = instructions)
+class WasmLoop(label: String, body: List<WasmInstruction>) :
+    WasmInstruction(
+        "loop",
+        immediate = WasmImmediate.DeclarationReference(label),
+        operands = body
+    )
+
+class WasmBr(label: String) :
+    WasmInstruction(
+        "br",
+        immediate = WasmImmediate.DeclarationReference(label)
+    )
+
+
+class WasmThen(insts: List<WasmInstruction>) :
+    WasmInstruction("then", operands = insts)
+
+class WasmElse(insts: List<WasmInstruction>) :
+    WasmInstruction("else", operands = insts)
+
+class WasmBlock(instructions: List<WasmInstruction>, resultType: WasmValueType?) :
+    WasmInstruction("block", immediate = WasmImmediate.ResultType(resultType), operands = instructions)
+
+class WasmLabelledBlock(label: String, instructions: List<WasmInstruction>) :
+    WasmInstruction("block", immediate = WasmImmediate.DeclarationReference(label), operands = instructions)
+
 
 sealed class WasmConst<KotlinType : Number, WasmType : WasmValueType>(value: KotlinType, type: WasmType) :
     WasmInstruction(type.mnemonic + ".const", WasmImmediate.LiteralValue<KotlinType>(value))
