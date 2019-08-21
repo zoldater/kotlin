@@ -84,6 +84,10 @@ fun main(args: Array<String>) {
             model("diagnostics/testsWithStdLib")
         }
 
+        testClass<AbstractDiagnosticsTestWithVariadicGenerics> {
+            model("diagnostics/testsWithVariadicGenerics")
+        }
+
         testClass<AbstractDiagnosticsTestWithStdLibUsingJavac> {
             model("diagnostics/testsWithStdLib")
         }
@@ -154,6 +158,10 @@ fun main(args: Array<String>) {
 
         testClass<AbstractBlackBoxCodegenTest> {
             model("codegen/box", targetBackend = TargetBackend.JVM)
+        }
+
+        testClass<AbstractBlackBoxCodegenTestWithVariadicGenerics> {
+            model("codegen/variadicGenerics", targetBackend = TargetBackend.ANY)
         }
 
         testClass<AbstractLightAnalysisModeTest> {
@@ -291,6 +299,10 @@ fun main(args: Array<String>) {
 
         testClass<AbstractWriteSignatureTest> {
             model("writeSignature")
+        }
+
+        testClass<AbstractWriteSignatureTestWithVariadicGenerics> {
+            model("writeSignatureWithVariadicGenerics")
         }
 
         testClass<AbstractCliTest> {
