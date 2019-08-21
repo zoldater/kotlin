@@ -84,12 +84,12 @@ fun compileForRepl(
     context: JsIrBackendContext,
     mainFunction: IrSimpleFunction?,
     moduleFragment: IrModuleFragment,
-    namer: NameTables? = null
-): Pair<NameTables, String> {
+    namer: NameTables
+): String {
     jsPhases.invokeToplevel(PhaseConfig(jsPhases), context, moduleFragment)
 
-    val transformer = IrModuleToJsTransformer(context, mainFunction, emptyList(), true).also { it.namer = namer }
+    val transformer = IrModuleToJsTransformer(context, mainFunction, emptyList(), true, namer)
     val jsProgram = moduleFragment.accept(transformer, null)
 
-    return Pair(transformer.namer!!, jsProgram.toString())
+    return jsProgram.toString()
 }

@@ -23,7 +23,8 @@ class IrModuleToJsTransformer(
     private val backendContext: JsIrBackendContext,
     private val mainFunction: IrSimpleFunction?,
     private val mainArguments: List<String>?,
-    private val generateScriptModule: Boolean = false
+    private val generateScriptModule: Boolean = false,
+    var namer: NameTables = NameTables(emptyList())
 ) : BaseIrElementToJsNodeTransformer<JsNode, Nothing?> {
 
     val moduleName = backendContext.configuration[CommonConfigurationKeys.MODULE_NAME]!!
@@ -118,7 +119,6 @@ class IrModuleToJsTransformer(
         return JsExpressionStatement(expression)
     }
 
-    var namer: NameTables? = null
     private fun generateScriptModule(module: IrModuleFragment): JsProgram {
         val additionalPackages = with(backendContext) {
             externalPackageFragment.values + listOf(
@@ -127,20 +127,20 @@ class IrModuleToJsTransformer(
             ) + packageLevelJsModules
         }
 
-        if (namer == null) {
-            namer = NameTables(module.files + additionalPackages)
+        if (namer.globalNames.names.isEmpty()) {
+            namer.merge(module.files + additionalPackages)
         } else {
-            namer!!.merge(module.files)
+            namer.merge(module.files)
         }
 
-        val name = namer!!.globalNames.findFreshName("evaluateScript")
-        namer!!.globalNames.reserved.add(name)
+        val name = namer.globalNames.findFreshName("evaluateScript")
+        namer.globalNames.reserved.add(name)
         IrDeclarationToJsTransformer.evalFunctionName = name
 
         val program = JsProgram()
 
         val nameGenerator = IrNamerImpl(
-            newNameTables = namer!!
+            newNameTables = namer
         )
         val staticContext = JsStaticContext(
             backendContext = backendContext,

@@ -5,19 +5,13 @@
 
 package org.jetbrains.kotlin.scripting.repl.js
 
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.impl.PsiFileFactoryImpl
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
 import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.repl.*
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.languageVersionSettings
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsIrLinker
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsMangler
@@ -28,32 +22,23 @@ import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.util.ExternalDependenciesGenerator
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
-import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi2ir.Psi2IrTranslator
-import org.jetbrains.kotlin.scripting.resolve.ScriptLightVirtualFile
 import org.jetbrains.kotlin.serialization.js.ModuleKind
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.script.experimental.api.*
-import kotlin.script.experimental.host.FileBasedScriptSource
+import kotlin.script.experimental.api.valueOr
+import kotlin.script.experimental.api.valueOrNull
 import kotlin.script.experimental.host.StringScriptSource
 
-/*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
- * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
- */
-
-class KJsReplCompiler(
-    private val environment: KotlinCoreEnvironment,
-    private val namer: NameTables = NameTables(emptyList())
-) : ReplCompiler {
-    private val analyzerEngine = JsReplCodeAnalyzer(environment)
-    private val symbolTable = SymbolTable()
-    private val deserializer: JsIrLinker
-    private val context: JsIrBackendContext
-    private val irBuiltIns: IrBuiltIns
-
-    private val deserializedModuleFragments: List<IrModuleFragment>
+class TemporaryKlibCompiler(
+    val environment: KotlinCoreEnvironment,
+    val namer: NameTables = NameTables(emptyList())
+) {
+    val analyzerEngine = JsReplCodeAnalyzer(environment)
+    val symbolTable = SymbolTable()
+    val deserializer: JsIrLinker
+    val context: JsIrBackendContext
+    val irBuiltIns: IrBuiltIns
+    val deserializedModuleFragments: List<IrModuleFragment>
 
     val stdlibCompiledResult: String
 
@@ -116,7 +101,7 @@ class KJsReplCompiler(
         val irFiles = sortDependencies(deserializedModuleFragments).flatMap { it.files } + irModuleFragment.files
 
         irModuleFragment.files.clear()
-        irModuleFragment.files += irFiles
+        if (namer.globalNames.names.isEmpty()) irModuleFragment.files += irFiles
 
         ExternalDependenciesGenerator(
             moduleDescriptor = irModuleFragment.descriptor,
@@ -133,6 +118,22 @@ class KJsReplCompiler(
 
         deserializer.isReplInitializing = false
     }
+}
+
+open class TemporaryKJsReplCompiler(
+    private val environment: KotlinCoreEnvironment,
+    private val namer: NameTables = NameTables(emptyList()),
+    private val deserializer: JsIrLinker?,
+    private var context: JsIrBackendContext?,
+    private val analyzerEngine: JsReplCodeAnalyzer = JsReplCodeAnalyzer(environment),
+    private val symbolTable: SymbolTable = SymbolTable()
+) : ReplCompiler {
+    constructor(environment: KotlinCoreEnvironment, namer: NameTables) : this(
+        environment = environment,
+        namer = namer,
+        deserializer = null,
+        context = null
+    )
 
     override fun createState(lock: ReentrantReadWriteLock): IReplStageState<*> {
         return JsState(lock)
@@ -142,6 +143,7 @@ class KJsReplCompiler(
         return ReplCheckResult.Ok()
     }
 
+    //TODO: extract common
     override fun compile(state: IReplStageState<*>, codeLine: ReplCodeLine): ReplCompileResult {
         val snippet = codeLine.code
         val snippetId = codeLine.no
@@ -171,13 +173,36 @@ class KJsReplCompiler(
 
         val irModuleFragment = psi2irContext.generateModuleFragment(listOf(snippetKtFile), deserializer)
 
-        irModuleFragment.files += context.implicitDeclarationFile
-        context.implicitDeclarationFile.declarations.clear()
+        if (context == null) {
+            context = JsIrBackendContext(
+                irModuleFragment.descriptor,
+                psi2irContext.irBuiltIns,
+                psi2irContext.symbolTable,
+                irModuleFragment,
+                emptySet(),
+                environment.configuration,
+                true
+            )
+
+            ExternalDependenciesGenerator(
+                irModuleFragment.descriptor,
+                psi2irContext.symbolTable,
+                psi2irContext.irBuiltIns
+            ).generateUnboundSymbolsAsDependencies()
+        }
+
+        with(context!!.implicitDeclarationFile) {
+            if (!irModuleFragment.files.contains(this)) {
+                irModuleFragment.files += this
+            }
+        }
+
+        context!!.implicitDeclarationFile.declarations.clear()
 
         environment.configuration.put(JSConfigurationKeys.MODULE_KIND, ModuleKind.PLAIN)
 
         val code = compileForRepl(
-            context,
+            context!!,
             JsMainFunctionDetector.getMainFunctionOrNull(irModuleFragment),
             irModuleFragment,
             namer
@@ -189,65 +214,3 @@ class KJsReplCompiler(
         )
     }
 }
-
-class ReplMessageCollector : MessageCollector {
-    private var hasErrors = false
-    private var messages = mutableListOf<Pair<CompilerMessageSeverity, String>>()
-
-    override fun clear() {
-        hasErrors = false
-        messages.clear()
-    }
-
-    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
-        if (severity == CompilerMessageSeverity.ERROR) hasErrors = true
-        messages.add(Pair(severity, message))
-    }
-
-    override fun hasErrors(): Boolean {
-        return hasErrors
-    }
-
-    fun hasNotErrors(): Boolean {
-        return !hasErrors
-    }
-
-    fun getMessage(): String {
-        val resultMessage = StringBuilder("Found ${messages.size} problems:\n")
-        for (m in messages) {
-            resultMessage.append(m.first.toString() + " : " + m.second + "\n")
-        }
-        return resultMessage.toString()
-    }
-}
-
-fun getScriptKtFile(
-    script: SourceCode,
-    scriptText: String,
-    project: Project
-): ResultWithDiagnostics<KtFile> {
-    val psiFileFactory: PsiFileFactoryImpl = PsiFileFactory.getInstance(project) as PsiFileFactoryImpl
-    val virtualFile = ScriptLightVirtualFile(
-        script.name!!,
-        (script as? FileBasedScriptSource)?.file?.path,
-        scriptText
-    )
-    val ktFile = psiFileFactory.trySetupPsiForFile(virtualFile, KotlinLanguage.INSTANCE, true, false) as KtFile?
-    return when {
-        ktFile == null -> ResultWithDiagnostics.Failure(
-            ScriptDiagnostic(
-                message = "Cannot create PSI",
-                severity = ScriptDiagnostic.Severity.ERROR
-            )
-        )
-        ktFile.declarations.firstIsInstanceOrNull<KtScript>() == null -> ResultWithDiagnostics.Failure(
-            ScriptDiagnostic(
-                message = "There is not Script",
-                severity = ScriptDiagnostic.Severity.ERROR
-            )
-        )
-        else -> ktFile.asSuccess()
-    }
-}
-
-fun makeReplCodeLine(no: Int, code: String): ReplCodeLine = ReplCodeLine(no, 0, code)

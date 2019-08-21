@@ -22,11 +22,7 @@ class ReplTest : TestCase() {
                 "var y = 99",
                 "4 + 1"
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals(5, result)
+            Assert.assertEquals(5, compileAndEval(base, lines))
         }
     }
 
@@ -38,11 +34,7 @@ class ReplTest : TestCase() {
                 "var y = 32",
                 "x + y"
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals(39, result)
+            Assert.assertEquals(39, compileAndEval(base, lines))
         }
     }
 
@@ -55,11 +47,7 @@ class ReplTest : TestCase() {
                 "fun foo(x: Int, unused: Int) = x + y",
                 "foo(x, x) * foo(y, y)"
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals(30, result)
+            Assert.assertEquals(30, compileAndEval(base, lines))
         }
     }
 
@@ -71,11 +59,7 @@ class ReplTest : TestCase() {
                 "var b = 6",
                 "listOf(a, 5, b).last()"
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals(6, result)
+            Assert.assertEquals(6, compileAndEval(base, lines))
         }
     }
 
@@ -88,11 +72,7 @@ class ReplTest : TestCase() {
                 "class C {fun foo(s: String) = s + s}",
                 "foo(\"x\") + foo(2) + C().foo(\"class\")"
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals("x4classclass", result)
+            Assert.assertEquals("x4classclass", compileAndEval(base, lines))
         }
     }
 
@@ -102,23 +82,19 @@ class ReplTest : TestCase() {
             val lines = listOf(
                 "inline fun foo(i : Int) = if (i % 2 == 0) {} else i",
                 """
-            fun box(): String {
-                val a = foo(1)
-                if (a != 1) return "fail1: ${'$'}a"
-
-                val b = foo(2)
-                if (b != Unit) return "fail2: ${'$'}b"
-
-                return "OK"
-            },
-            box()
-            """
+                fun box(): String {
+                    val a = foo(1)
+                    if (a != 1) return "fail1: ${'$'}a"
+    
+                    val b = foo(2)
+                    if (b != Unit) return "fail2: ${'$'}b"
+    
+                    return "OK"
+                },
+                box()
+                """
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals("OK", result)
+            Assert.assertEquals("OK", compileAndEval(base, lines))
         }
     }
 
@@ -127,20 +103,16 @@ class ReplTest : TestCase() {
         JsReplBase().use { base ->
             val lines = listOf(
                 """
-            inline fun foo(f: () -> String): () -> String {
-                val result = f()
-                return { result }
-            }
-            """,
+                inline fun foo(f: () -> String): () -> String {
+                    val result = f()
+                    return { result }
+                }
+                """,
                 "fun bar(f: () -> String) = foo(f)()",
                 "fun box(): String = bar { \"OK\" }",
                 "box()"
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals("OK", result)
+            Assert.assertEquals("OK", compileAndEval(base, lines))
         }
     }
 
@@ -149,23 +121,19 @@ class ReplTest : TestCase() {
         JsReplBase().use { base ->
             val lines = listOf(
                 """
-            inline fun f(ignored: () -> Any): Any {
-                return ignored()
-            }
-            """,
+                inline fun f(ignored: () -> Any): Any {
+                    return ignored()
+                }
+                """,
                 """
-            fun test(): String {
-                f { return "OK" };
-                return "error"
-            }
-            """,
+                fun test(): String {
+                    f { return "OK" };
+                    return "error"
+                }
+                """,
                 "test()"
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals("OK", result)
+            Assert.assertEquals("OK", compileAndEval(base, lines))
         }
     }
 
@@ -174,17 +142,13 @@ class ReplTest : TestCase() {
         JsReplBase().use { base ->
             val lines = listOf(
                 """
-            val list = listOf(1, 2, 3)
-            val f: Boolean = list is List<Int>
-            """,
+                val list = listOf(1, 2, 3)
+                val f: Boolean = list is List<Int>
+                """,
                 "val s = list is List<Int>",
                 "f.toString() + s.toString()"
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals("truetrue", result)
+            Assert.assertEquals("truetrue", compileAndEval(base, lines))
         }
     }
 
@@ -193,26 +157,23 @@ class ReplTest : TestCase() {
     fun testScopes() {
         JsReplBase().use { base ->
             val lines = listOf(
-                """fun foo(): Int {
-                var t = 2 * 2
-                class A(val value: Int = 5) {
-                    fun bar(): Int {
-                        var q = 4
-                        var w = 1
-                        return q + w
+                """
+                fun foo(): Int {
+                    var t = 2 * 2
+                    class A(val value: Int = 5) {
+                        fun bar(): Int {
+                            var q = 4
+                            var w = 1
+                            return q + w
+                        }
                     }
+    
+                    return A().bar() * 2
                 }
-
-                return A().bar() * 2
-            }
-            foo()
-            """
+                foo()
+                """
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals(10, result)
+            Assert.assertEquals(10, compileAndEval(base, lines))
         }
     }
 
@@ -224,26 +185,26 @@ class ReplTest : TestCase() {
                 "fun foo(i: Int) = i + evaluateScript()",
                 "foo(5)"
             )
-
-            var result: Any? = null
-            lines.forEach { result = compileAndEval(base, it) }
-
-            Assert.assertEquals(10, result)
+            Assert.assertEquals(10, compileAndEval(base, lines))
         }
     }
 
-    private fun compileAndEval(base: JsReplBase, snippet: String): Any? {
+    private fun compileAndEval(base: JsReplBase, lines: List<String>): Any? {
         val state = base.compiler.createState()
-        val jsCode = base.compiler.compile(state, makeReplCodeLine(base.newSnippetId(), snippet))
 
-        if (jsCode !is ReplCompileResult.CompiledClasses) return jsCode.toString()
-        Assert.assertTrue(base.collector.getMessage() + (jsCode.data as String), base.collector.hasNotErrors())
+        var result: Any? = null
+        lines.forEach { line ->
+            val compileResult = base.compiler.compile(
+                state,
+                makeReplCodeLine(base.newSnippetId(), line)
+            )
+            if (compileResult !is ReplCompileResult.CompiledClasses) return compileResult.toString()
 
-        val result = base.jsEngine.eval(base.jsEngine.createState(), jsCode)
-        return if (result is ReplEvalResult.ValueResult) {
-            result.value
-        } else {
-            result.toString()
+            val evalResult = base.jsEngine.eval(state, compileResult)
+            if (evalResult !is ReplEvalResult.ValueResult) return evalResult.toString()
+
+            result = evalResult.value
         }
+        return result
     }
 }
