@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.js.test.AbstractDceTest
 import org.jetbrains.kotlin.js.test.AbstractJsLineNumberTest
 import org.jetbrains.kotlin.js.test.ir.semantics.*
 import org.jetbrains.kotlin.js.test.semantics.*
+import org.jetbrains.kotlin.js.test.wasm.semantics.AbstractIrCodegenBoxWasmTest
 import org.jetbrains.kotlin.js.test.wasm.semantics.AbstractIrWasmBoxWasmTest
 import org.jetbrains.kotlin.test.TargetBackend
 
@@ -60,6 +61,95 @@ fun main(args: Array<String>) {
 
         testClass<AbstractIrJsCodegenBoxTest> {
             model("codegen/box", targetBackend = TargetBackend.JS_IR)
+        }
+
+        testClass<AbstractIrCodegenBoxWasmTest> {
+            model(
+                "codegen/box", pattern = "^([^_](.+))\\.kt$", targetBackend = TargetBackend.WASM, excludeDirs = listOf(
+                    "annotations",
+                    "arrays",
+                    "assert",
+                    "boxingOptimization",
+                    "bridges",
+                    "builtinStubMethods",
+                    "callableReference",
+                    "casts",
+                    "checkcastOptimization",
+                    "classLiteral",
+                    "closures",
+                    "collectionLiterals",
+                    "collections",
+                    "compatibility",
+                    "constructorCall",
+                    "contracts",
+                    "coroutines",
+                    "dataClasses",
+                    "deadCodeElimination",
+                    "defaultArguments",
+                    "delegatedProperty",
+                    "delegation",
+                    "destructuringDeclInLambdaParam",
+                    "diagnostics",
+                    "elvis",
+                    "enum",
+                    "evaluate",
+                    "exclExcl",
+                    "external",
+                    "fakeOverride",
+                    "fieldRename",
+                    "finally",
+                    "fullJdk",
+                    "hashPMap",
+                    "inference",
+                    "inlineClasses",
+                    "innerNested",
+                    "javaInterop",
+                    "jdk",
+                    "jvm8",
+                    "jvmField",
+                    "jvmName",
+                    "jvmOverloads",
+                    "jvmPackageName",
+                    "jvmStatic",
+                    "localClasses",
+                    "mangling",
+                    "multiDecl",
+                    "multifileClasses",
+                    "nonLocalReturns",
+                    "nullCheckOptimization",
+                    "objects",
+                    "parametersMetadata",
+                    "platformTypes",
+                    "polymorphicSignature",
+                    "primitiveTypes",
+                    "private",
+                    "privateConstructors",
+                    "publishedApi",
+                    "ranges",
+                    "reflection",
+                    "reified",
+                    "safeCall",
+                    "sam",
+                    "sealed",
+                    "secondaryConstructors",
+                    "signatureAnnotations",
+                    "smap",
+                    "smartCasts",
+                    "specialBuiltins",
+                    "statics",
+                    "super",
+                    "synchronized",
+                    "syntheticAccessors",
+                    "toArray",
+                    "traits",
+                    "typealias",
+                    "typeInfo",
+                    "typeMapping",
+                    "unit",
+                    "unsignedTypes",
+                    "vararg"
+                )
+            )
         }
 
         testClass<AbstractNonLocalReturnsTest> {

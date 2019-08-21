@@ -29,6 +29,11 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
         KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
     }
 
+    @TestMetadata("any.kt")
+    public void testAny() throws Exception {
+        runTest("js/js.translator/testData/wasmBox/any.kt");
+    }
+
     @TestMetadata("basicTypes.kt")
     public void testBasicTypes() throws Exception {
         runTest("js/js.translator/testData/wasmBox/basicTypes.kt");
@@ -42,6 +47,16 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
     @TestMetadata("propertyInitializers.kt")
     public void testPropertyInitializers() throws Exception {
         runTest("js/js.translator/testData/wasmBox/propertyInitializers.kt");
+    }
+
+    @TestMetadata("typeCheck.kt")
+    public void testTypeCheck() throws Exception {
+        runTest("js/js.translator/testData/wasmBox/typeCheck.kt");
+    }
+
+    @TestMetadata("virtualCalls.kt")
+    public void testVirtualCalls() throws Exception {
+        runTest("js/js.translator/testData/wasmBox/virtualCalls.kt");
     }
 
     @TestMetadata("js/js.translator/testData/wasmBox/controlStructures")
@@ -448,9 +463,147 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/classes"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
             }
 
+            @TestMetadata("classNamedAsOldPackageFacade.kt")
+            public void testClassNamedAsOldPackageFacade() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/classNamedAsOldPackageFacade.kt");
+            }
+
+            @TestMetadata("funDelegation.kt")
+            public void testFunDelegation() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/funDelegation.kt");
+            }
+
+            @TestMetadata("inheritedInnerClass.kt")
+            public void testInheritedInnerClass() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/inheritedInnerClass.kt");
+            }
+
+            @TestMetadata("inheritedMethod.kt")
+            public void testInheritedMethod() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/inheritedMethod.kt");
+            }
+
+            @TestMetadata("initializerBlock.kt")
+            public void testInitializerBlock() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/initializerBlock.kt");
+            }
+
+            @TestMetadata("kt1759.kt")
+            public void testKt1759() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt1759.kt");
+            }
+
+            @TestMetadata("kt2390.kt")
+            public void testKt2390() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt2390.kt");
+            }
+
+            @TestMetadata("kt2477.kt")
+            public void testKt2477() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt2477.kt");
+            }
+
             @TestMetadata("kt2482.kt")
             public void testKt2482() throws Exception {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt2482.kt");
+            }
+
+            @TestMetadata("kt249.kt")
+            public void testKt249() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt249.kt");
+            }
+
+            @TestMetadata("kt2532.kt")
+            public void testKt2532() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt2532.kt");
+            }
+
+            @TestMetadata("kt2566.kt")
+            public void testKt2566() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt2566.kt");
+            }
+
+            @TestMetadata("kt2566_2.kt")
+            public void testKt2566_2() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt2566_2.kt");
+            }
+
+            @TestMetadata("kt2607.kt")
+            public void testKt2607() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt2607.kt");
+            }
+
+            @TestMetadata("kt3114.kt")
+            public void testKt3114() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt3114.kt");
+            }
+
+            @TestMetadata("kt454.kt")
+            public void testKt454() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/kt454.kt");
+            }
+
+            @TestMetadata("outerThis.kt")
+            public void testOuterThis() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/outerThis.kt");
+            }
+
+            @TestMetadata("propertyDelegation.kt")
+            public void testPropertyDelegation() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/propertyDelegation.kt");
+            }
+
+            @TestMetadata("propertyInInitializer.kt")
+            public void testPropertyInInitializer() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/propertyInInitializer.kt");
+            }
+
+            @TestMetadata("rightHandOverride.kt")
+            public void testRightHandOverride() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/rightHandOverride.kt");
+            }
+
+            @TestMetadata("superConstructorCallWithComplexArg.kt")
+            public void testSuperConstructorCallWithComplexArg() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/superConstructorCallWithComplexArg.kt");
+            }
+
+            @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/classes/inner")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class Inner extends AbstractIrWasmBoxWasmTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInInner() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/classes/inner"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+                }
+
+                @TestMetadata("extensionWithOuter.kt")
+                public void testExtensionWithOuter() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/inner/extensionWithOuter.kt");
+                }
+
+                @TestMetadata("instantiateInDerived.kt")
+                public void testInstantiateInDerived() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/inner/instantiateInDerived.kt");
+                }
+
+                @TestMetadata("kt6708.kt")
+                public void testKt6708() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/inner/kt6708.kt");
+                }
+
+                @TestMetadata("properOuter.kt")
+                public void testProperOuter() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/inner/properOuter.kt");
+                }
+
+                @TestMetadata("properSuperLinking.kt")
+                public void testProperSuperLinking() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/classes/inner/properSuperLinking.kt");
+                }
             }
         }
 
@@ -489,6 +642,56 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
             }
 
+            @TestMetadata("bottles.kt")
+            public void testBottles() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/bottles.kt");
+            }
+
+            @TestMetadata("conditionOfEmptyIf.kt")
+            public void testConditionOfEmptyIf() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/conditionOfEmptyIf.kt");
+            }
+
+            @TestMetadata("continueInWhile.kt")
+            public void testContinueInWhile() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/continueInWhile.kt");
+            }
+
+            @TestMetadata("doWhileFib.kt")
+            public void testDoWhileFib() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/doWhileFib.kt");
+            }
+
+            @TestMetadata("doWhileWithContinue.kt")
+            public void testDoWhileWithContinue() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/doWhileWithContinue.kt");
+            }
+
+            @TestMetadata("emptyDoWhile.kt")
+            public void testEmptyDoWhile() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/emptyDoWhile.kt");
+            }
+
+            @TestMetadata("emptyWhile.kt")
+            public void testEmptyWhile() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/emptyWhile.kt");
+            }
+
+            @TestMetadata("factorialTest.kt")
+            public void testFactorialTest() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/factorialTest.kt");
+            }
+
+            @TestMetadata("forLoopMemberExtensionAll.kt")
+            public void testForLoopMemberExtensionAll() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/forLoopMemberExtensionAll.kt");
+            }
+
+            @TestMetadata("forLoopMemberExtensionHasNext.kt")
+            public void testForLoopMemberExtensionHasNext() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/forLoopMemberExtensionHasNext.kt");
+            }
+
             @TestMetadata("ifConst1.kt")
             public void testIfConst1() throws Exception {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/ifConst1.kt");
@@ -499,9 +702,135 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/ifConst2.kt");
             }
 
+            @TestMetadata("inRangeConditionsInWhen.kt")
+            public void testInRangeConditionsInWhen() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/inRangeConditionsInWhen.kt");
+            }
+
+            @TestMetadata("kt12908.kt")
+            public void testKt12908() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/kt12908.kt");
+            }
+
+            @TestMetadata("kt12908_2.kt")
+            public void testKt12908_2() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/kt12908_2.kt");
+            }
+
+            @TestMetadata("kt17110.kt")
+            public void testKt17110() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/kt17110.kt");
+            }
+
+            @TestMetadata("kt17590.kt")
+            public void testKt17590() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/kt17590.kt");
+            }
+
             @TestMetadata("kt1899.kt")
             public void testKt1899() throws Exception {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/kt1899.kt");
+            }
+
+            @TestMetadata("kt870.kt")
+            public void testKt870() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/kt870.kt");
+            }
+
+            @TestMetadata("kt9022Return.kt")
+            public void testKt9022Return() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/kt9022Return.kt");
+            }
+
+            @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class BreakContinueInExpressions extends AbstractIrWasmBoxWasmTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInBreakContinueInExpressions() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+                }
+
+                @TestMetadata("breakInDoWhile.kt")
+                public void testBreakInDoWhile() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/breakInDoWhile.kt");
+                }
+
+                @TestMetadata("continueInDoWhile.kt")
+                public void testContinueInDoWhile() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/continueInDoWhile.kt");
+                }
+
+                @TestMetadata("inlineWithStack.kt")
+                public void testInlineWithStack() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/inlineWithStack.kt");
+                }
+
+                @TestMetadata("innerLoopWithStack.kt")
+                public void testInnerLoopWithStack() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/innerLoopWithStack.kt");
+                }
+
+                @TestMetadata("kt14581.kt")
+                public void testKt14581() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/kt14581.kt");
+                }
+
+                @TestMetadata("kt16713.kt")
+                public void testKt16713() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/kt16713.kt");
+                }
+
+                @TestMetadata("kt16713_2.kt")
+                public void testKt16713_2() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/kt16713_2.kt");
+                }
+
+                @TestMetadata("kt9022And.kt")
+                public void testKt9022And() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/kt9022And.kt");
+                }
+
+                @TestMetadata("kt9022Or.kt")
+                public void testKt9022Or() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/kt9022Or.kt");
+                }
+
+                @TestMetadata("pathologicalDoWhile.kt")
+                public void testPathologicalDoWhile() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/pathologicalDoWhile.kt");
+                }
+
+                @TestMetadata("whileTrueBreak.kt")
+                public void testWhileTrueBreak() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/controlStructures/breakContinueInExpressions/whileTrueBreak.kt");
+                }
+            }
+        }
+
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/extensionFunctions")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class ExtensionFunctions extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInExtensionFunctions() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/extensionFunctions"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("kt3969.kt")
+            public void testKt3969() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionFunctions/kt3969.kt");
+            }
+
+            @TestMetadata("kt5467.kt")
+            public void testKt5467() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionFunctions/kt5467.kt");
             }
         }
 
@@ -513,13 +842,53 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
                 KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
             }
 
+            @TestMetadata("accessorForPrivateSetter.kt")
+            public void testAccessorForPrivateSetter() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties/accessorForPrivateSetter.kt");
+            }
+
             public void testAllFilesPresentInExtensionProperties() throws Exception {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("inClass.kt")
+            public void testInClass() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties/inClass.kt");
+            }
+
+            @TestMetadata("inClassLongTypeInReceiver.kt")
+            public void testInClassLongTypeInReceiver() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties/inClassLongTypeInReceiver.kt");
+            }
+
+            @TestMetadata("inClassWithGetter.kt")
+            public void testInClassWithGetter() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties/inClassWithGetter.kt");
+            }
+
+            @TestMetadata("inClassWithPrivateGetter.kt")
+            public void testInClassWithPrivateGetter() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties/inClassWithPrivateGetter.kt");
+            }
+
+            @TestMetadata("inClassWithPrivateSetter.kt")
+            public void testInClassWithPrivateSetter() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties/inClassWithPrivateSetter.kt");
+            }
+
+            @TestMetadata("inClassWithSetter.kt")
+            public void testInClassWithSetter() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties/inClassWithSetter.kt");
             }
 
             @TestMetadata("topLevel.kt")
             public void testTopLevel() throws Exception {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties/topLevel.kt");
+            }
+
+            @TestMetadata("topLevelLongTypeInReceiver.kt")
+            public void testTopLevelLongTypeInReceiver() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/extensionProperties/topLevelLongTypeInReceiver.kt");
             }
         }
 
@@ -535,9 +904,135 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/functions"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
             }
 
+            @TestMetadata("defaultargs.kt")
+            public void testDefaultargs() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/defaultargs.kt");
+            }
+
+            @TestMetadata("defaultargs6.kt")
+            public void testDefaultargs6() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/defaultargs6.kt");
+            }
+
+            @TestMetadata("defaultargs7.kt")
+            public void testDefaultargs7() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/defaultargs7.kt");
+            }
+
+            @TestMetadata("ea33909.kt")
+            public void testEa33909() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/ea33909.kt");
+            }
+
+            @TestMetadata("infixRecursiveCall.kt")
+            public void testInfixRecursiveCall() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/infixRecursiveCall.kt");
+            }
+
+            @TestMetadata("kt2271.kt")
+            public void testKt2271() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/kt2271.kt");
+            }
+
             @TestMetadata("kt2280.kt")
             public void testKt2280() throws Exception {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/kt2280.kt");
+            }
+
+            @TestMetadata("kt2929.kt")
+            public void testKt2929() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/kt2929.kt");
+            }
+
+            @TestMetadata("kt3313.kt")
+            public void testKt3313() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/kt3313.kt");
+            }
+
+            @TestMetadata("prefixRecursiveCall.kt")
+            public void testPrefixRecursiveCall() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/prefixRecursiveCall.kt");
+            }
+
+            @TestMetadata("recursiveCompareTo.kt")
+            public void testRecursiveCompareTo() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/recursiveCompareTo.kt");
+            }
+
+            @TestMetadata("recursiveIncrementCall.kt")
+            public void testRecursiveIncrementCall() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/recursiveIncrementCall.kt");
+            }
+
+            @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/functions/invoke")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class Invoke extends AbstractIrWasmBoxWasmTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInInvoke() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/functions/invoke"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+                }
+
+                @TestMetadata("kt3631invokeOnString.kt")
+                public void testKt3631invokeOnString() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/invoke/kt3631invokeOnString.kt");
+                }
+
+                @TestMetadata("kt3821invokeOnThis.kt")
+                public void testKt3821invokeOnThis() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/invoke/kt3821invokeOnThis.kt");
+                }
+            }
+
+            @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/functions/localFunctions")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class LocalFunctions extends AbstractIrWasmBoxWasmTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInLocalFunctions() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/functions/localFunctions"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+                }
+
+                @TestMetadata("kt3978.kt")
+                public void testKt3978() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/localFunctions/kt3978.kt");
+                }
+
+                @TestMetadata("kt3978_2.kt")
+                public void testKt3978_2() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/localFunctions/kt3978_2.kt");
+                }
+
+                @TestMetadata("kt4119_2.kt")
+                public void testKt4119_2() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/localFunctions/kt4119_2.kt");
+                }
+
+                @TestMetadata("kt4783.kt")
+                public void testKt4783() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/localFunctions/kt4783.kt");
+                }
+
+                @TestMetadata("kt4784.kt")
+                public void testKt4784() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/localFunctions/kt4784.kt");
+                }
+
+                @TestMetadata("localFunctionInConstructor.kt")
+                public void testLocalFunctionInConstructor() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/localFunctions/localFunctionInConstructor.kt");
+                }
+
+                @TestMetadata("parameterAsDefaultValue.kt")
+                public void testParameterAsDefaultValue() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/functions/localFunctions/parameterAsDefaultValue.kt");
+                }
             }
         }
 
@@ -559,6 +1054,77 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
             }
         }
 
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/increment")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Increment extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInIncrement() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/increment"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("classWithGetSet.kt")
+            public void testClassWithGetSet() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/increment/classWithGetSet.kt");
+            }
+
+            @TestMetadata("extOnLong.kt")
+            public void testExtOnLong() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/increment/extOnLong.kt");
+            }
+
+            @TestMetadata("postfixIncrementOnClass.kt")
+            public void testPostfixIncrementOnClass() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/increment/postfixIncrementOnClass.kt");
+            }
+
+            @TestMetadata("postfixIncrementOnClassSmartCast.kt")
+            public void testPostfixIncrementOnClassSmartCast() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/increment/postfixIncrementOnClassSmartCast.kt");
+            }
+
+            @TestMetadata("prefixIncrementOnClass.kt")
+            public void testPrefixIncrementOnClass() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/increment/prefixIncrementOnClass.kt");
+            }
+
+            @TestMetadata("prefixIncrementOnClassSmartCast.kt")
+            public void testPrefixIncrementOnClassSmartCast() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/increment/prefixIncrementOnClassSmartCast.kt");
+            }
+        }
+
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/intrinsics")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Intrinsics extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInIntrinsics() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/intrinsics"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("incWithLabel.kt")
+            public void testIncWithLabel() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/intrinsics/incWithLabel.kt");
+            }
+
+            @TestMetadata("nonShortCircuitAnd.kt")
+            public void testNonShortCircuitAnd() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/intrinsics/nonShortCircuitAnd.kt");
+            }
+
+            @TestMetadata("prefixIncDec.kt")
+            public void testPrefixIncDec() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/intrinsics/prefixIncDec.kt");
+            }
+        }
+
         @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/ir")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)
@@ -569,6 +1135,21 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
 
             public void testAllFilesPresentInIr() throws Exception {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/ir"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("classInitializers.kt")
+            public void testClassInitializers() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/ir/classInitializers.kt");
+            }
+
+            @TestMetadata("fileClassInitializers.kt")
+            public void testFileClassInitializers() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/ir/fileClassInitializers.kt");
+            }
+
+            @TestMetadata("simple.kt")
+            public void testSimple() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/ir/simple.kt");
             }
 
             @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/ir/closureConversion")
@@ -597,6 +1178,16 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
                 public void testClosureConversion4() throws Exception {
                     runTest("js/js.translator/testData/wasmBox/passedCommonTests/ir/closureConversion/closureConversion4.kt");
                 }
+
+                @TestMetadata("innerClass1.kt")
+                public void testInnerClass1() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/ir/closureConversion/innerClass1.kt");
+                }
+
+                @TestMetadata("innerClass2.kt")
+                public void testInnerClass2() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/ir/closureConversion/innerClass2.kt");
+                }
             }
         }
 
@@ -616,6 +1207,11 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
             public void testPropertyAccessor() throws Exception {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/labels/propertyAccessor.kt");
             }
+
+            @TestMetadata("propertyInClassAccessor.kt")
+            public void testPropertyInClassAccessor() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/labels/propertyInClassAccessor.kt");
+            }
         }
 
         @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen")
@@ -628,6 +1224,16 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
 
             public void testAllFilesPresentInLazyCodegen() throws Exception {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("increment.kt")
+            public void testIncrement() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/increment.kt");
+            }
+
+            @TestMetadata("toString.kt")
+            public void testToString() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/toString.kt");
             }
 
             @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/optimizations")
@@ -647,9 +1253,85 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
                     runTest("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/optimizations/negateConstantCompare.kt");
                 }
 
+                @TestMetadata("negateFalse.kt")
+                public void testNegateFalse() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/optimizations/negateFalse.kt");
+                }
+
+                @TestMetadata("negateFalseVar.kt")
+                public void testNegateFalseVar() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/optimizations/negateFalseVar.kt");
+                }
+
+                @TestMetadata("negateFalseVarChain.kt")
+                public void testNegateFalseVarChain() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/optimizations/negateFalseVarChain.kt");
+                }
+
+                @TestMetadata("negateTrue.kt")
+                public void testNegateTrue() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/optimizations/negateTrue.kt");
+                }
+
                 @TestMetadata("negateTrueVar.kt")
                 public void testNegateTrueVar() throws Exception {
                     runTest("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/optimizations/negateTrueVar.kt");
+                }
+
+                @TestMetadata("noOptimization.kt")
+                public void testNoOptimization() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/lazyCodegen/optimizations/noOptimization.kt");
+                }
+            }
+        }
+
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/multiplatform")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Multiplatform extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInMultiplatform() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/multiplatform"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/multiplatform/defaultArguments")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class DefaultArguments extends AbstractIrWasmBoxWasmTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInDefaultArguments() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/multiplatform/defaultArguments"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+                }
+
+                @TestMetadata("extensionReceiverValue.kt")
+                public void testExtensionReceiverValue() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/multiplatform/defaultArguments/extensionReceiverValue.kt");
+                }
+
+                @TestMetadata("functionFromOtherModule.kt")
+                public void testFunctionFromOtherModule() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/multiplatform/defaultArguments/functionFromOtherModule.kt");
+                }
+
+                @TestMetadata("kt23739.kt")
+                public void testKt23739() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/multiplatform/defaultArguments/kt23739.kt");
+                }
+
+                @TestMetadata("parametersInArgumentValues.kt")
+                public void testParametersInArgumentValues() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/multiplatform/defaultArguments/parametersInArgumentValues.kt");
+                }
+
+                @TestMetadata("superCall.kt")
+                public void testSuperCall() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/multiplatform/defaultArguments/superCall.kt");
                 }
             }
         }
@@ -671,9 +1353,105 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/annotatedAssignment.kt");
             }
 
+            @TestMetadata("assignmentOperations.kt")
+            public void testAssignmentOperations() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/assignmentOperations.kt");
+            }
+
+            @TestMetadata("augmentedAssignmentInInitializer.kt")
+            public void testAugmentedAssignmentInInitializer() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/augmentedAssignmentInInitializer.kt");
+            }
+
+            @TestMetadata("incDecOnObject.kt")
+            public void testIncDecOnObject() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/incDecOnObject.kt");
+            }
+
             @TestMetadata("infixFunctionOverBuiltinMember.kt")
             public void testInfixFunctionOverBuiltinMember() throws Exception {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/infixFunctionOverBuiltinMember.kt");
+            }
+
+            @TestMetadata("kt4152.kt")
+            public void testKt4152() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/kt4152.kt");
+            }
+
+            @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/compareTo")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class CompareTo extends AbstractIrWasmBoxWasmTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInCompareTo() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/compareTo"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+                }
+
+                @TestMetadata("doubleInt.kt")
+                public void testDoubleInt() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/compareTo/doubleInt.kt");
+                }
+
+                @TestMetadata("doubleLong.kt")
+                public void testDoubleLong() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/compareTo/doubleLong.kt");
+                }
+
+                @TestMetadata("extensionObject.kt")
+                public void testExtensionObject() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/compareTo/extensionObject.kt");
+                }
+
+                @TestMetadata("intDouble.kt")
+                public void testIntDouble() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/compareTo/intDouble.kt");
+                }
+
+                @TestMetadata("intLong.kt")
+                public void testIntLong() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/compareTo/intLong.kt");
+                }
+
+                @TestMetadata("longDouble.kt")
+                public void testLongDouble() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/compareTo/longDouble.kt");
+                }
+
+                @TestMetadata("longInt.kt")
+                public void testLongInt() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/operatorConventions/compareTo/longInt.kt");
+                }
+            }
+        }
+
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/package")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Package extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInPackage() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/package"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("incrementProperty.kt")
+            public void testIncrementProperty() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/package/incrementProperty.kt");
+            }
+
+            @TestMetadata("packageLocalClassNotImportedWithDefaultImport.kt")
+            public void testPackageLocalClassNotImportedWithDefaultImport() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/package/packageLocalClassNotImportedWithDefaultImport.kt");
+            }
+
+            @TestMetadata("packageQualifiedMethod.kt")
+            public void testPackageQualifiedMethod() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/package/packageQualifiedMethod.kt");
             }
         }
 
@@ -730,6 +1508,132 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
             }
         }
 
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/properties")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Properties extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            @TestMetadata("accessToPrivateProperty.kt")
+            public void testAccessToPrivateProperty() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/accessToPrivateProperty.kt");
+            }
+
+            public void testAllFilesPresentInProperties() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/properties"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("field.kt")
+            public void testField() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/field.kt");
+            }
+
+            @TestMetadata("fieldInClass.kt")
+            public void testFieldInClass() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/fieldInClass.kt");
+            }
+
+            @TestMetadata("fieldSimple.kt")
+            public void testFieldSimple() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/fieldSimple.kt");
+            }
+
+            @TestMetadata("kt10715.kt")
+            public void testKt10715() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/kt10715.kt");
+            }
+
+            @TestMetadata("kt1417.kt")
+            public void testKt1417() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/kt1417.kt");
+            }
+
+            @TestMetadata("kt2892.kt")
+            public void testKt2892() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/kt2892.kt");
+            }
+
+            @TestMetadata("kt3118.kt")
+            public void testKt3118() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/kt3118.kt");
+            }
+
+            @TestMetadata("kt3556.kt")
+            public void testKt3556() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/kt3556.kt");
+            }
+
+            @TestMetadata("kt3930.kt")
+            public void testKt3930() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/kt3930.kt");
+            }
+
+            @TestMetadata("kt613.kt")
+            public void testKt613() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/kt613.kt");
+            }
+
+            @TestMetadata("primitiveOverrideDefaultAccessor.kt")
+            public void testPrimitiveOverrideDefaultAccessor() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/primitiveOverrideDefaultAccessor.kt");
+            }
+
+            @TestMetadata("privateAccessorOfOverriddenProperty.kt")
+            public void testPrivateAccessorOfOverriddenProperty() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/privateAccessorOfOverriddenProperty.kt");
+            }
+
+            @TestMetadata("privatePropertyWithoutBackingField.kt")
+            public void testPrivatePropertyWithoutBackingField() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/privatePropertyWithoutBackingField.kt");
+            }
+
+            @TestMetadata("twoAnnotatedExtensionPropertiesWithoutBackingFields.kt")
+            public void testTwoAnnotatedExtensionPropertiesWithoutBackingFields() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/twoAnnotatedExtensionPropertiesWithoutBackingFields.kt");
+            }
+
+            @TestMetadata("typeInferredFromGetter.kt")
+            public void testTypeInferredFromGetter() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/typeInferredFromGetter.kt");
+            }
+
+            @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/properties/lateinit")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class Lateinit extends AbstractIrWasmBoxWasmTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInLateinit() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/properties/lateinit"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+                }
+
+                @TestMetadata("override.kt")
+                public void testOverride() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/lateinit/override.kt");
+                }
+
+                @TestMetadata("privateSetter.kt")
+                public void testPrivateSetter() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/lateinit/privateSetter.kt");
+                }
+
+                @TestMetadata("privateSetterViaSubclass.kt")
+                public void testPrivateSetterViaSubclass() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/lateinit/privateSetterViaSubclass.kt");
+                }
+
+                @TestMetadata("simpleVar.kt")
+                public void testSimpleVar() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/properties/lateinit/simpleVar.kt");
+                }
+            }
+        }
+
         @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/publishedApi")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)
@@ -745,6 +1649,173 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
             @TestMetadata("topLevel.kt")
             public void testTopLevel() throws Exception {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/publishedApi/topLevel.kt");
+            }
+        }
+
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/regressions")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Regressions extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInRegressions() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/regressions"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("commonSupertypeContravariant.kt")
+            public void testCommonSupertypeContravariant() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/commonSupertypeContravariant.kt");
+            }
+
+            @TestMetadata("commonSupertypeContravariant2.kt")
+            public void testCommonSupertypeContravariant2() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/commonSupertypeContravariant2.kt");
+            }
+
+            @TestMetadata("dontCaptureTypesWithTypeVariables.kt")
+            public void testDontCaptureTypesWithTypeVariables() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/dontCaptureTypesWithTypeVariables.kt");
+            }
+
+            @TestMetadata("doubleMerge.kt")
+            public void testDoubleMerge() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/doubleMerge.kt");
+            }
+
+            @TestMetadata("floatMerge.kt")
+            public void testFloatMerge() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/floatMerge.kt");
+            }
+
+            @TestMetadata("internalTopLevelOtherPackage.kt")
+            public void testInternalTopLevelOtherPackage() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/internalTopLevelOtherPackage.kt");
+            }
+
+            @TestMetadata("kt13381.kt")
+            public void testKt13381() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/kt13381.kt");
+            }
+
+            @TestMetadata("kt14447.kt")
+            public void testKt14447() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/kt14447.kt");
+            }
+
+            @TestMetadata("kt1528.kt")
+            public void testKt1528() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/kt1528.kt");
+            }
+
+            @TestMetadata("kt1845.kt")
+            public void testKt1845() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/kt1845.kt");
+            }
+
+            @TestMetadata("kt4142.kt")
+            public void testKt4142() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/kt4142.kt");
+            }
+
+            @TestMetadata("kt4281.kt")
+            public void testKt4281() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/kt4281.kt");
+            }
+
+            @TestMetadata("kt7401.kt")
+            public void testKt7401() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/kt7401.kt");
+            }
+
+            @TestMetadata("noAssertionsWhenNullableTypeParameterReplacedWithIntersectionType.kt")
+            public void testNoAssertionsWhenNullableTypeParameterReplacedWithIntersectionType() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/noAssertionsWhenNullableTypeParameterReplacedWithIntersectionType.kt");
+            }
+
+            @TestMetadata("nullabilityForCommonCapturedSupertypes.kt")
+            public void testNullabilityForCommonCapturedSupertypes() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/nullabilityForCommonCapturedSupertypes.kt");
+            }
+
+            @TestMetadata("supertypeDepth.kt")
+            public void testSupertypeDepth() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/regressions/supertypeDepth.kt");
+            }
+        }
+
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/storeStackBeforeInline")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class StoreStackBeforeInline extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInStoreStackBeforeInline() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/storeStackBeforeInline"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("simple.kt")
+            public void testSimple() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/storeStackBeforeInline/simple.kt");
+            }
+        }
+
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/strings")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Strings extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInStrings() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/strings"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("ea35743.kt")
+            public void testEa35743() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/strings/ea35743.kt");
+            }
+
+            @TestMetadata("interpolation.kt")
+            public void testInterpolation() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/strings/interpolation.kt");
+            }
+
+            @TestMetadata("kt881.kt")
+            public void testKt881() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/strings/kt881.kt");
+            }
+
+            @TestMetadata("rawStrings.kt")
+            public void testRawStrings() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/strings/rawStrings.kt");
+            }
+
+            @TestMetadata("singleConcatNullable.kt")
+            public void testSingleConcatNullable() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/strings/singleConcatNullable.kt");
+            }
+        }
+
+        @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/topLevelPrivate")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class TopLevelPrivate extends AbstractIrWasmBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInTopLevelPrivate() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/topLevelPrivate"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+            }
+
+            @TestMetadata("privateInInlineNested.kt")
+            public void testPrivateInInlineNested() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/topLevelPrivate/privateInInlineNested.kt");
             }
         }
 
@@ -778,9 +1849,62 @@ public class IrWasmBoxWasmTestGenerated extends AbstractIrWasmBoxWasmTest {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/when"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
             }
 
+            @TestMetadata("callProperty.kt")
+            public void testCallProperty() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/when/callProperty.kt");
+            }
+
+            @TestMetadata("kt2466.kt")
+            public void testKt2466() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/when/kt2466.kt");
+            }
+
+            @TestMetadata("kt5307.kt")
+            public void testKt5307() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/when/kt5307.kt");
+            }
+
+            @TestMetadata("longInRange.kt")
+            public void testLongInRange() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/when/longInRange.kt");
+            }
+
+            @TestMetadata("noElseInStatement.kt")
+            public void testNoElseInStatement() throws Exception {
+                runTest("js/js.translator/testData/wasmBox/passedCommonTests/when/noElseInStatement.kt");
+            }
+
             @TestMetadata("noElseNoMatch.kt")
             public void testNoElseNoMatch() throws Exception {
                 runTest("js/js.translator/testData/wasmBox/passedCommonTests/when/noElseNoMatch.kt");
+            }
+
+            @TestMetadata("js/js.translator/testData/wasmBox/passedCommonTests/when/whenSubjectVariable")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class WhenSubjectVariable extends AbstractIrWasmBoxWasmTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInWhenSubjectVariable() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/wasmBox/passedCommonTests/when/whenSubjectVariable"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.WASM, true);
+                }
+
+                @TestMetadata("equalityWithSubjectVariable.kt")
+                public void testEqualityWithSubjectVariable() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/when/whenSubjectVariable/equalityWithSubjectVariable.kt");
+                }
+
+                @TestMetadata("kt27161_int.kt")
+                public void testKt27161_int() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/when/whenSubjectVariable/kt27161_int.kt");
+                }
+
+                @TestMetadata("kt27161_string.kt")
+                public void testKt27161_string() throws Exception {
+                    runTest("js/js.translator/testData/wasmBox/passedCommonTests/when/whenSubjectVariable/kt27161_string.kt");
+                }
             }
         }
     }

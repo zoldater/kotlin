@@ -16,9 +16,12 @@
 
 package kotlin
 
+import kotlin.wasm.internal.SkipRTTI
+
 /**
  * Superclass for all platform classes representing numeric values.
  */
+@SkipRTTI
 public abstract class Number {
     /**
      * Returns the value of this number as a [Double], which may involve rounding.

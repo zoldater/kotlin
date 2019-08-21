@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrNull
+import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.util.*
 
 // Constructs bridges for inherited generic functions
@@ -125,7 +126,7 @@ class BridgesConstruction(val context: CommonBackendContext) : ClassLoweringPass
             bridge.returnType,
             function.parent,
             bridge.visibility,
-            bridge.modality, // TODO: should copy modality?
+            Modality.OPEN,
             bridge.isInline,
             bridge.isExternal,
             bridge.isTailrec,
@@ -175,8 +176,10 @@ class BridgesConstruction(val context: CommonBackendContext) : ClassLoweringPass
     }
 
     // TODO: get rid of Unit check
-    private fun IrBlockBodyBuilder.irCastIfNeeded(argument: IrExpression, type: IrType): IrExpression =
-        if (argument.type.classifierOrNull == type.classifierOrNull) argument else irAs(argument, type)
+    private fun IrBlockBodyBuilder.irCastIfNeeded(argument: IrExpression, type: IrType): IrExpression {
+        // if (argument.type != type && type.isPrimitiveType()) return JsIrBuilder.buildCall()
+        return if (argument.type.classifierOrNull == type.classifierOrNull) argument else irAs(argument, type)
+    }
 }
 
 // Handle for common.bridges

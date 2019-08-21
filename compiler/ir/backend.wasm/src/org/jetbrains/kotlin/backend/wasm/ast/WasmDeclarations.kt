@@ -26,6 +26,15 @@ class WasmFunction(
     val importPair: WasmImportPair?
 ) : WasmModuleField()
 
+class WasmData(
+    val offset: Int,
+    val bytes: ByteArray
+) : WasmModuleField()
+
+class WasmFuncrefTable(
+    val functions: List<String>
+) : WasmModuleField()
+
 class WasmParameter(
     val name: String,
     val type: WasmValueType
@@ -56,3 +65,22 @@ class WasmExport(
 
 // Start function
 class WasmStart(val name: String) : WasmModuleField()
+
+sealed class WasmNamedType(val name: String): WasmModuleField()
+
+class WasmFunctionType(
+    name: String,
+    val parameters: List<WasmValueType>,
+    val result: WasmValueType?
+) : WasmNamedType(name)
+
+class WasmStructType(
+    name: String,
+    val fields: List<WasmStructField>
+) : WasmNamedType(name)
+
+class WasmStructField(
+    val name: String,
+    val type: WasmValueType,
+    val isMutable: Boolean
+)

@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.name.FqName
 private val BODILESS_BUILTIN_CLASSES = listOf(
     "kotlin.Nothing",
     "kotlin.Array",
-    "kotlin.Any",
+//    "kotlin.Any",
     "kotlin.ByteArray",
     "kotlin.CharArray",
     "kotlin.ShortArray",

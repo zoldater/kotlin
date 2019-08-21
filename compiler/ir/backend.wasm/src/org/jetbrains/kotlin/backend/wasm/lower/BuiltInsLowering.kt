@@ -7,19 +7,38 @@ package org.jetbrains.kotlin.backend.wasm.lower
 
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.wasm.WasmBackendContext
-import org.jetbrains.kotlin.ir.backend.js.lower.calls.findEqualsMethod
+import org.jetbrains.kotlin.ir.backend.js.utils.isEqualsInheritedFromAny
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.irCall
+import org.jetbrains.kotlin.ir.util.isEnumClass
+import org.jetbrains.kotlin.ir.util.isFakeOverriddenFromAny
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 
+
 class BuiltInsLowering(val context: WasmBackendContext) : FileLoweringPass {
     private val irBuiltins = context.irBuiltIns
     private val symbols = context.wasmSymbols
+
+    fun IrType.findEqualsMethod(): IrSimpleFunction? {
+        val klass = getClass() ?: irBuiltins.anyClass.owner
+        val equalsMethods = klass.declarations
+            .filterIsInstance<IrSimpleFunction>()
+            .filter { it.isEqualsInheritedFromAny() }
+            .also { assert(it.size <= 1) }
+
+        if (equalsMethods.size != 1) {
+            1 + 1
+        }
+        return equalsMethods.single()
+    }
 
     fun transformCall(call: IrCall): IrExpression {
         when (val symbol = call.symbol) {

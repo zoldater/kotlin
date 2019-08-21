@@ -5,29 +5,40 @@
 
 package org.jetbrains.kotlin.backend.wasm.codegen
 
+import org.jetbrains.kotlin.backend.common.ir.isOverridableOrOverrides
 import org.jetbrains.kotlin.backend.wasm.ast.*
 import org.jetbrains.kotlin.backend.wasm.utils.getWasmImportAnnotation
 import org.jetbrains.kotlin.backend.wasm.utils.getWasmInstructionAnnotation
 import org.jetbrains.kotlin.backend.wasm.utils.hasExcludedFromCodegenAnnotation
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrLoop
-import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
-import org.jetbrains.kotlin.ir.util.isAnnotationClass
-import org.jetbrains.kotlin.ir.util.isFakeOverride
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.name.Name
 
 class DeclarationTransformer : BaseTransformer<WasmModuleField?, WasmCodegenContext> {
+
+
     override fun visitSimpleFunction(declaration: IrSimpleFunction, data: WasmCodegenContext): WasmModuleField? {
+        return transformFunction(declaration, data)
+    }
+
+    private fun transformFunction(declaration: IrFunction, data: WasmCodegenContext): WasmModuleField? {
+        if (declaration is IrSimpleFunction && declaration.origin != IrDeclarationOrigin.BRIDGE && declaration.modality == Modality.ABSTRACT) return null
         if (declaration.hasExcludedFromCodegenAnnotation())
             return null
-        if (declaration.getWasmInstructionAnnotation() != null)
+
+        val wasmInstruction = declaration.getWasmInstructionAnnotation()
+        val mustBeKept = declaration is IrSimpleFunction && declaration.isOverridableOrOverrides
+        if (!mustBeKept && wasmInstruction != null)
             return null
+        if (!mustBeKept && declaration.isInline)
+            return null
+
         if (declaration.isFakeOverride)
-            return null
-        // Virtual functions are not supported yet
-        if (declaration.origin == IrDeclarationOrigin.BRIDGE)
             return null
 
         // Collect local variables
@@ -36,11 +47,14 @@ class DeclarationTransformer : BaseTransformer<WasmModuleField?, WasmCodegenCont
 
         val wasmName = data.getGlobalName(declaration)
 
+
         val irParameters = declaration.run {
             listOfNotNull(dispatchReceiverParameter, extensionReceiverParameter) + valueParameters
         }
 
-        val wasmParameters = irParameters.map { parameter ->
+        val constructorThis = if (declaration is IrConstructor) WasmParameter("__this__", data.transformType(declaration.parentAsClass.thisReceiver!!.type)) else null
+
+        val wasmParameters = listOfNotNull(constructorThis) + irParameters.map { parameter ->
             val name = localNames.declareFreshName(parameter, parameter.name.asString())
             WasmParameter(name, data.transformType(parameter.type))
         }
@@ -62,37 +76,48 @@ class DeclarationTransformer : BaseTransformer<WasmModuleField?, WasmCodegenCont
             return null
         }
 
-        val body = declaration.body
-            ?: error("Function ${declaration.fqNameWhenAvailable} without a body")
-
-        data.localNames = localNames.names
-        data.labels = labels.names
-
         val locals = mutableListOf<WasmLocal>()
-        body.acceptChildrenVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
-                element.acceptChildrenVoid(this)
-            }
+        val wasmBody = (if (wasmInstruction != null) {
+            if (wasmInstruction == "nop")
+                listOf(WasmGetLocal(wasmParameters.single().name))
+            else
+                listOf(WasmSimpleInstruction(wasmInstruction, wasmParameters.map { WasmGetLocal(it.name) }))
+        } else {
+            val body = declaration.body
+                ?: error("Function ${declaration.fqNameWhenAvailable} without a body")
 
-            override fun visitVariable(declaration: IrVariable) {
-                val name = localNames.declareFreshName(declaration, declaration.name.asString())
-                locals += WasmLocal(name, data.transformType(declaration.type))
-                super.visitVariable(declaration)
-            }
+            data.localNames = localNames.names
+            data.labels = labels.names
 
-            override fun visitLoop(loop: IrLoop) {
-                val suggestedLabel = loop.label ?: ""
-                for (labelType in LoopLabelType.values()) {
-                    labels.declareFreshName(
-                        LoopLabel(loop, labelType),
-                        "${labelType.name}_$suggestedLabel"
-                    )
+            body.acceptChildrenVoid(object : IrElementVisitorVoid {
+                override fun visitElement(element: IrElement) {
+                    element.acceptChildrenVoid(this)
                 }
-                super.visitLoop(loop)
-            }
-        })
 
-        val wasmBody = bodyToWasmInstructionList(body, data)
+                override fun visitVariable(declaration: IrVariable) {
+                    val name = localNames.declareFreshName(declaration, declaration.name.asString())
+                    locals += WasmLocal(name, data.transformType(declaration.type))
+                    super.visitVariable(declaration)
+                }
+
+                override fun visitLoop(loop: IrLoop) {
+                    val suggestedLabel = loop.label ?: ""
+                    for (labelType in LoopLabelType.values()) {
+                        labels.declareFreshName(
+                            LoopLabel(loop, labelType),
+                            "${labelType.name}_$suggestedLabel"
+                        )
+                    }
+                    super.visitLoop(loop)
+                }
+            })
+
+            bodyToWasmInstructionList(body, data)
+        }).toMutableList()
+
+        if (declaration is IrConstructor)
+            wasmBody += WasmReturn(listOf(WasmGetLocal("__this__")))
+
         return WasmFunction(
             name = wasmName,
             parameters = wasmParameters,
@@ -104,16 +129,25 @@ class DeclarationTransformer : BaseTransformer<WasmModuleField?, WasmCodegenCont
     }
 
     override fun visitConstructor(declaration: IrConstructor, data: WasmCodegenContext): WasmModuleField? {
-        TODO()
+        return transformFunction(declaration, data)
     }
 
     override fun visitClass(declaration: IrClass, data: WasmCodegenContext): WasmModuleField? {
         if (declaration.isAnnotationClass) return null
         if (declaration.hasExcludedFromCodegenAnnotation()) return null
 
+        data.currentClass = declaration
+
+        if (declaration.name == Name.identifier("ProjectJsonFormatter")) {
+            println("formatter")
+        }
+
         val wasmMembers = declaration.declarations.mapNotNull { member ->
             when (member) {
-                is IrSimpleFunction -> this.visitSimpleFunction(member, data)
+                is IrSimpleFunction -> {
+                    this.visitSimpleFunction(member, data)
+                }
+                is IrConstructor -> this.visitConstructor(member, data)
                 else -> null
             }
         }
@@ -142,4 +176,5 @@ fun defaultInitializerForType(type: WasmValueType): WasmInstruction = when (type
     WasmF32 -> WasmF32Const(0f)
     WasmF64 -> WasmF64Const(0.0)
     WasmAnyRef -> WasmRefNull
+    is WasmRef -> WasmRefNull
 }

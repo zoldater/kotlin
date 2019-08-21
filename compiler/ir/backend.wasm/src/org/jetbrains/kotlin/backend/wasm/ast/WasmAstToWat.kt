@@ -5,6 +5,8 @@
 
 package org.jetbrains.kotlin.backend.wasm.ast
 
+import org.jetbrains.kotlin.backend.wasm.codegen.toWatData
+
 // TODO: Abstract out S-expression part of dumping?
 
 fun WasmInstruction.toWat(ident: String = ""): String =
@@ -16,10 +18,11 @@ fun WasmImmediate.toWat(): String = when (this) {
     // SpiderMonkey jsshell won't parse Uppercase letters in literals
     is WasmImmediate.LiteralValue<*> -> " $value".toLowerCase()
     is WasmImmediate.ResultType -> type?.let { " (result ${type.mnemonic})" } ?: ""
+    is WasmImmediate.DeclarationReference2 -> " $$name1 $name2"
 }
 
 fun wasmModuleToWat(module: WasmModule): String =
-    "(module\n${module.fields.joinToString("") { wasmModuleFieldToWat(it) + "\n" }})"
+    "(module\n  (gc_feature_opt_in 3)\n  (memory 3000 65536)\n${module.fields.joinToString("") { wasmModuleFieldToWat(it) + "\n" }})"
 
 fun wasmFunctionToWat(function: WasmFunction): String {
     val watId = "$${function.name}"
@@ -60,7 +63,26 @@ fun wasmModuleFieldToWat(moduleField: WasmModuleField): String =
         is WasmExport -> wasmExportToWat(moduleField)
         is WasmStart -> wasmStartToWat(moduleField)
         is WasmModuleFieldList -> moduleField.fields.joinToString("") { wasmModuleFieldToWat(it) + "\n" }
+        is WasmFunctionType -> wasmFunctionTypeDeclarationToWat(moduleField)
+        is WasmStructType -> wasmStructTypeDeclarationToWat(moduleField)
+        is WasmData -> wasmDataToWat(moduleField)
+        is WasmFuncrefTable -> wasmFuncRefTableToWat(moduleField)
     }
+
+fun wasmFuncRefTableToWat(table: WasmFuncrefTable): String =
+    " (table funcref \n  (elem ${table.functions.joinToString("") { "\n    $$it" }}))"
+
+fun wasmDataToWat(data: WasmData): String =
+    data.run { " (data (i32.const ${data.offset}) ${toWasString(data.bytes.toWatData())})" }
+
+fun wasmStructTypeDeclarationToWat(structType: WasmStructType): String =
+    structType.run { "  (type $$name (struct ${fields.joinToString(" ") { it.toWat() }}))" }
+
+private fun WasmStructField.toWat(): String =
+    "(field ${if (isMutable) "(mut ${type.mnemonic})" else type.mnemonic})"
+
+fun wasmFunctionTypeDeclarationToWat(functionType: WasmFunctionType): String =
+    functionType.run { "  (type $$name (func (param ${parameters.joinToString(" ") { it.mnemonic }}) ${result?.let { "(result ${it.mnemonic})"} ?: ""}))" }
 
 fun toWasString(s: String): String {
     // TODO: escape characters according to

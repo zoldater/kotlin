@@ -31,6 +31,9 @@ fun assertEquals(x: Float, y: Float) {
 fun assertEquals(x: Double, y: Double) {
     if (x != y) wasm_unreachable()
 }
+fun assertEquals(x: Any, y: Any?) {
+    if (x != y) wasm_unreachable()
+}
 
 
 fun assertEquals(x: Boolean, y: Boolean, s: String) {
@@ -55,5 +58,8 @@ fun assertEquals(x: Float, y: Float, s: String) {
     if (x != y) wasm_unreachable()
 }
 fun assertEquals(x: Double, y: Double, s: String) {
+    if (x != y) wasm_unreachable()
+}
+fun assertEquals(x: Any, y: Any?, s: String) {
     if (x != y) wasm_unreachable()
 }

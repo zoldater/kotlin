@@ -49,5 +49,13 @@ const runtime = {
     
     String_getLiteral(index) {
         return runtime.stringLiterals[index];
+    },
+
+    coerceToString(value) {
+        return String(value);
+    },
+
+    println(value) {
+        console.log(">>>  " + value)
     }
 };

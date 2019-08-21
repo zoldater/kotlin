@@ -9,6 +9,7 @@ package org.jetbrains.kotlin.backend.wasm.ast
 sealed class WasmImmediate {
     object None : WasmImmediate()
     class DeclarationReference(val name: String) : WasmImmediate()
+    class DeclarationReference2(val name1: String, val name2: Int) : WasmImmediate()
     class LiteralValue<T : Number>(val value: T) : WasmImmediate()
     class ResultType(val type: WasmValueType?) : WasmImmediate()
 }
@@ -22,7 +23,7 @@ sealed class WasmInstruction(
 class WasmSimpleInstruction(mnemonic: String, operands: List<WasmInstruction>) :
     WasmInstruction(mnemonic, operands = operands)
 
-class WasmNop : WasmInstruction("nop")
+object WasmNop : WasmInstruction("nop")
 
 object WasmUnreachable : WasmInstruction("unreachable")
 
@@ -39,6 +40,11 @@ class WasmNot(boolValue: WasmInstruction) :
 
 class WasmCall(name: String, operands: List<WasmInstruction>) :
     WasmInstruction("call", WasmImmediate.DeclarationReference(name), operands)
+
+// Last operand is a function index
+class WasmCallIdirect(functionType: String, operands: List<WasmInstruction>) :
+    WasmInstruction("call_indirect", immediate = WasmImmediate.DeclarationReference(functionType), operands = operands)
+
 
 class WasmGetLocal(name: String) :
     WasmInstruction("get_local", WasmImmediate.DeclarationReference(name))
@@ -93,6 +99,15 @@ class WasmBlock(instructions: List<WasmInstruction>, resultType: WasmValueType?)
 class WasmLabelledBlock(label: String, instructions: List<WasmInstruction>) :
     WasmInstruction("block", immediate = WasmImmediate.DeclarationReference(label), operands = instructions)
 
+
+class WasmStructNew(structName: String, operands: List<WasmInstruction>) :
+    WasmInstruction("struct.new", WasmImmediate.DeclarationReference(structName), operands)
+
+class WasmStructSet(structName: String, fieldId: Int, structRef: WasmInstruction, value: WasmInstruction) :
+    WasmInstruction("struct.set", WasmImmediate.DeclarationReference2(structName, fieldId), listOf(structRef, value))
+
+class WasmStructGet(structName: String, fieldId: Int, structRef: WasmInstruction) :
+    WasmInstruction("struct.get", WasmImmediate.DeclarationReference2(structName, fieldId), listOf(structRef))
 
 sealed class WasmConst<KotlinType : Number, WasmType : WasmValueType>(value: KotlinType, type: WasmType) :
     WasmInstruction(type.mnemonic + ".const", WasmImmediate.LiteralValue<KotlinType>(value))

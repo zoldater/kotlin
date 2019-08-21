@@ -9,10 +9,7 @@ import org.jetbrains.kotlin.backend.common.*
 import org.jetbrains.kotlin.backend.common.lower.*
 import org.jetbrains.kotlin.backend.common.lower.inline.FunctionInlining
 import org.jetbrains.kotlin.backend.common.phaser.*
-import org.jetbrains.kotlin.backend.wasm.lower.BuiltInsLowering
-import org.jetbrains.kotlin.backend.wasm.lower.FieldInitializersLowering
-import org.jetbrains.kotlin.backend.wasm.lower.WasmBlockDecomposerLowering
-import org.jetbrains.kotlin.backend.wasm.lower.excludeDeclarationsFromCodegen
+import org.jetbrains.kotlin.backend.wasm.lower.*
 import org.jetbrains.kotlin.ir.backend.js.JsLoweredDeclarationOrigin
 import org.jetbrains.kotlin.ir.backend.js.lower.*
 import org.jetbrains.kotlin.ir.backend.js.lower.inline.RemoveInlineFunctionsWithReifiedTypeParametersLowering
@@ -82,6 +79,12 @@ private val expectDeclarationsRemovingPhase = makeWasmModulePhase(
     ::ExpectDeclarationsRemoveLowering,
     name = "ExpectDeclarationsRemoving",
     description = "Remove expect declaration from module fragment"
+)
+
+private val stringConstructorLowering = makeWasmModulePhase(
+    ::SimpleStringConcatenationLowering,
+    name = "StringConcatenation",
+    description = "String concatenation lowering"
 )
 
 private val lateinitLoweringPhase = makeWasmModulePhase(
@@ -328,6 +331,12 @@ private val objectUsageLoweringPhase = makeCustomWasmModulePhase(
     description = "Transform IrGetObjectValue into instance generator call"
 )
 
+private val typeOperatorLoweringPhase = makeWasmModulePhase(
+    ::WasmTypeOperatorLowering,
+    name = "TypeOperatorLowering",
+    description = "Lower IrTypeOperator with corresponding logic"
+)
+
 val wasmPhases = namedIrModulePhase<WasmBackendContext>(
     name = "IrModuleLowering",
     description = "IR module lowering",
@@ -368,6 +377,7 @@ val wasmPhases = namedIrModulePhase<WasmBackendContext>(
 //            TODO: Requires stdlib
 //            suspendFunctionsLoweringPhase then
 
+            stringConstructorLowering then
             returnableBlockLoweringPhase then
 
 //            TODO: Callable reference lowering is too JS specific.
@@ -416,6 +426,7 @@ val wasmPhases = namedIrModulePhase<WasmBackendContext>(
             objectUsageLoweringPhase then
             staticMembersLoweringPhase then
             fieldInitializersLoweringPhase then
+            typeOperatorLoweringPhase then
             builtInsLoweringPhase then
 
             validateIrAfterLowering
