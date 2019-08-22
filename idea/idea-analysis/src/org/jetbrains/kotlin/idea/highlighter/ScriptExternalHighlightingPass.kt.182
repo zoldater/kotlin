@@ -38,7 +38,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.idea.core.script.IdeScriptReportSink
 import org.jetbrains.kotlin.idea.core.script.ScriptDefinitionsManager
-import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
+import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManager
 import org.jetbrains.kotlin.idea.script.ScriptDiagnosticFixProvider
 import org.jetbrains.kotlin.psi.KtFile
 import kotlin.script.experimental.api.ScriptDiagnostic
@@ -62,7 +62,7 @@ class ScriptExternalHighlightingPass(
             )
         }
 
-        val manager = ScriptDependenciesManager.getInstance(file.project)
+        val manager = ScriptConfigurationManager.getInstance(file.project)
         if (!manager.isConfigurationCached(file)) {
             // initiate configuration refinement, if needed
             manager.getConfiguration(file)
