@@ -55,8 +55,7 @@ class IrSourceCompilerForInline(
     override val inlineCallSiteInfo: InlineCallSiteInfo
         get() {
             //TODO: support nested inline calls
-            val typeMapper = codegen.typeMapper
-            val signature = typeMapper.mapSignatureSkipGeneric(codegen.irFunction)
+            val signature = codegen.methodSignatureMapper.mapSignatureSkipGeneric(codegen.irFunction)
             return InlineCallSiteInfo(
                 codegen.classCodegen.type.internalName,
                 signature.asmMethod.name,
@@ -108,7 +107,7 @@ class IrSourceCompilerForInline(
 
                 irClass.declarations.filterIsInstance<IrFunction>().single {
                     it.descriptor.name.asString() == jvmSignature.asmMethod.name + JvmAbi.DEFAULT_PARAMS_IMPL_SUFFIX &&
-                            state.typeMapper.mapSignatureSkipGeneric(callableDescriptor).asmMethod.descriptor.startsWith(
+                            codegen.context.methodSignatureMapper.mapSignatureSkipGeneric(callElement.symbol.owner).asmMethod.descriptor.startsWith(
                                 jvmSignature.asmMethod.descriptor.substringBeforeLast(')')
                             )
                 }

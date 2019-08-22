@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.gradle.internal.kapt.incremental.StructureArtifactTr
 import org.jetbrains.kotlin.gradle.model.builder.KaptModelBuilder
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.tasks.CompilerPluginOptions
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompileTaskData
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.isWorkerAPISupported
 import org.jetbrains.kotlin.gradle.utils.isGradleVersionAtLeast
@@ -161,15 +162,17 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
 
     override fun isApplicable(project: Project, task: AbstractCompile) = task is KotlinCompile && Kapt3GradleSubplugin.isEnabled(project)
 
-    private fun Kapt3SubpluginContext.getKaptStubsDir() = createAndReturnTemporaryKaptDirectory("stubs")
+    private fun Kapt3SubpluginContext.getKaptStubsDir() = temporaryKaptDirectory("stubs")
 
-    private fun Kapt3SubpluginContext.getKaptIncrementalDataDir() = createAndReturnTemporaryKaptDirectory("incrementalData")
+    private fun Kapt3SubpluginContext.getKaptIncrementalDataDir() = temporaryKaptDirectory("incrementalData", doMkDirs = false)
 
-    private fun Kapt3SubpluginContext.getKaptIncrementalAnnotationProcessingCache() = createAndReturnTemporaryKaptDirectory("incApCache")
+    private fun Kapt3SubpluginContext.getKaptIncrementalAnnotationProcessingCache() = temporaryKaptDirectory("incApCache")
 
-    private fun Kapt3SubpluginContext.createAndReturnTemporaryKaptDirectory(name: String): File {
+    private fun Kapt3SubpluginContext.temporaryKaptDirectory(name: String, doMkDirs: Boolean = true): File {
         val dir = File(project.buildDir, "tmp/kapt3/$name/$sourceSetName")
-        dir.mkdirs()
+        if (doMkDirs) {
+            dir.mkdirs()
+        }
         return dir
     }
 
@@ -469,17 +472,22 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
     }
 
     private fun Kapt3SubpluginContext.createKaptGenerateStubsTask(): KaptGenerateStubsTask {
+        val kaptTaskName = getKaptTaskName("kaptGenerateStubs")
+
+        KotlinCompileTaskData.register(kaptTaskName, KotlinCompileTaskData.get(project, kotlinCompile.name).compilation).apply {
+            useModuleDetection.set(KotlinCompileTaskData.get(project, kotlinCompile.name).useModuleDetection)
+        }
+
         val kaptTask = project.tasks.create(
-            getKaptTaskName("kaptGenerateStubs"),
+            kaptTaskName,
             KaptGenerateStubsTask::class.java
         )
 
-        kaptTask.sourceSetName = sourceSetName
         kaptTask.kotlinCompileTask = kotlinCompile
         kotlinToKaptGenerateStubsTasksMap[kotlinCompile] = kaptTask
 
         kaptTask.stubsDir = getKaptStubsDir()
-        kaptTask.destinationDir = getKaptIncrementalDataDir()
+        kaptTask.setDestinationDir { getKaptIncrementalDataDir() }
         kaptTask.mapClasspath { kotlinCompile.classpath }
         kaptTask.generatedSourcesDir = sourcesOutputDir
         PropertiesProvider(project).mapKotlinTaskProperties(kaptTask)
