@@ -12,6 +12,8 @@ import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirBlock
+import org.jetbrains.kotlin.fir.references.FirControlFlowGraphReference
+import org.jetbrains.kotlin.fir.references.FirEmptyControlFlowGraphReference
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
 import org.jetbrains.kotlin.fir.transformInplace
 import org.jetbrains.kotlin.fir.transformSingle
@@ -32,6 +34,8 @@ class FirPropertyAccessorImpl(
 
     override val valueParameters = mutableListOf<FirValueParameter>()
 
+    override var controlFlowGraphReference: FirControlFlowGraphReference = FirEmptyControlFlowGraphReference()
+
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement {
         returnTypeRef = returnTypeRef.transformSingle(transformer, data)
         valueParameters.transformInplace(transformer, data)
@@ -46,6 +50,11 @@ class FirPropertyAccessorImpl(
     }
 
     override fun <D> transformValueParameters(transformer: FirTransformer<D>, data: D): FirPropertyAccessorImpl {
+        return this
+    }
+
+    override fun <D> transformControlFlowGraphReference(transformer: FirTransformer<D>, data: D): FirPropertyAccessorImpl {
+        controlFlowGraphReference = controlFlowGraphReference.transformSingle(transformer, data)
         return this
     }
 }
