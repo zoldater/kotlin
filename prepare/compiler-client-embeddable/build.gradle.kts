@@ -10,15 +10,15 @@ val testStdlibJar by configurations.creating
 val testScriptRuntimeJar by configurations.creating
 
 dependencies {
-    embedded(project(":compiler:cli-common")) { isTransitive = false }
-    embedded(project(":daemon-common")) { isTransitive = false }
-    embedded(project(":daemon-common-new")) { isTransitive = false }
-    embedded(projectRuntimeJar(":kotlin-daemon-client"))
+//    embedded(project(":compiler:cli-common")) { isTransitive = false }
+//    embedded(project(":daemon-common")) { isTransitive = false }
+//    embedded(project(":daemon-common-new")) { isTransitive = false }
+    embedded(project(":kotlin-daemon-client")) { isTransitive = false }
     
     testCompile(project(":compiler:cli-common"))
     testCompile(project(":daemon-common"))
     testCompile(project(":daemon-common-new"))
-    testCompile(projectRuntimeJar(":kotlin-daemon-client"))
+    testCompile(project(":kotlin-daemon-client"))
     testCompile(commonDep("junit:junit"))
     testCompile(project(":kotlin-test:kotlin-test-jvm"))
     testCompile(project(":kotlin-test:kotlin-test-junit"))
