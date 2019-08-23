@@ -477,20 +477,25 @@ abstract class KotlinIrLinker(
 
     abstract val ModuleDescriptor.irHeader: ByteArray?
 
-    var isReplInitializing = false
     fun deserializeIrModuleHeader(moduleDescriptor: ModuleDescriptor): IrModuleFragment? =
         // TODO: do we really allow libraries without any IR?
         moduleDescriptor.irHeader?.let { header ->
             // TODO: consider skip deserializing explicitly exported declarations for libraries.
             // Now it's not valid because of all dependencies that must be computed.
             val deserializationStrategy =
-                if (exportedDependencies.contains(moduleDescriptor) || isReplInitializing) {
+                if (exportedDependencies.contains(moduleDescriptor)) {
                     DeserializationStrategy.ALL
                 } else {
                     DeserializationStrategy.EXPLICITLY_EXPORTED
                 }
             deserializeIrModuleHeader(moduleDescriptor, header, deserializationStrategy)
         }
+
+    fun deserializeFullIrModuleHeader(moduleDescriptor: ModuleDescriptor): IrModuleFragment? {
+        return moduleDescriptor.irHeader?.let { header ->
+            deserializeIrModuleHeader(moduleDescriptor, header, DeserializationStrategy.ALL)
+        }
+    }
 }
 
 enum class DeserializationStrategy {

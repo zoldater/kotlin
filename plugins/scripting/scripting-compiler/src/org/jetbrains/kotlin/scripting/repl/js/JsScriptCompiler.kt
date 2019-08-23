@@ -6,14 +6,25 @@
 package org.jetbrains.kotlin.scripting.repl.js
 
 import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult.*
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.ir.backend.js.utils.NameTables
 import kotlin.script.experimental.api.*
 
-class JsScriptCompiler(val compiler: KJsReplCompiler) : ScriptCompiler {
+class JsScriptCompiler(
+    environment: KotlinCoreEnvironment
+) : ScriptCompiler {
+    private val nameTables = NameTables(emptyList())
+    private val dependencies: List<ModuleDescriptor> = readLibrariesFromConfiguration(environment.configuration)
+    private val compiler = CoreScriptingJsCompiler(environment, nameTables, dependencies)
+
+    val scriptDependencyBinary = ScriptDependencyCompiler(environment, nameTables).compile(dependencies).first
+
     override suspend fun invoke(
         script: SourceCode,
         scriptCompilationConfiguration: ScriptCompilationConfiguration
     ): ResultWithDiagnostics<CompiledScript<*>> {
-        val compileResult = compiler.compile(compiler.createState(), makeReplCodeLine(0, script.text))
+        val compileResult = compiler.compile(makeReplCodeLine(0, script.text))
         return when (compileResult) {
             is CompiledClasses -> ResultWithDiagnostics.Success(
                 CompiledToJsScript(compileResult.data as String, scriptCompilationConfiguration)

@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.scripting.definitions.platform
 import org.jetbrains.kotlin.scripting.repl.js.CompiledToJsScript
 import org.jetbrains.kotlin.scripting.repl.js.JsScriptCompiler
 import org.jetbrains.kotlin.scripting.repl.js.JsScriptEvaluator
-import org.jetbrains.kotlin.scripting.repl.js.KJsReplCompiler
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.jvm.JsDependency
@@ -61,7 +60,7 @@ class JsScriptEvaluationExtension : AbstractScriptEvaluationExtension() {
 
     private var environment: KotlinCoreEnvironment? = null
     private val scriptCompiler: JsScriptCompiler by lazy {
-        JsScriptCompiler(KJsReplCompiler(environment!!))
+        JsScriptCompiler(environment!!)
     }
 
     override suspend fun compilerInvoke(
@@ -80,7 +79,7 @@ class JsScriptEvaluationExtension : AbstractScriptEvaluationExtension() {
     ) {
         scriptEvaluator.invoke(
             CompiledToJsScript(
-                scriptCompiler.compiler.stdlibCompiledResult,
+                scriptCompiler.scriptDependencyBinary,
                 scriptCompilationConfiguration
             ),
             evaluationConfiguration

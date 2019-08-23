@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.IrModuleToJsTransf
 import org.jetbrains.kotlin.ir.backend.js.utils.JsMainFunctionDetector
 import org.jetbrains.kotlin.ir.backend.js.utils.NameTables
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.util.ExternalDependenciesGenerator
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.library.KotlinLibrary
@@ -82,13 +81,12 @@ fun compile(
 
 fun compileForRepl(
     context: JsIrBackendContext,
-    mainFunction: IrSimpleFunction?,
     moduleFragment: IrModuleFragment,
     namer: NameTables
 ): String {
     jsPhases.invokeToplevel(PhaseConfig(jsPhases), context, moduleFragment)
 
-    val transformer = IrModuleToJsTransformer(context, mainFunction, emptyList(), true, namer)
+    val transformer = IrModuleToJsTransformer(context, null, null, true, namer)
     val jsProgram = moduleFragment.accept(transformer, null)
 
     return jsProgram.toString()

@@ -31,18 +31,3 @@ class CompiledToJsScript(
         throw IllegalStateException("Class is not available for JS implementation")
     }
 }
-
-fun createCompileResult(code: String) = createCompileResult(LineId(ReplCodeLine(0, 0, "")), code)
-
-fun createCompileResult(lineId: LineId, code: String): ReplCompileResult.CompiledClasses {
-    return ReplCompileResult.CompiledClasses(
-        lineId,
-        emptyList(),
-        "",
-        emptyList(),
-        false,
-        emptyList(),
-        "Any?",
-        code
-    )
-}
