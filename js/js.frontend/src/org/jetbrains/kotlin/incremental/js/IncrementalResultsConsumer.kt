@@ -44,6 +44,10 @@ interface IncrementalResultsConsumer {
     fun processPackageMetadata(packageName: String, metadata: ByteArray)
 }
 
+interface IncrementalNextRoundChecker {
+    fun shouldGoToNextRound(): Boolean
+}
+
 class JsInlineFunctionHash(val sourceFilePath: String, val fqName: String, val inlineFunctionMd5Hash: Long): Serializable
 
 class FunctionWithSourceInfo(val expression: Any, val line: Int, val column: Int) {
@@ -51,7 +55,7 @@ class FunctionWithSourceInfo(val expression: Any, val line: Int, val column: Int
         get() = "($line:$column)$expression".toByteArray().md5()
 }
 
-class IncrementalResultsConsumerImpl : IncrementalResultsConsumer {
+open class IncrementalResultsConsumerImpl : IncrementalResultsConsumer {
     lateinit var headerMetadata: ByteArray
         private set
 

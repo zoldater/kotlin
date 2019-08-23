@@ -28,12 +28,14 @@ import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.js.analyze.TopDownAnalyzerFacadeForJS
 import org.jetbrains.kotlin.js.analyzer.JsAnalysisResult
+import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import org.jetbrains.kotlin.konan.KonanVersionImpl
 import org.jetbrains.kotlin.konan.MetaVersion
 import org.jetbrains.kotlin.konan.properties.propertyList
 import org.jetbrains.kotlin.library.*
 import org.jetbrains.kotlin.library.impl.createKotlinLibrary
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.progress.IncrementalNextRoundException
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi2ir.Psi2IrConfiguration
@@ -82,9 +84,6 @@ fun generateKLib(
     val depsDescriptors = ModulesStructure(project, files, configuration, allDependencies, friendDependencies)
 
     val psi2IrContext = runAnalysisAndPreparePsi2Ir(depsDescriptors)
-
-    trySaveIncrementalData(psi2IrContext, configuration, files)
-
     val moduleFragment = psi2IrContext.generateModuleFragment(files)
 
     val moduleName = configuration[CommonConfigurationKeys.MODULE_NAME]!!
@@ -233,6 +232,11 @@ private class ModulesStructure(
             )
 
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
+
+        trySaveIncrementalData(analysisResult.bindingContext, analysisResult.moduleDescriptor, compilerConfiguration, files)
+        val nextRoundChecker = compilerConfiguration.get(JSConfigurationKeys.INCREMENTAL_NEXT_ROUND_CHECKER)
+        if (nextRoundChecker?.shouldGoToNextRound() == true) throw IncrementalNextRoundException()
+
         TopDownAnalyzerFacadeForJS.checkForErrors(files, analysisResult.bindingContext)
 
         return analysisResult

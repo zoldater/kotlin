@@ -23,11 +23,8 @@ import org.jetbrains.kotlin.serialization.js.KotlinJavascriptSerializationUtil
 import org.jetbrains.kotlin.utils.JsMetadataVersion
 
 // todo: think if possible to unify with org.jetbrains.kotlin.js.facade.K2JSTranslator.trySaveIncrementalData
-internal fun trySaveIncrementalData(context: GeneratorContext, config: CompilerConfiguration, files: List<KtFile>) {
+internal fun trySaveIncrementalData(bindingContext: BindingContext, moduleDescriptor: ModuleDescriptor, config: CompilerConfiguration, files: List<KtFile>) {
     val incrementalResults = config.get(INCREMENTAL_RESULTS_CONSUMER) ?: return
-
-    val bindingContext = context.bindingContext
-    val moduleDescriptor = context.moduleDescriptor
 
     val emptyByteArray = emptyArray<Byte>().toByteArray()
 
