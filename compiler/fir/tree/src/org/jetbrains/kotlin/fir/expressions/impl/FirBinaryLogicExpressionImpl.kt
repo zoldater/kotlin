@@ -21,7 +21,7 @@ class FirBinaryLogicExpressionImpl(
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement {
         transformLeftOperand(transformer, data)
         transformRightOperand(transformer, data)
-        return transformRest(transformer, data)
+        return transformRestChildren(transformer, data)
     }
 
     override fun <D> transformLeftOperand(transformer: FirTransformer<D>, data: D): FirBinaryLogicExpression {
@@ -34,7 +34,7 @@ class FirBinaryLogicExpressionImpl(
         return this
     }
 
-    override fun <D> transformRest(transformer: FirTransformer<D>, data: D): FirBinaryLogicExpression {
+    override fun <D> transformRestChildren(transformer: FirTransformer<D>, data: D): FirBinaryLogicExpression {
         return super.transformChildren(transformer, data) as FirBinaryLogicExpression
     }
 }

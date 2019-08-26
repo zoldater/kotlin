@@ -839,7 +839,7 @@ open class FirBodyResolveTransformer(
                     .transformLeftOperand(this, booleanType).also(dataFlowAnalyzer::exitLeftBinaryOrArgument)
                     .transformRightOperand(this, booleanType).also(dataFlowAnalyzer::exitBinaryOr)
 
-        }.transformRest(this, booleanType).also {
+        }.transformRestChildren(this, booleanType).also {
             it.resultType = booleanType
         }.compose()
     }
