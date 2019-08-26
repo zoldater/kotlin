@@ -56,7 +56,7 @@ class FirJavaConstructor(
 
     override val valueParameters = mutableListOf<FirValueParameter>()
 
-    override val controlFlowGraphReference: FirControlFlowGraphReference = FirEmptyControlFlowGraphReference()
+    override val controlFlowGraphReference: FirControlFlowGraphReference? get() = null
 
     override fun <D> transformValueParameters(transformer: FirTransformer<D>, data: D): FirJavaConstructor {
         valueParameters.transformInplace(transformer, data)

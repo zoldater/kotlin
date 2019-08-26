@@ -41,6 +41,7 @@ class FirPropertyAccessorImpl(
         valueParameters.transformInplace(transformer, data)
         body = body?.transformSingle(transformer, data)
         status = status.transformSingle(transformer, data)
+        transformControlFlowGraphReference(transformer, data)
 
         return super.transformChildren(transformer, data)
     }

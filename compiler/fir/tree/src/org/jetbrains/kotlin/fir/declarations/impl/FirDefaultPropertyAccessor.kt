@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.fir.transformSingle
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitUnitTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
+import org.jetbrains.kotlin.fir.visitors.FirVisitor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
@@ -43,7 +44,7 @@ abstract class FirDefaultPropertyAccessor(
 
     abstract override var returnTypeRef: FirTypeRef
 
-    override val controlFlowGraphReference: FirControlFlowGraphReference = FirEmptyControlFlowGraphReference()
+    final override val controlFlowGraphReference: FirControlFlowGraphReference? get() = null
 
     override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D) {
         returnTypeRef = returnTypeRef.transformSingle(transformer, data)

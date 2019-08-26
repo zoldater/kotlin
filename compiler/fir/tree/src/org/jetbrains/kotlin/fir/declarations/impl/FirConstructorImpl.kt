@@ -84,6 +84,7 @@ open class FirConstructorImpl : FirAbstractCallableMember<FirConstructor>, FirCo
         status.accept(visitor, data)
         delegatedConstructor?.accept(visitor, data)
         body?.accept(visitor, data)
+        controlFlowGraphReference.accept(visitor, data)
     }
 
     override fun <D> transformValueParameters(transformer: FirTransformer<D>, data: D): FirConstructorImpl {

@@ -46,7 +46,7 @@ class FirErrorFunction(
     override val body: FirBlock?
         get() = null
 
-    override val controlFlowGraphReference: FirControlFlowGraphReference = FirEmptyControlFlowGraphReference()
+    override val controlFlowGraphReference: FirControlFlowGraphReference? get() = null
 
     override var resolvePhase = FirResolvePhase.BODY_RESOLVE
 

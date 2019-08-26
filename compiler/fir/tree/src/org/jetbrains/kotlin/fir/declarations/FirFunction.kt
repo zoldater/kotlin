@@ -20,7 +20,7 @@ interface FirFunction<F : FirFunction<F>> : @VisitedSupertype FirDeclarationWith
     FirTargetElement, FirStatement, FirSymbolOwner<F> {
 
     val valueParameters: List<FirValueParameter>
-    val controlFlowGraphReference: FirControlFlowGraphReference
+    val controlFlowGraphReference: FirControlFlowGraphReference?
 
     override val symbol: FirFunctionSymbol<F>
 
@@ -32,7 +32,7 @@ interface FirFunction<F : FirFunction<F>> : @VisitedSupertype FirDeclarationWith
         for (parameter in valueParameters) {
             parameter.accept(visitor, data)
         }
-        controlFlowGraphReference.accept(visitor, data)
+        controlFlowGraphReference?.accept(visitor, data)
         super<FirDeclarationWithBody>.acceptChildren(visitor, data)
     }
 
