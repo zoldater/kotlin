@@ -24,7 +24,12 @@ internal fun getSuperClassId(obj: Any): Int =
     wasm_i32_load(obj.typeInfo + SUPER_CLASS_ID_OFFSET)
 
 internal fun getVirtualMethodId(obj: Any, virtualFunctionSlot: Int): Int {
-    return wasm_i32_load(getVtablePtr(obj) + virtualFunctionSlot * 4)
+    val address = getVtablePtr(obj) + virtualFunctionSlot * 4
+    println("Loading virtual method id for class ${obj.typeInfo} and slot $virtualFunctionSlot from address ${address}")
+    println("VTable ptr ${getVtablePtr(obj)} from address ${address}")
+    val res = wasm_i32_load(address)
+    println("Loaded result: ${res}")
+    return res
 }
 
 internal fun getInterfaceMethodId(obj: Any, methodSignatureId: Int): Int {

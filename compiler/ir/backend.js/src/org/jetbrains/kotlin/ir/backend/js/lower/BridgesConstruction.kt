@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.name.FqName
 
 // Constructs bridges for inherited generic functions
 //
@@ -64,7 +65,17 @@ class BridgesConstruction(val context: CommonBackendContext) : ClassLoweringPass
             .forEach { generateBridges(it, irClass) }
     }
 
+    fun IrAnnotationContainer.hasExcludedFromCodegenAnnotation(): Boolean =
+        hasAnnotation(FqName("kotlin.wasm.internal.ExcludedFromCodegen"))
+
+    fun IrClass.hasSkipRTTIAnnotation(): Boolean =
+        hasAnnotation(FqName("kotlin.wasm.internal.SkipRTTI")) || hasExcludedFromCodegenAnnotation()
+
     private fun generateBridges(function: IrSimpleFunction, irClass: IrClass) {
+        if (function.hasExcludedFromCodegenAnnotation())
+            return
+        if (irClass.hasSkipRTTIAnnotation())
+            return
         // equals(Any?), hashCode(), toString() never need bridges
         if (function.isMethodOfAny())
             return

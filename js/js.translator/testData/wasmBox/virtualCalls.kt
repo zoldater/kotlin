@@ -9,9 +9,9 @@ class B : A() {
 
 fun box(): String {
     val a: A = B()
-    a.foo()
-    // if (a.foo() != 2)
-    //     return "Fail"
+    val res = a.foo()
+    if (res != 2)
+         return "Fail $res"
 
     return "OK"
 }

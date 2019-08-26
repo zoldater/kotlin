@@ -110,6 +110,9 @@ class WasmSymbols(
     val wasmClassId = getInternalFunction("wasmClassId")
     val wasmInterfaceId = getInternalFunction("wasmInterfaceId")
 
+    val getVirtualMethodId = getInternalFunction("getVirtualMethodId")
+    val getInterfaceMethodId = getInternalFunction("getInterfaceMethodId")
+
     private fun findClass(memberScope: MemberScope, name: Name): ClassDescriptor =
         memberScope.getContributedClassifier(name, NoLookupLocation.FROM_BACKEND) as ClassDescriptor
 

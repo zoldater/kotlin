@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isAny
-import org.jetbrains.kotlin.ir.types.isSubtypeOf
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.*
 
@@ -140,14 +139,18 @@ class ExpressionTransformer : BaseTransformer<WasmInstruction, WasmCodegenContex
         val irArguments = listOfNotNull(expression.dispatchReceiver, expression.extensionReceiver) + valueArgs
         val wasmArguments = listOfNotNull(additionalArgument) + irArguments.map { expressionToWasmInstruction(it, data) }
 
+        val symbols = data.backendContext.wasmSymbols
+
         if (function is IrSimpleFunction && function.isOverridable) {
             val klass = function.parentAsClass
             if (!klass.isInterface) {
                 val classMetadata = data.typeInfo.classes[klass]!!
-                val tableIndex = classMetadata.virtualMethods.map { it.function }.indexOf(function)
+                val vfSlot = classMetadata.virtualMethods.map { it.function }.indexOf(function)
+                // TODO: Avoid double side effect of dispatch receiver
+                val tableIndex = WasmCall(data.getGlobalName(symbols.getVirtualMethodId.owner), listOf(wasmArguments[0], WasmI32Const(vfSlot)))
                 val functionType = data.getFunctionTypeName(function)
 
-                return WasmCallIdirect(functionType, wasmArguments + listOf(WasmI32Const(tableIndex)))
+                return WasmCallIdirect(functionType, wasmArguments + listOf(tableIndex))
             } else {
                 return WasmUnreachable
                 TODO("Support interface calls ${expression.dump()}")

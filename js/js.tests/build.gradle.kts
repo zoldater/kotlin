@@ -168,7 +168,8 @@ val currentOsType = run {
     OsType(osName, osArch)
 }
 
-val jsShellDirectory = "https://archive.mozilla.org/pub/firefox/nightly/2019/08/2019-08-11-09-56-40-mozilla-central"
+val jsShellDirectory = // "https://archive.mozilla.org/pub/firefox/nightly/2019/08/2019-08-11-09-56-40-mozilla-central"
+"https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central"
 val jsShellSuffix = when (currentOsType) {
     OsType(OsName.LINUX, OsArch.X86_32) -> "linux-i686"
     OsType(OsName.LINUX, OsArch.X86_64) -> "linux-x86_64"

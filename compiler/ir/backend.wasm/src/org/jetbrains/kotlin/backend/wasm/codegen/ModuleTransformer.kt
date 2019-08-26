@@ -76,7 +76,7 @@ class IrModuleToWasm(private val backendContext: WasmBackendContext) {
 
         val classesSorted = DFS.topologicalOrder(classes) { it.superClasses }.reversed()
 
-        var classId = 1
+        var classId = 4
         var ifaceId = 1
 
         val lmClassMetadata = mutableListOf<LMElement>()
@@ -188,7 +188,7 @@ class IrModuleToWasm(private val backendContext: WasmBackendContext) {
         }
         println("----")
 
-        val lm = LMStruct("TypeInfo", lmClassMetadata)
+        val lm = LMStruct("TypeInfo", listOf(LMFieldI32("padding", -1)) + lmClassMetadata)
         println(lm.dump())
         println("Bytes: ${lm.toBytes().contentToString()}")
         println("Bytes Data: ${lm.toBytes().toWatData()}")
