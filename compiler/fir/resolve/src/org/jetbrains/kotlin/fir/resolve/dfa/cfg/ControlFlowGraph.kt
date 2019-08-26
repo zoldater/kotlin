@@ -20,6 +20,10 @@ class ControlFlowGraph(val name: String) {
 }
 
 sealed class CFGNode<out E : FirElement>(val owner: ControlFlowGraph, val level: Int) {
+    init {
+        owner.nodes += this
+    }
+
     val previousNodes = mutableListOf<CFGNode<*>>()
     val followingNodes = mutableListOf<CFGNode<*>>()
 
