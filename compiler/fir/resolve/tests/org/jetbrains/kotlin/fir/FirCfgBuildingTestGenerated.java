@@ -51,6 +51,11 @@ public class FirCfgBuildingTestGenerated extends AbstractFirCfgBuildingTest {
             runTest("compiler/fir/resolve/testData/resolve/cfg/jumps.kt");
         }
 
+        @TestMetadata("lambdas.kt")
+        public void testLambdas() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/cfg/lambdas.kt");
+        }
+
         @TestMetadata("loops.kt")
         public void testLoops() throws Exception {
             runTest("compiler/fir/resolve/testData/resolve/cfg/loops.kt");
