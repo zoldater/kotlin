@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.nj2k
 
+import com.intellij.psi.CommonClassNames
 import org.jetbrains.kotlin.load.java.NULLABILITY_ANNOTATIONS
 import org.jetbrains.kotlin.name.FqName
 
@@ -22,8 +23,20 @@ class ImportStorage {
     companion object {
         fun isImportNeeded(fqName: FqName): Boolean {
             if (fqName in NULLABILITY_ANNOTATIONS) return false
+            if (fqName in JAVA_PRIMITIVE_TYPE_WRAPPERS) return false
             return true
         }
+
+        // we don't have Integer here as in Kotlin it called Int
+        // and it will not cause conflicts
+        private val JAVA_PRIMITIVE_TYPE_WRAPPERS = setOf(
+            FqName(CommonClassNames.JAVA_LANG_BYTE),
+            FqName(CommonClassNames.JAVA_LANG_SHORT),
+            FqName(CommonClassNames.JAVA_LANG_LONG),
+            FqName(CommonClassNames.JAVA_LANG_FLOAT),
+            FqName(CommonClassNames.JAVA_LANG_DOUBLE),
+            FqName(CommonClassNames.JAVA_LANG_CHARACTER)
+        )
 
         fun isImportNeeded(fqName: String): Boolean = isImportNeeded(FqName(fqName))
     }
