@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.idea.core.script
 import com.intellij.internal.statistic.collectors.fus.fileTypes.FileTypeUsageSchemaDescriptor
 import com.intellij.openapi.vfs.VirtualFile
 
-class KotlinScriptFileTypeSchemaDescriptor : FileTypeUsageSchemaDescriptor {
+class KotlinGradleScriptFileTypeSchemaDetector : FileTypeUsageSchemaDescriptor {
     override fun describes(file: VirtualFile): Boolean =
-        file.extension?.endsWith(".gradle.kts") == true
+        file.name.endsWith(".gradle.kts")
 }
