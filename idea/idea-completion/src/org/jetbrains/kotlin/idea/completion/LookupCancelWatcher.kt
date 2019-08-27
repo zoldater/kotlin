@@ -30,12 +30,12 @@ import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.EditorFactoryEvent
+import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import org.jetbrains.kotlin.idea.statistics.CompletionFUSCollector
 import org.jetbrains.kotlin.idea.statistics.CompletionFUSCollector.completionStatsData
 import org.jetbrains.kotlin.idea.statistics.FinishReasonStats
-import org.jetbrains.kotlin.idea.util.compat.EditorFactoryListenerWrapper
 
 class LookupCancelWatcher(val project: Project) : ProjectComponent {
     private class Reminiscence(editor: Editor, offset: Int) {
@@ -115,7 +115,7 @@ class LookupCancelWatcher(val project: Project) : ProjectComponent {
         })
 
         EditorFactory.getInstance().addEditorFactoryListener(
-            object : EditorFactoryListenerWrapper {
+            object : EditorFactoryListener {
                 override fun editorReleased(event: EditorFactoryEvent) {
                     if (lastReminiscence?.editor == event.editor) {
                         lastReminiscence!!.dispose()
