@@ -10064,6 +10064,11 @@ public class FirDiagnosticsSmokeTestGenerated extends AbstractFirDiagnosticsSmok
                 runTest("compiler/testData/diagnostics/tests/inference/commonSystem/cstFromNullableChildAndNonParameterizedType.kt");
             }
 
+            @TestMetadata("cstWithTypeContainingNonFixedVariable.kt")
+            public void testCstWithTypeContainingNonFixedVariable() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/inference/commonSystem/cstWithTypeContainingNonFixedVariable.kt");
+            }
+
             @TestMetadata("dontCaptureTypeVariable.kt")
             public void testDontCaptureTypeVariable() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/inference/commonSystem/dontCaptureTypeVariable.kt");
