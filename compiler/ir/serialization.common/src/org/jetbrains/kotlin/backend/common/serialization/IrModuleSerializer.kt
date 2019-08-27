@@ -998,6 +998,7 @@ open class IrModuleSerializer(
             .setIndex(parameter.index)
             .setVariance(serializeIrTypeVariance(parameter.variance))
             .setIsReified(parameter.isReified)
+            .setIsVariadic(parameter.isVariadic)
         parameter.superTypes.forEach {
             proto.addSuperType(serializeIrType(it))
         }
