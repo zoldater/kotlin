@@ -54,7 +54,6 @@ abstract class ResolverForProject<M : ModuleInfo> {
 
     abstract val name: String
     abstract val allModules: Collection<M>
-    abstract val builtInsProvider: (M) -> KotlinBuiltIns
 
     override fun toString() = name
 

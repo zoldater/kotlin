@@ -538,35 +538,6 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
     }
 }
 
-class BuiltInsCache(private val project: Project) {
-    private val innerCache
-        get() = project.cacheByClass(
-            BuiltInsCache::class.java,
-            ProjectRootModificationTracker.getInstance(project),
-            LibraryModificationTracker.getInstance(project)
-        ) { ConcurrentHashMap<BuiltInsCacheKey, KotlinBuiltIns>() }
-
-    init {
-        innerCache[BuiltInsCacheKey.DefaultBuiltInsKey] = DefaultBuiltIns.Instance
-    }
-
-    fun getOrPut(key: BuiltInsCacheKey, ifAbsent: (BuiltInsCacheKey) -> KotlinBuiltIns): KotlinBuiltIns {
-        return innerCache.computeIfAbsent(key, ifAbsent)
-    }
-
-    operator fun get(key: BuiltInsCacheKey): KotlinBuiltIns? {
-        return innerCache[key]
-    }
-
-    operator fun set(key: BuiltInsCacheKey, value: KotlinBuiltIns) {
-        innerCache[key] = value
-    }
-}
-
-interface BuiltInsCacheKey {
-    object DefaultBuiltInsKey : BuiltInsCacheKey
-}
-
 fun IdeaModuleInfo.supportsAdditionalBuiltInsMembers(project: Project): Boolean {
     return IDELanguageSettingsProvider
         .getLanguageVersionSettings(this, project)
