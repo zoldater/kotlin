@@ -30,7 +30,10 @@ import org.jetbrains.kotlin.idea.util.getImplicitReceiversWithInstanceToExpressi
 import org.jetbrains.kotlin.idea.util.getResolutionScope
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.*
+import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
+import org.jetbrains.kotlin.psi.psiUtil.getQualifiedElementSelector
+import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
+import org.jetbrains.kotlin.psi.psiUtil.quoteIfNeeded
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DelegatingBindingTrace
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getDataFlowInfoBefore
@@ -169,7 +172,7 @@ fun FqName.quoteSegmentsIfNeeded(): String {
     return pathSegments().joinToString(".") { it.asString().quoteIfNeeded() }
 }
 
-fun FqName.quoteIfNeeded() = FqName(quoteSegmentsIfNeeded())
+fun FqName.quoteIfNeeded() = this
 
 fun isEnumCompanionPropertyWithEntryConflict(element: PsiElement, expectedName: String): Boolean {
     if (element !is KtProperty) return false
