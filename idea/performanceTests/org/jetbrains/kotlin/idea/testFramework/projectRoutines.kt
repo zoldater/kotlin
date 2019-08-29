@@ -109,6 +109,7 @@ fun replaceWithCustomHighlighter(parentDisposable: Disposable, fromImplementatio
     point.implementationClass = toImplementationClass
 
     val extensions = extensionPoint.extensions
+    println("## LanguageAnnotators: ${extensionPoint.extensions.map { "${it.language}:${it.implementationClass}" }.toList()}")
     val filteredExtensions =
         extensions.filter { it.language != "kotlin" || it.implementationClass != fromImplementationClass }
             .toList()

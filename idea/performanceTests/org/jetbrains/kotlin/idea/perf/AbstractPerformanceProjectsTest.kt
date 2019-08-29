@@ -156,7 +156,7 @@ abstract class AbstractPerformanceProjectsTest : UsefulTestCase() {
     protected fun innerPerfOpenProject(
         name: String,
         stats: Stats,
-        note: String,
+        note: String = "",
         path: String,
         simpleModule: Boolean = false,
         fast: Boolean = false
@@ -503,20 +503,22 @@ abstract class AbstractPerformanceProjectsTest : UsefulTestCase() {
         projectPath: String,
         name: String
     ) {
-        val modulePath = "$projectPath/$name${ModuleFileType.DOT_DEFAULT_EXTENSION}"
         val projectFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(File(projectPath))!!
-        val srcFile = projectFile.findChild("src")!!
-        val module = runWriteAction {
-            val projectRootManager = ProjectRootManager.getInstance(project)
-            with(projectRootManager) {
-                projectSdk = jdk18
+        val moduleManager = ModuleManager.getInstance(project)
+        if (moduleManager.modules.isEmpty()) {
+            val srcFile = projectFile.findChild("src")!!
+            val module = runWriteAction {
+                val projectRootManager = ProjectRootManager.getInstance(project)
+                with(projectRootManager) {
+                    projectSdk = jdk18
+                }
+                val modulePath = "$projectPath/$name${ModuleFileType.DOT_DEFAULT_EXTENSION}"
+                val module = moduleManager.newModule(modulePath, ModuleTypeId.JAVA_MODULE)
+                PsiTestUtil.addSourceRoot(module, srcFile)
+                module
             }
-            val moduleManager = ModuleManager.getInstance(project)
-            val module = moduleManager.newModule(modulePath, ModuleTypeId.JAVA_MODULE)
-            PsiTestUtil.addSourceRoot(module, srcFile)
-            module
+            ConfigLibraryUtil.configureKotlinRuntimeAndSdk(module, jdk18)
         }
-        ConfigLibraryUtil.configureKotlinRuntimeAndSdk(module, jdk18)
     }
 
     protected fun perfHighlightFile(name: String, stats: Stats): List<HighlightInfo> =
@@ -645,8 +647,8 @@ abstract class AbstractPerformanceProjectsTest : UsefulTestCase() {
         val fileManager = VirtualFileManager.getInstance()
         val url = "${project.guessProjectDir()}/$name"
         val virtualFile = fileManager.refreshAndFindFileByUrl(url)
-        if (virtualFile != null) {
-            return virtualFile!!.toPsiFile(project)!!
+        virtualFile?.let {
+            return it.toPsiFile(project)!!
         }
 
         val baseFileName = baseName(name)
@@ -660,7 +662,8 @@ abstract class AbstractPerformanceProjectsTest : UsefulTestCase() {
             .filter { it.canonicalPath?.contains("/$projectBaseName/$name") ?: false }.toList()
 
         assertEquals(
-            "expected the only file with name '$name'\n, it were: [${virtualFiles.map { it.canonicalPath }.joinToString("\n")}]",
+            "'$name' not found at '$url', try via '$baseFileName' in '$projectBaseName': " +
+                    "expected the only file with name '$name'\n, it were: [${virtualFiles.map { it.canonicalPath }.joinToString("\n")}]",
             1,
             virtualFiles.size
         )
