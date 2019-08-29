@@ -3,16 +3,13 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.backend.common.lower
+package org.jetbrains.kotlin.ir.backend.js.lower
 
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.phaser.makeIrModulePhase
 import org.jetbrains.kotlin.descriptors.ScriptDescriptor
-import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrScript
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionReferenceImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrPropertyReferenceImpl
@@ -25,18 +22,20 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import java.lang.IllegalArgumentException
 
-val removeReceiverLowering = makeIrModulePhase(
-    ::RemoveReceiverLowering,
-    name = "RemoveReceiver",
-    description = "Remove receivers"
+val scriptRemoveReceiverLowering = makeIrModulePhase(
+    ::ScriptRemoveReceiverLowering,
+    name = "ScriptRemoveReceiver",
+    description = "Remove receivers for declarations in script"
 )
 
-private class RemoveReceiverLowering(val context: CommonBackendContext) : FileLoweringPass {
+private class ScriptRemoveReceiverLowering(val context: CommonBackendContext) : FileLoweringPass {
     override fun lower(irFile: IrFile) {
-        irFile.declarations.transformFlat {
-            if (it is IrScript) {
-                lower(it)
-            } else null
+        if (context.scriptMode) {
+            irFile.declarations.transformFlat {
+                if (it is IrScript) {
+                    lower(it)
+                } else null
+            }
         }
     }
 

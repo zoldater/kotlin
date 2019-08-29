@@ -121,24 +121,24 @@ class DependencyLoader {
 
     fun saveNames(nameTables: NameTables, path: String = mappedNamesPath) {
         FileWriter(path).use { writer ->
-            for (entry in nameTables.globalNames.mappedNames) {
+            for (entry in nameTables.mappedNames) {
                 writer.write("${entry.key} ${entry.value}" + System.lineSeparator())
             }
         }
     }
 
     fun loadNames(path: String = mappedNamesPath): NameTables {
-        val nameTables = NameTables(emptyList())
+        val mappedNames = mutableMapOf<String, String>()
+        val reserved = mutableSetOf<String>()
+
         Files.newBufferedReader(Paths.get(path)).use { reader ->
-            var line: String? = reader.readLine()
-            while (line != null) {
+            for (line in reader.readLines()) {
                 val (key, value) = line.split(" ")
-                nameTables.globalNames.mappedNames[key] = value
-                nameTables.globalNames.reserved.add(value)
-                line = reader.readLine()
+                mappedNames[key] = value
+                reserved += value
             }
         }
-        return nameTables
+        return NameTables(emptyList(), mappedNames = mappedNames, reservedForGlobal = reserved)
     }
 
     fun saveScriptDependencyBinary(stdlibCompiledResult: String, path: String = scriptDependencyBinaryPath) {

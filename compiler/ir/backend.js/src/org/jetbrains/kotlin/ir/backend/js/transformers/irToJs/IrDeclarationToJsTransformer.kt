@@ -5,12 +5,12 @@
 
 package org.jetbrains.kotlin.ir.backend.js.transformers.irToJs
 
-import com.sun.tools.javac.util.Assert
-import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.utils.JsGenerationContext
-import org.jetbrains.kotlin.ir.backend.js.utils.emptyScope
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.js.backend.ast.*
+import org.jetbrains.kotlin.js.backend.ast.JsEmpty
+import org.jetbrains.kotlin.js.backend.ast.JsGlobalBlock
+import org.jetbrains.kotlin.js.backend.ast.JsStatement
+import org.jetbrains.kotlin.js.backend.ast.JsVars
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
 class IrDeclarationToJsTransformer : BaseIrElementToJsNodeTransformer<JsStatement, JsGenerationContext> {
@@ -49,58 +49,9 @@ class IrDeclarationToJsTransformer : BaseIrElementToJsNodeTransformer<JsStatemen
     }
 
     override fun visitScript(irScript: IrScript, context: JsGenerationContext): JsStatement {
-        val declarations: MutableList<JsStatement> = mutableListOf()
-        val transformer = IrDeclarationToJsTransformer()
-        for (d in irScript.declarations) {
-            declarations += d.accept(transformer, context)
+        return JsGlobalBlock().apply {
+            statements += irScript.declarations.map { it.accept(this@IrDeclarationToJsTransformer, context) }
+            statements += irScript.statements.map { it.accept(IrElementToJsStatementTransformer(), context) }
         }
-        declarations += createEvaluateFunction(irScript.statements, context)
-
-        return JsGlobalBlock().also { it.statements += declarations }
-    }
-
-    companion object {
-        var evalFunc: JsFunction? = null
-        var evalFunctionName: String = "evaluateScript"
-        private var evaluateScriptFunctionCreated: Boolean = false
-
-        fun getEvaluateScriptFunction(): JsFunction {
-            Assert.check(evaluateScriptFunctionCreated)
-            return evalFunc!!
-        }
-    }
-
-    private fun setReturnStatement(statements: MutableList<JsStatement>) {
-        if (statements.isNotEmpty()) {
-            when (val last = statements.last()) {
-                is JsExpressionStatement -> {
-                    val returnExpression = JsReturn(last.expression)
-                    statements[statements.size - 1] = returnExpression
-                }
-                is JsBlock -> setReturnStatement(last.statements)
-            }
-        }
-    }
-
-    private fun createEvaluateFunction(statementssss: MutableList<IrStatement>, context: JsGenerationContext): JsStatement {
-        val statements: MutableList<JsStatement> = mutableListOf()
-
-        val tr = IrElementToJsStatementTransformer()
-        for (s in statementssss) {
-            statements += s.accept(tr, context)
-        }
-
-        evalFunc = JsFunction(
-            emptyScope,
-            JsBlock(statements),
-            "Evaluate script function"
-        )
-            .also {
-                it.name = JsName(evalFunctionName, false)
-                setReturnStatement(it.body.statements)
-            }
-
-        evaluateScriptFunctionCreated = true
-        return evalFunc!!.makeStmt()
     }
 }

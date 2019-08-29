@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.ir.declarations
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.symbols.IrScriptSymbol
 
+//TODO: make IrScript as IrPackageFragment, because script is used as a file, not as a class
 interface IrScript : IrSymbolDeclaration<IrScriptSymbol>, IrDeclarationContainer, IrDeclarationWithName, IrDeclarationParent {
     val statements: MutableList<IrStatement>
     var thisReceiver: IrValueParameter

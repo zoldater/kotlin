@@ -135,7 +135,6 @@ abstract class AbstractReplTestRunner : TestCase() {
         Assert.assertEquals("truetrue", compileAndEval(lines))
     }
 
-
     @Test
     fun testScopes() {
         val lines = listOf(
@@ -168,6 +167,53 @@ abstract class AbstractReplTestRunner : TestCase() {
         Assert.assertEquals(10, compileAndEval(lines))
     }
 
+    @Test
+    fun testMemberDeclarations() {
+        val lines = listOf( //TODO: fix clashed (?) names. lines 1-3 is OK, result of lines 4-6 is "<PI><PI>"
+            """
+            val a = listOf(1, 2, 3, 4, 5)
+            val str = "" + kotlin.math.PI
+            str + a.subList(2, 3).toString() + a.lastIndexOf(4)
+//            val list = listOf(1, 2, 3, 4, 5)  
+//            val string = "" + kotlin.math.PI
+//            string + list.subList(2, 3).toString() + list.lastIndexOf(4)
+            """
+        )
+        Assert.assertEquals("3.141592653589793[3]3", compileAndEval(lines))
+    }
+
+    @Test
+    fun testInitializeScriptFunction() {
+        val lines = listOf(
+            """
+            var result = ""
+            
+            class Class(val x: Int = 10)
+            result += Class().x
+            
+            fun function() = "#$@"
+            result += function()
+            
+            val field = 123456
+            result += field
+            
+            val sq: (x: Int) -> Int = { x -> x * x }
+            result += "_" + sq(9)
+            
+            result += if (sq(5) % 2 == 0) {
+                class I(val x: Int = 100)
+                I().x 
+            } else {
+                class I(val x: String = "goo")
+                I().x
+            }
+            
+            result
+            """
+        )
+        Assert.assertEquals("10#$@123456_81goo", compileAndEval(lines))
+    }
+
     private fun compileAndEval(lines: List<String>): Any? {
         var result: Any? = null
         getTester().use { tester ->
@@ -177,6 +223,7 @@ abstract class AbstractReplTestRunner : TestCase() {
                 val compileResult = tester.compile(makeReplCodeLine(tester.newSnippetId(), line))
                 if (compileResult !is ReplCompileResult.CompiledClasses) return compileResult.toString()
 
+                println(compileResult.data)
                 val evalResult = tester.evaluate(compileResult)
                 if (evalResult !is ReplEvalResult.ValueResult) return evalResult.toString()
 

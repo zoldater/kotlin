@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.scripting.repl.js.test
 
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.repl.ReplCodeLine
 import org.jetbrains.kotlin.cli.common.repl.ReplCompileResult
 import org.jetbrains.kotlin.cli.common.repl.ReplCompiler
@@ -42,12 +43,13 @@ abstract class AbstractJsReplTest : Closeable {
     }
 
     fun reset() {
+        collector.clear()
         compiler = createCompiler()
         jsEvaluator = JsReplEvaluator()
         preprocessEvaluation()
     }
 
-    private var collector: ReplMessageCollector = ReplMessageCollector()
+    private val collector: MessageCollector = ReplMessageCollector()
     protected val disposable = Disposer.newDisposable()
     protected val environment = KotlinCoreEnvironment.createForProduction(
         disposable, loadConfiguration(), EnvironmentConfigFiles.JS_CONFIG_FILES

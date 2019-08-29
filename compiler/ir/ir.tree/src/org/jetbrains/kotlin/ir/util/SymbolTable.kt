@@ -238,7 +238,9 @@ open class SymbolTable : ReferenceSymbolTable {
 
     fun declareScript(
         descriptor: ScriptDescriptor,
-        scriptFactory: (IrScriptSymbol) -> IrScript = { symbol: IrScriptSymbol -> IrScriptImpl(descriptor, symbol, descriptor.name) }
+        scriptFactory: (IrScriptSymbol) -> IrScript = { symbol: IrScriptSymbol ->
+            IrScriptImpl(symbol, descriptor.name)
+        }
     ): IrScript {
         return scriptSymbolTable.declare(
             descriptor,
@@ -455,7 +457,7 @@ open class SymbolTable : ReferenceSymbolTable {
     override fun referenceValueParameter(descriptor: ParameterDescriptor) =
         valueParameterSymbolTable.referenced(descriptor) {
             if (descriptor.containingDeclaration is ScriptDescriptor) {
-                scriptSymbolTable.referenced(descriptor.containingDeclaration as ScriptDescriptor) { error("  ") } .owner.thisReceiver.symbol
+                scriptSymbolTable.referenced(descriptor.containingDeclaration as ScriptDescriptor) { error("  ") }.owner.thisReceiver.symbol
             } else {
                 throw AssertionError("Undefined parameter referenced: $descriptor\n${valueParameterSymbolTable.dump()}")
             }

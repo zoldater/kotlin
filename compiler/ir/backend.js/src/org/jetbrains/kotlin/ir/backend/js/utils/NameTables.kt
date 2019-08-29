@@ -22,10 +22,13 @@ import org.jetbrains.kotlin.js.naming.isES5IdentifierStart
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
-fun mapToKey(declaration: IrDeclaration): String {
+fun <T> mapToKey(declaration: T): String {
     return with(JsMangler) {
-        if (isPublic(declaration)) declaration.hashedMangle.toString()
-        else "key_have_not_generated"
+        if (declaration is IrDeclaration && isPublic(declaration)) {
+            declaration.hashedMangle.toString()
+        } else if (declaration is Signature) {
+            declaration.toString().hashMangle.toString()
+        } else "key_have_not_generated"
     }
 }
 
@@ -35,11 +38,11 @@ fun JsMangler.isPublic(declaration: IrDeclaration) =
 class NameTable<T>(
     val parent: NameTable<T>? = null,
     val reserved: MutableSet<String> = mutableSetOf(),
-    val sanitizer: (String) -> String = ::sanitizeName
+    val sanitizer: (String) -> String = ::sanitizeName,
+    val mappedNames: MutableMap<String, String> = mutableMapOf()
 ) {
     var finished = false
     val names = mutableMapOf<T, String>()
-    val mappedNames = mutableMapOf<String, String>()
 
     private fun isReserved(name: String): Boolean {
         if (parent != null && parent.isReserved(name))
@@ -48,18 +51,11 @@ class NameTable<T>(
     }
 
     fun declareStableName(declaration: T, name: String) {
-        val previous = names[declaration]
-        if (declaration !is ParameterTypeBasedSignature && declaration in names && previous != name) {
-            return
-        }
-
         if (parent != null) assert(parent.finished)
         assert(!finished)
         names[declaration] = name
         reserved.add(name)
-        if (declaration is IrDeclaration) {
-            mappedNames.putIfAbsent(mapToKey(declaration), name)
-        }
+        mappedNames[mapToKey(declaration)] = name
     }
 
     fun declareFreshName(declaration: T, suggestedName: String): String {
@@ -68,7 +64,7 @@ class NameTable<T>(
         return freshName
     }
 
-    fun findFreshName(suggestedName: String): String {
+    private fun findFreshName(suggestedName: String): String {
         if (!isReserved(suggestedName))
             return suggestedName
 
@@ -158,9 +154,9 @@ class NameTables(
     packages: List<IrPackageFragment>,
     reservedForGlobal: MutableSet<String> = mutableSetOf(),
     reservedForMember: MutableSet<String> = mutableSetOf(),
-    mappedNames: MutableMap<String, String> = mutableMapOf()
+    val mappedNames: MutableMap<String, String> = mutableMapOf()
 ) {
-    val globalNames: NameTable<IrDeclaration>
+    private val globalNames: NameTable<IrDeclaration>
     private val memberNames: NameTable<Signature>
     private val localNames = mutableMapOf<IrDeclaration, NameTable<IrDeclaration>>()
     private val loopNames = mutableMapOf<IrLoop, String>()
@@ -169,11 +165,11 @@ class NameTables(
         val stableNamesCollector = StableNamesCollector()
         packages.forEach { it.acceptChildrenVoid(stableNamesCollector) }
 
-        globalNames = NameTable(reserved = stableNamesCollector.staticNames)
+        globalNames = NameTable(reserved = stableNamesCollector.staticNames, mappedNames = mappedNames)
         globalNames.reserved.addAll(reservedForGlobal)
-        globalNames.mappedNames.addAllIfAbsent(mappedNames)
+        mappedNames.addAllIfAbsent(mappedNames)
 
-        memberNames = NameTable(reserved = stableNamesCollector.memberNames)
+        memberNames = NameTable(reserved = stableNamesCollector.memberNames, mappedNames = mappedNames)
         memberNames.reserved.addAll(reservedForMember)
 
         val classDeclaration = mutableListOf<IrClass>()
@@ -249,15 +245,20 @@ class NameTables(
         this += other.filter { it.key !in this }
     }
 
-    fun merge(packages: List<IrPackageFragment>) {
-        val table = NameTables(packages, globalNames.reserved, memberNames.reserved, globalNames.mappedNames)
+    private fun packagesAdded() = mappedNames.isEmpty()
+
+    fun merge(files: List<IrPackageFragment>, additionalPackages: List<IrPackageFragment>) {
+        val packages = mutableListOf<IrPackageFragment>().also { it.addAll(files) }
+        if (packagesAdded()) packages.addAll(additionalPackages)
+
+        val table = NameTables(packages, globalNames.reserved, memberNames.reserved, mappedNames)
 
         globalNames.names.addAllIfAbsent(table.globalNames.names)
         memberNames.names.addAllIfAbsent(table.memberNames.names)
         localNames.addAllIfAbsent(table.localNames)
         loopNames.addAllIfAbsent(table.loopNames)
 
-        globalNames.mappedNames.addAllIfAbsent(table.globalNames.mappedNames)
+        mappedNames.addAllIfAbsent(table.mappedNames)
 
         globalNames.reserved.addAll(table.globalNames.reserved)
         memberNames.reserved.addAll(table.memberNames.reserved)
@@ -302,14 +303,8 @@ class NameTables(
     }
 
     fun getNameForStaticDeclaration(declaration: IrDeclarationWithName): String {
-        return find(declaration) ?: find(declaration, true) ?: error("Can't find name for declaration ${declaration.fqNameWhenAvailable}")
-    }
-
-    fun find(declaration: IrDeclaration, searchInMappedNames: Boolean = false): String? {
-        val name: String? =
-            if (searchInMappedNames) globalNames.mappedNames[mapToKey(declaration)]
-            else globalNames.names[declaration]
-        if (name != null) return name
+        val global: String? = globalNames.names[declaration]
+        if (global != null) return global
 
         if (declaration is IrTypeParameter) {
             // TODO: Fix type parameters
@@ -320,21 +315,21 @@ class NameTables(
         while (parent is IrDeclaration) {
             val parentLocalNames = localNames[parent]
             if (parentLocalNames != null) {
-                val localName =
-                    if (searchInMappedNames) parentLocalNames.mappedNames[mapToKey(declaration)]
-                    else parentLocalNames.names[declaration]
+                val localName = parentLocalNames.names[declaration]
                 if (localName != null)
                     return localName
             }
             parent = parent.parent
         }
 
-        return null
+        return mappedNames[mapToKey(declaration)] ?: error("Can't find name for declaration ${declaration.fqNameWhenAvailable}")
     }
 
     fun getNameForMemberField(field: IrField): String {
         val signature = fieldSignature(field)
-        val name = memberNames.names[signature]
+        var name = memberNames.names[signature]
+
+        if (name == null) name = mappedNames[mapToKey(signature)]
         require(name != null) {
             "Can't find name for member field $field"
         }
@@ -343,12 +338,14 @@ class NameTables(
 
     fun getNameForMemberFunction(function: IrSimpleFunction): String {
         val signature = functionSignature(function)
-        val name = memberNames.names[signature]
+        var name = memberNames.names[signature]
 
         // TODO: Fix hack: Coroutines runtime currently relies on stable names
         //       of `invoke` functions in FunctionN interfaces
         if (name == null && signature is ParameterTypeBasedSignature && signature.suggestedName.startsWith("invoke"))
             return signature.suggestedName
+
+        if (name == null) name = mappedNames[mapToKey(signature)]
         require(name != null) {
             "Can't find name for member function ${function.render()}"
         }
@@ -369,13 +366,13 @@ class NameTables(
     }
 
     inner class LocalNameGenerator(parentDeclaration: IrDeclaration) : IrElementVisitorVoid {
-        val table = NameTable(globalNames)
+        val table = NameTable(globalNames, mappedNames = mappedNames)
 
         init {
             localNames[parentDeclaration] = table
         }
 
-        private val localLoopNames = NameTable<IrLoop>()
+        private val localLoopNames = NameTable<IrLoop>(mappedNames = mappedNames)
         override fun visitElement(element: IrElement) {
             element.acceptChildrenVoid(this)
         }
