@@ -40,7 +40,6 @@ class FirDataFlowAnalyzerImpl(transformer: FirBodyResolveTransformer) : FirDataF
     private val edges = mutableMapOf<CFGNode<*>, Flow>().withDefault { Flow.EMPTY }
 
     override fun getTypeUsingSmartcastInfo(qualifiedAccessExpression: FirQualifiedAccessExpression): Collection<ConeKotlinType>? {
-        return null
         val symbol: FirBasedSymbol<*> = qualifiedAccessExpression.resolvedSymbol ?: return null
         val variable = variableStorage[symbol]?.real ?: return null
         return graphBuilder.lastNode.flow.approvedFacts(variable)?.exactType ?: return null
