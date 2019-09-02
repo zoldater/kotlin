@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.idea.refactoring.move
 
 import com.intellij.ide.util.DirectoryUtil
-import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Comparing
@@ -55,7 +54,6 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ImplicitReceiver
 import org.jetbrains.kotlin.types.expressions.DoubleColonLHS
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.io.File
-import java.nio.file.Path
 import java.util.*
 
 sealed class ContainerInfo {
@@ -669,4 +667,12 @@ internal fun getTargetPackageFqName(targetContainer: PsiElement): FqName? {
         return if (targetPackage != null) FqName(targetPackage.qualifiedName) else null
     }
     return if (targetContainer is KtFile) targetContainer.packageFqName else null
+}
+
+internal inline fun <reified T : RuntimeException, K> tryOrNull(body: () -> K): K? {
+    return try {
+        body()
+    } catch (e: RuntimeException) {
+        if (e is T) null else throw e
+    }
 }

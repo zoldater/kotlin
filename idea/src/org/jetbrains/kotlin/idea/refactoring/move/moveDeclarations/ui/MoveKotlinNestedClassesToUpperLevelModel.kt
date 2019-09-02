@@ -17,7 +17,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.refactoring.PackageWrapper
 import com.intellij.refactoring.RefactoringBundle
-import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesUtil
 import com.intellij.refactoring.util.RefactoringMessageUtil
 import com.intellij.refactoring.util.RefactoringUtil
 import com.intellij.util.IncorrectOperationException
@@ -28,6 +27,7 @@ import org.jetbrains.kotlin.idea.core.KotlinNameSuggester
 import org.jetbrains.kotlin.idea.refactoring.createKotlinFile
 import org.jetbrains.kotlin.idea.refactoring.move.getTargetPackageFqName
 import org.jetbrains.kotlin.idea.refactoring.move.moveDeclarations.*
+import org.jetbrains.kotlin.idea.refactoring.move.tryOrNull
 import org.jetbrains.kotlin.idea.roots.getSuitableDestinationSourceRoots
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
@@ -60,52 +60,51 @@ internal abstract class MoveKotlinNestedClassesToUpperLevelModel(
     private val innerClassDescriptor = innerClass.unsafeResolveToDescriptor(BodyResolveMode.FULL) as ClassDescriptor
 
     private fun getTargetContainer(): PsiElement? {
-        if (target is PsiDirectory) {
-            val oldPackageFqName = getTargetPackageFqName(target)
-            val targetName = packageName
-            if (!Comparing.equal(oldPackageFqName?.asString(), targetName)) {
-                val projectRootManager = ProjectRootManager.getInstance(project)
 
-                val contentSourceRoots = getSuitableDestinationSourceRoots(project)
-                val newPackage = PackageWrapper(PsiManager.getInstance(project), targetName)
+        if (target !is PsiDirectory) {
+            return if (target is KtFile || target is KtClassOrObject) target else null
+        }
 
-                val targetSourceRoot: VirtualFile
-                if (contentSourceRoots.size > 1) {
-                    val oldPackage = oldPackageFqName?.let {
-                        JavaPsiFacade.getInstance(project).findPackage(it.asString())
-                    }
+        val oldPackageFqName = getTargetPackageFqName(target)
+        val targetName = packageName
 
-                    var initialDir: PsiDirectory? = null
-                    if (oldPackage != null) {
-                        val root = projectRootManager.fileIndex.getContentRootForFile(target.virtualFile)
-                        initialDir = oldPackage.directories.firstOrNull {
-                            Comparing.equal(projectRootManager.fileIndex.getContentRootForFile(it.virtualFile), root)
-                        }
-                    }
-
-                    targetSourceRoot = chooseSourceRoot(newPackage, contentSourceRoots, initialDir) ?: return null
-                } else {
-                    targetSourceRoot = contentSourceRoots[0]
-                }
-
-                var directory = RefactoringUtil.findPackageDirectoryInSourceRoot(newPackage, targetSourceRoot);
-                if (directory === null) {
-                    runWriteAction {
-                        try {
-                            directory = RefactoringUtil.createPackageDirectoryInSourceRoot(newPackage, targetSourceRoot)
-                        } catch (e: IncorrectOperationException) {
-                            directory = null;
-                        }
-                    }
-                }
-                return directory;
-            }
-
+        if (Comparing.equal(oldPackageFqName?.asString(), targetName)) {
             return target
         }
 
-        return if (target is KtFile || target is KtClassOrObject) target else null
+        val projectRootManager = ProjectRootManager.getInstance(project)
+        val contentSourceRoots = getSuitableDestinationSourceRoots(project)
+        val newPackage = PackageWrapper(PsiManager.getInstance(project), targetName)
 
+        val targetSourceRoot: VirtualFile?
+        if (contentSourceRoots.size > 1) {
+            val oldPackage = oldPackageFqName?.let {
+                JavaPsiFacade.getInstance(project).findPackage(it.asString())
+            }
+
+            val initialDir: PsiDirectory?
+            if (oldPackage !== null) {
+                val root = projectRootManager.fileIndex.getContentRootForFile(target.virtualFile)
+                initialDir = oldPackage.directories.firstOrNull {
+                    Comparing.equal(projectRootManager.fileIndex.getContentRootForFile(it.virtualFile), root)
+                }
+            } else {
+                initialDir = null
+            }
+
+            targetSourceRoot = chooseSourceRoot(newPackage, contentSourceRoots, initialDir)
+        } else {
+            targetSourceRoot = contentSourceRoots[0]
+        }
+        targetSourceRoot ?: return null
+
+        RefactoringUtil.findPackageDirectoryInSourceRoot(newPackage, targetSourceRoot)?.let { return it }
+
+        return runWriteAction {
+            tryOrNull<IncorrectOperationException, PsiDirectory> {
+                RefactoringUtil.createPackageDirectoryInSourceRoot(newPackage, targetSourceRoot)
+            }
+        }
     }
 
     @Throws(ConfigurationException::class)
