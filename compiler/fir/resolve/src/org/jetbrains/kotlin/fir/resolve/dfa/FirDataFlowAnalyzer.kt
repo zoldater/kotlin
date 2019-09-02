@@ -37,7 +37,7 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
     private val graphBuilder = ControlFlowGraphBuilder()
     private val logicSystem = LogicSystem(context)
     private val variableStorage = DataFlowVariableStorage()
-    private val edges = mutableMapOf<CFGNode<*>, Flow>().withDefault { Flow.EMPTY }
+    private val edges = mutableMapOf<CFGNode<*>, Flow>()
 
     /*
      * If there is no types from smartcasts function returns null
@@ -92,7 +92,6 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
         if (previousNode != null) {
             node.flow = logicSystem.approveFactsInsideFlow(previousNode.variable, EqTrue, node.flow)
         }
-        node.flow.freeze()
     }
 
     fun exitBlock(block: FirBlock) {
@@ -167,7 +166,6 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
 
             node.flow = flow
         } finally {
-            node.flow.freeze()
         }
     }
 
@@ -193,7 +191,6 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
                 }
             }
         } finally {
-            node.flow.freeze()
         }
     }
 
@@ -327,7 +324,7 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
     }
 
     fun exitWhenBranchCondition(whenBranch: FirWhenBranch) {
-        val node = graphBuilder.exitWhenBranchCondition(whenBranch).passFlow()
+        val node = graphBuilder.exitWhenBranchCondition(whenBranch).passFlow(true)
 
         val conditionVariable = getVariable(whenBranch.condition)
         node.variable = conditionVariable
@@ -336,7 +333,7 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
     fun exitWhenBranchResult(whenBranch: FirWhenBranch) {
         val node = graphBuilder.exitWhenBranchResult(whenBranch).passFlow(false)
         val conditionVariable = getVariable(whenBranch.condition)
-        node.flow = node.flow.removeSyntheticVariable(conditionVariable)
+        node.flow = node.flow.removeSyntheticVariable(conditionVariable).apply { freeze() }
     }
 
     fun exitWhenExpression(whenExpression: FirWhenExpression) {
@@ -472,7 +469,6 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
             }
 
         } finally {
-            node.flow.freeze()
         }
     }
 
@@ -495,7 +491,7 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
 
     fun exitLeftBinaryAndArgument(binaryLogicExpression: FirBinaryLogicExpression) {
         val (leftNode, rightNode) = graphBuilder.exitLeftBinaryAndArgument(binaryLogicExpression)
-        leftNode.passFlow()
+        leftNode.passFlow(true)
         rightNode.passFlow(false)
         val leftOperandVariable = getVariable(leftNode.previousNodes.first().fir)
         rightNode.flow = logicSystem.approveFactsInsideFlow(leftOperandVariable, EqTrue, rightNode.flow).also { it.freeze() }
@@ -531,7 +527,7 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
                 flow.addNotApprovedFact(andVariable, UnapprovedFirDataFlowInfo(EqFalse, variable, info))
             }
         }
-        node.flow = flow.removeSyntheticVariable(leftVariable).removeSyntheticVariable(rightVariable).also { it.freeze() }
+        node.flow = flow.removeSyntheticVariable(leftVariable).removeSyntheticVariable(rightVariable)
     }
 
     fun enterBinaryOr(binaryLogicExpression: FirBinaryLogicExpression) {
@@ -540,7 +536,7 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
 
     fun exitLeftBinaryOrArgument(binaryLogicExpression: FirBinaryLogicExpression) {
         val (leftNode, rightNode) = graphBuilder.exitLeftBinaryOrArgument(binaryLogicExpression)
-        leftNode.passFlow()
+        leftNode.passFlow(true)
         rightNode.passFlow(false)
         val leftOperandVariable = getVariable(leftNode.previousNodes.first().fir)
         rightNode.flow = logicSystem.approveFactsInsideFlow(leftOperandVariable, EqFalse, rightNode.flow).also { it.freeze() }
@@ -571,13 +567,13 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
                 flow.addNotApprovedFact(orVariable, UnapprovedFirDataFlowInfo(EqFalse, variable, info))
             }
         }
-        node.flow = flow.removeSyntheticVariable(leftVariable).removeSyntheticVariable(rightVariable).also { it.freeze() }
+        node.flow = flow.removeSyntheticVariable(leftVariable).removeSyntheticVariable(rightVariable)
     }
 
     private fun exitBooleanNot(functionCall: FirFunctionCall, node: FunctionCallNode) {
         val booleanExpressionVariable = getVariable(node.previousNodes.first().fir)
         val variable = getVariable(functionCall)
-        node.flow = node.flow.copyNotApprovedFacts(booleanExpressionVariable, variable) { it.invert() }.also { it.freeze() }
+        node.flow = node.flow.copyNotApprovedFacts(booleanExpressionVariable, variable) { it.invert() }
     }
 
     // ----------------------------------- Annotations -----------------------------------
@@ -609,12 +605,12 @@ class FirDataFlowAnalyzer(transformer: FirBodyResolveTransformer) : BodyResolveC
         getVariable(leftOperand) to getVariable(rightOperand)
 
     private var CFGNode<*>.flow: Flow
-        get() = edges.getValue(this)
+        get() = edges[this] ?: Flow.EMPTY
         set(value) {
             edges[this] = value
         }
 
-    private fun <T : CFGNode<*>> T.passFlow(shouldFreeze: Boolean = true): T = this.also { node ->
+    private fun <T : CFGNode<*>> T.passFlow(shouldFreeze: Boolean = false): T = this.also { node ->
         node.flow = logicSystem.or(node.usefulPreviousNodes.map { it.flow }).also {
             if (shouldFreeze) it.freeze()
         }
