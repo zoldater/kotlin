@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.codegen.debugInformation.AbstractSteppingTest
 import org.jetbrains.kotlin.codegen.defaultConstructor.AbstractDefaultArgumentsReflectionTest
 import org.jetbrains.kotlin.codegen.flags.AbstractWriteFlagsTest
 import org.jetbrains.kotlin.codegen.ir.*
-import org.jetbrains.kotlin.decompiler.AbstractIrDecompilerTestCase
+import org.jetbrains.kotlin.decompiler.AbstractIrDecompilerTextTestCase
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.builder.AbstractRawFirBuilderTestCase
 import org.jetbrains.kotlin.fir.lightTree.AbstractLightTree2FirConverterTestCase
@@ -217,7 +217,7 @@ fun main(args: Array<String>) {
             model("codegen/bytecodeText", targetBackend = TargetBackend.JVM)
         }
 
-        testClass<AbstractIrDecompilerTestCase> {
+        testClass<AbstractIrDecompilerTextTestCase> {
             model("decompiler")
         }
 
