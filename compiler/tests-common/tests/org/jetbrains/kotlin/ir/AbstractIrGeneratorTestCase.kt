@@ -50,7 +50,7 @@ abstract class AbstractIrGeneratorTestCase : CodegenTestCase() {
         doTest(wholeFile, files)
     }
 
-    private fun setupEnvironment(files: List<TestFile>) {
+    open fun setupEnvironment(files: List<TestFile>) {
         val jdkKind = getTestJdkKind(files)
 
         val javacOptions = ArrayList<String>(0)
