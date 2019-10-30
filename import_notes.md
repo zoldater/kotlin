@@ -1,12 +1,5 @@
 # Заметки по резолверу импортов для декомпилятора Kotlin IR
 
-## График реализации
-
-## Ссылки
-
-* RenderIrElementVisitor.BoundSymbolReferenceRenderer#renderParentOfReferencedDeclaration
-* 
-
 ## Что импортируется в котлине
 
 * Классы, в том числе nested
