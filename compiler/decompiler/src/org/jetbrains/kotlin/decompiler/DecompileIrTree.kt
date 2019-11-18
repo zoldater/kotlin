@@ -44,7 +44,11 @@ class DecompileIrTreeVisitor(
         internal fun IrType.obtainTypeDescription(): String {
             if ((this as? IrSimpleType)?.abbreviation != null) {
                 with(abbreviation!!.typeAlias.owner) {
-                    return name() + this@obtainTypeDescription.arguments.joinToString(", ", "<", ">") { it.obtain() }
+                    return (fqNameWhenAvailable?.asString() ?: name()) + this@obtainTypeDescription.arguments.joinToString(
+                        ", ",
+                        "<",
+                        ">"
+                    ) { it.obtain() }
                 }
             }
             return if (toKotlinType().isFunctionTypeOrSubtype) {
@@ -55,13 +59,18 @@ class DecompileIrTreeVisitor(
                     it.type.toString() + ("?".takeIf { isNullable() } ?: EMPTY_TOKEN)
                 }} -> $returnType"
             } else {
-                if (getClass()?.isLocalClass() ?: false) {
-                    //Если локальный класс, то оставляем только его имя
-                    getClass()!!.name()
+                if (getClass()?.isLocalClass() == true) {
+                    // Если локальный класс, то оставляем fqName без префикса родительского
+                    // TODO - тут по идее может быть вложенность inner/nested/object.
+                    // Надо брать fqName не от parent, а от самого близкого parent не local
+                    getClass()?.fqNameWhenAvailable?.asString()?.removePrefix(
+                        getClass()?.parent?.fqNameForIrSerialization?.asString()?.let { "$it." } ?: EMPTY_TOKEN
+                    ) ?: EMPTY_TOKEN
+//                    getClass()?.name()
 //                    toKotlinType().toString().substring(startIndex = toKotlinType().toString().indexOfLast { it == '.' })
                 } else {
                     //Пока так, но нужно резолвить через importStr и сравнение постфиксов
-                    toKotlinType().toString()
+                    getClass()?.fqNameWhenAvailable?.asString() ?: EMPTY_TOKEN
                 }
             }
         }
@@ -295,8 +304,8 @@ class DecompileIrTreeVisitor(
                             concatenateNonEmptyWithSpace(
                                 obtainVariableFlags(),
                                 name(),
-//                                ":",
-//                                type.obtainTypeDescription(),
+                                ":",
+                                type.obtainTypeDescription(),
                                 "=",
                                 lastStatement.decompile(data)
                             )
@@ -305,8 +314,8 @@ class DecompileIrTreeVisitor(
                     else -> concatenateNonEmptyWithSpace(
                         obtainVariableFlags(),
                         name(),
-//                        ":",
-//                        type.obtainTypeDescription(),
+                        ":",
+                        type.obtainTypeDescription(),
                         "=",
                         initializer?.decompile(data)
                     )

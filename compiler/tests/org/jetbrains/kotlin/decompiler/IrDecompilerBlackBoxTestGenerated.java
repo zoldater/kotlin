@@ -1128,6 +1128,11 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         public void testInner_nested() throws Exception {
             runTest("compiler/testData/decompiler/box/imports/inner_nested.kt");
         }
+
+        @TestMetadata("testNamingConflict1.kt")
+        public void testTestNamingConflict1() throws Exception {
+            runTest("compiler/testData/decompiler/box/imports/testNamingConflict1.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/decompiler/box/objects")
