@@ -117,7 +117,7 @@ internal fun concatenateNonEmptyWithSpace(vararg flags: String?) =
                 EMPTY_TOKEN
         }
 
-internal inline fun IrDeclaration.name(): String = descriptor.name.asString()
+internal fun IrDeclaration.name(): String = descriptor.name.asString()
 
 internal fun IrTypeAlias.obtainTypeAliasFlags(): String =
     concatenateNonEmptyWithSpace(

@@ -38,7 +38,7 @@ class DecompileIrTreeVisitor(
     internal val printer = Printer(out, "    ")
 
     companion object {
-        val irFileNamesToImportedDeclarationsMap = mutableMapOf<String, Set<String>>()
+        val irFileNamesToImportedDeclarationsMap = mutableMapOf<IrFile, Set<String>>()
         //TODO резолвить конфликты имен типов возвращаемых значений.
         // Конфликт - если более 2 записей, заканчивающихся на этот тип
         internal fun IrType.obtainTypeDescription(): String {
@@ -658,7 +658,7 @@ class DecompileIrTreeVisitor(
             }
 
             val fileSources = it.decompile("")
-            printer.println(irFileNamesToImportedDeclarationsMap[it.path]?.joinToString(separator = "\n", postfix = "\n") { "import $it" })
+            printer.println(irFileNamesToImportedDeclarationsMap[it]?.joinToString(separator = "\n", postfix = "\n") { "import $it" })
             printer.println(fileSources)
             printer.println()
         }
@@ -668,8 +668,9 @@ class DecompileIrTreeVisitor(
         with(declaration) {
             val importResolveVisitor = ImportResolveVisitor()
             val filePackage = fqName.asString().takeIf { declaration.fqName != FqName.ROOT } ?: EMPTY_TOKEN
-            accept(importResolveVisitor, filePackage)
-            irFileNamesToImportedDeclarationsMap[path] = importResolveVisitor.importDirectivesSet
+            val scopeList = listOfNotNull(fqName.asString().takeIf { declaration.fqName != FqName.ROOT })
+            accept(importResolveVisitor, scopeList)
+            irFileNamesToImportedDeclarationsMap[this] = importResolveVisitor.importDirectivesSet
             printer.println(declaration.declarations.joinToString(separator = "\n", postfix = "\n") { it.decompile(filePackage) })
         }
     }
