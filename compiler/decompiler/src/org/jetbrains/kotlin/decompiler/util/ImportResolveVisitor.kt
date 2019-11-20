@@ -43,6 +43,10 @@ class ImportResolveVisitor(val importDirectivesSet: MutableSet<String> = mutable
 //        fun IrClass.asImportStr() = fqNameWhenAvailable?.asString()?.takeIf { !isLocalClass() }
     }
 
+    override fun visitDeclarationReference(expression: IrDeclarationReference, data: List<String>) {
+        super.visitDeclarationReference(expression, data)
+    }
+
     override fun visitFile(declaration: IrFile, data: List<String>) {
         with(declaration) {
             val scopeList = listOfNotNull(fqName.asString())

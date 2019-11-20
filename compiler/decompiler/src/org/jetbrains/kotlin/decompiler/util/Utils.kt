@@ -143,32 +143,37 @@ internal fun IrSimpleFunction.obtainModality(): String? =
     }
 
 
-internal fun IrCall.obtainUnaryOperatorCall(): String = "${OPERATOR_TOKENS[origin]}(${dispatchReceiver?.decompile("").orEmpty()})"
+internal fun IrCall.obtainUnaryOperatorCall(scopeList: List<String>): String =
+    "${OPERATOR_TOKENS[origin]}(${dispatchReceiver?.decompile(scopeList).orEmpty()})"
 
 
-internal fun IrCall.obtainBinaryOperatorCall(): String =
-    concatenateNonEmptyWithSpace(dispatchReceiver?.decompile(""), OPERATOR_TOKENS[origin], getValueArgument(0)?.decompile(""))
+internal fun IrCall.obtainBinaryOperatorCall(scopeList: List<String>): String =
+    concatenateNonEmptyWithSpace(dispatchReceiver?.decompile(scopeList), OPERATOR_TOKENS[origin], getValueArgument(0)?.decompile(scopeList))
 
 
 //TODO разобраться когда тут вызов compareTo, а когда реальное сравнение
-internal fun IrCall.obtainComparisonOperatorCall(): String {
+internal fun IrCall.obtainComparisonOperatorCall(scopeList: List<String>): String {
     val leftOperand = if (dispatchReceiver != null) dispatchReceiver else getValueArgument(0)
     val rightOperand = if (dispatchReceiver != null) getValueArgument(0) else getValueArgument(1)
     return if (symbol.owner.name() in OPERATOR_NAMES) {
-        concatenateNonEmptyWithSpace(leftOperand?.decompile(""), OPERATOR_TOKENS[origin], rightOperand?.decompile(""))
+        concatenateNonEmptyWithSpace(leftOperand?.decompile(scopeList), OPERATOR_TOKENS[origin], rightOperand?.decompile(scopeList))
     } else {
-        "${leftOperand?.decompile("")}.${symbol.owner.name()}(${rightOperand?.decompile("")})"
+        "${leftOperand?.decompile(scopeList)}.${symbol.owner.name()}(${rightOperand?.decompile(scopeList)})"
     }
 }
 
-internal fun IrCall.obtainNotEqCall(): String =
+internal fun IrCall.obtainNotEqCall(scopeList: List<String>): String =
     if (symbol.owner.name().toLowerCase() != "not")
-        concatenateNonEmptyWithSpace(getValueArgument(0)?.decompile(""), OPERATOR_TOKENS[origin], getValueArgument(1)?.decompile(""))
+        concatenateNonEmptyWithSpace(
+            getValueArgument(0)?.decompile(scopeList),
+            OPERATOR_TOKENS[origin],
+            getValueArgument(1)?.decompile(scopeList)
+        )
     else
-        dispatchReceiver?.decompile("").orEmpty()
+        dispatchReceiver?.decompile(scopeList).orEmpty()
 
-internal fun IrCall.obtainNameWithArgs(): String {
-    val typeArguments = (0 until typeArgumentsCount).map { getTypeArgument(it)?.obtainTypeDescription() }
+internal fun IrCall.obtainNameWithArgs(scopeList: List<String>): String {
+    val typeArguments = (0 until typeArgumentsCount).map { getTypeArgument(it)?.obtainTypeDescription(scopeList) }
         .joinToString(", ", "<", ">")
         .takeIf { typeArgumentsCount > 0 } ?: EMPTY_TOKEN
     val result = symbol.owner.name() + typeArguments
@@ -182,7 +187,7 @@ internal fun IrCall.obtainNameWithArgs(): String {
         ArrayList<String>().apply {
             for (i in callArgumentsWithNulls.indices) {
                 if (callArgumentsWithNulls[i] != null) {
-                    add("${symbol.owner.valueParameters[i].name()} = ${callArgumentsWithNulls[i]?.decompile("")}")
+                    add("${symbol.owner.valueParameters[i].name()} = ${callArgumentsWithNulls[i]?.decompile(scopeList)}")
                 }
             }
         }.joinToString(separator = ", ", prefix = "(", postfix = ")")
@@ -193,79 +198,79 @@ internal fun IrCall.obtainNameWithArgs(): String {
             && (getValueArgument(0) as IrFunctionExpression).origin == LAMBDA
         ) {
             // Предположим, что у нас только 1 return выражение
-            getValueArgument(0)?.decompile("lambda")
+            getValueArgument(0)?.decompile(scopeList + "lambda")
 
         } else {
             (0 until valueArgumentsCount).mapNotNull {
-                getValueArgument(it)?.decompile("")
+                getValueArgument(it)?.decompile(scopeList)
             }.joinToString(separator = ", ", prefix = "(", postfix = ")")
         }
     }
 }
 
-internal fun IrCall.obtainOperatorEqCall(): String {
+internal fun IrCall.obtainOperatorEqCall(scopeList: List<String>): String {
     val valueArgument = getValueArgument(0)
     return when (valueArgument) {
         is IrMemberAccessExpression -> with(valueArgument as IrMemberAccessExpression) {
             val leftOperand = if (dispatchReceiver != null) dispatchReceiver else getValueArgument(0)
             val rightOperand = if (dispatchReceiver != null) getValueArgument(0) else getValueArgument(1)
             concatenateNonEmptyWithSpace(
-                (leftOperand as IrCall).symbol.owner.decompile(""),
+                (leftOperand as IrCall).symbol.owner.decompile(scopeList),
                 OPERATOR_TOKENS[origin],
-                rightOperand?.decompile("")
+                rightOperand?.decompile(scopeList)
             )
         }
 
-        else -> valueArgument?.decompile("") ?: EMPTY_TOKEN
+        else -> valueArgument?.decompile(scopeList) ?: EMPTY_TOKEN
     }
 }
 
 
-internal fun IrCall.obtainCall(): String {
+internal fun IrCall.obtainCall(scopeList: List<String>): String {
     return when (origin) {
-        UPLUS, UMINUS -> obtainUnaryOperatorCall()
-        PLUS, MINUS, MUL, DIV, PERC, ANDAND, OROR -> obtainBinaryOperatorCall()
+        UPLUS, UMINUS -> obtainUnaryOperatorCall(scopeList)
+        PLUS, MINUS, MUL, DIV, PERC, ANDAND, OROR -> obtainBinaryOperatorCall(scopeList)
         // === и !==
-        EQEQ, GT, LT, GTEQ, LTEQ -> obtainComparisonOperatorCall()
-        EXCLEQ -> obtainNotEqCall()
-        GET_PROPERTY -> obtainGetPropertyCall()
+        EQEQ, GT, LT, GTEQ, LTEQ -> obtainComparisonOperatorCall(scopeList)
+        EXCLEQ -> obtainNotEqCall(scopeList)
+        GET_PROPERTY -> obtainGetPropertyCall(scopeList)
         // сюда прилетает только правая часть, левая разбирается в visitSetVariable
-        PLUSEQ, MINUSEQ, MULTEQ, DIVEQ -> obtainOperatorEqCall()
+        PLUSEQ, MINUSEQ, MULTEQ, DIVEQ -> obtainOperatorEqCall(scopeList)
         // Для присваивания свойстам в конструкторах
-        EQ -> obtainEqCall()
-        EXCLEXCL -> "${getValueArgument(0)!!.decompile("")}!!"
-        EXCL -> "!${dispatchReceiver?.decompile("")}"
+        EQ -> obtainEqCall(scopeList)
+        EXCLEXCL -> "${getValueArgument(0)!!.decompile(scopeList)}!!"
+        EXCL -> "!${dispatchReceiver?.decompile(scopeList)}"
         else -> {
             var result: String? = null
             if (dispatchReceiver != null) {
                 result = if (superQualifierSymbol != null) {
                     "$SUPER_TOKEN<${superQualifierSymbol!!.owner.name()}>."
                 } else {
-                    "${dispatchReceiver!!.decompile("")}."
+                    "${dispatchReceiver!!.decompile(scopeList)}."
                 }
             } else if (extensionReceiver != null) {
-                result = "${extensionReceiver!!.decompile("")}."
+                result = "${extensionReceiver!!.decompile(scopeList)}."
             }
 
-            "${result.orEmpty()}${obtainNameWithArgs()}"
+            "${result.orEmpty()}${obtainNameWithArgs(scopeList)}"
         }
     }
 }
 
 
-internal fun IrCall.obtainEqCall(): String =
-    "${dispatchReceiver?.decompile("")}.${symbol.owner.decompile("")} = ${getValueArgument(0)?.decompile("")}"
+internal fun IrCall.obtainEqCall(scopeList: List<String>): String =
+    "${dispatchReceiver?.decompile(scopeList)}.${symbol.owner.decompile(scopeList)} = ${getValueArgument(0)?.decompile(scopeList)}"
 
-internal fun IrCall.obtainGetPropertyCall(): String {
+internal fun IrCall.obtainGetPropertyCall(scopeList: List<String>): String {
     val fullName = symbol.owner.name()
     val regex = """<get-(.+)>""".toRegex()
     val matchResult = regex.find(fullName)
     val propName = matchResult?.groups?.get(1)?.value
-    val decompiledReceiver = dispatchReceiver?.decompile("")
+    val decompiledReceiver = dispatchReceiver?.decompile(scopeList)
     return "${if (decompiledReceiver != null) "$decompiledReceiver." else EMPTY_TOKEN}$propName"
 }
 
-internal fun IrConstructor.obtainValueParameterTypes(): String =
+internal fun IrConstructor.obtainValueParameterTypes(scopeList: List<String>): String =
     valueParameters.joinToString(separator = ", ", prefix = "(", postfix = ")") { valueParameter ->
         concatenateNonEmptyWithSpace(
             valueParameter.obtainValueParameterFlags(),
@@ -280,25 +285,25 @@ internal fun IrConstructor.obtainValueParameterTypes(): String =
                 }
             },
             "${valueParameter.name()}:",
-            (valueParameter.varargElementType?.toKotlinType() ?: valueParameter.type.obtainTypeDescription()).toString(),
-            if (valueParameter.hasDefaultValue()) " = ${valueParameter.defaultValue!!.decompile("")}" else EMPTY_TOKEN
+            (valueParameter.varargElementType?.toKotlinType() ?: valueParameter.type.obtainTypeDescription(scopeList)).toString(),
+            if (valueParameter.hasDefaultValue()) " = ${valueParameter.defaultValue!!.decompile(scopeList)}" else EMPTY_TOKEN
         )
     }.takeIf { valueParameters.size > 0 || parentAsClass.constructors.count() > 1 } ?: EMPTY_TOKEN
 
 
-internal fun IrFunction.obtainValueParameterTypes(): String =
+internal fun IrFunction.obtainValueParameterTypes(scopeList: List<String>): String =
     ArrayList<String>().apply {
         valueParameters.mapTo(this) {
             concatenateNonEmptyWithSpace(
                 it.obtainValueParameterFlags(),
                 "${it.name()}:",
-                (it.varargElementType?.toKotlinType() ?: it.type.obtainTypeDescription()).toString(),
-                if (it.hasDefaultValue()) " = ${it.defaultValue!!.decompile("")}" else EMPTY_TOKEN
+                (it.varargElementType?.toKotlinType() ?: it.type.obtainTypeDescription(scopeList)).toString(),
+                if (it.hasDefaultValue()) " = ${it.defaultValue!!.decompile(scopeList)}" else EMPTY_TOKEN
             )
         }
     }.joinToString(separator = ", ", prefix = "(", postfix = ")")
 
-internal inline fun IrDeclarationWithVisibility.obtainVisibility(): String =
+internal fun IrDeclarationWithVisibility.obtainVisibility(): String =
     when (visibility) {
         Visibilities.PUBLIC, Visibilities.LOCAL -> EMPTY_TOKEN
         else -> visibility.name.toLowerCase()
@@ -314,37 +319,37 @@ internal fun IrClass.obtainInheritance(): String {
     return implementedInterfaces.joinToString(", ")
 }
 
-internal fun concatenateConditions(branch: IrBranch): String {
-    when (branch.condition) {
-        is IrIfThenElseImpl -> {
-            val irIfThenElseImplBranch = branch.condition as IrIfThenElseImpl
-            val firstBranch = irIfThenElseImplBranch.branches[0]
-            val secondBranch = irIfThenElseImplBranch.branches[1]
-            return when (irIfThenElseImplBranch.origin) {
-                OROR -> return "(" + concatenateNonEmptyWithSpace(
-                    secondBranch.result.decompile(""),
-                    OPERATOR_TOKENS[irIfThenElseImplBranch.origin],
-                    concatenateConditions(firstBranch)
-                ) + ")"
-                ANDAND -> {
-                    var result = concatenateConditions(firstBranch)
-                    if (firstBranch.result !is IrConst<*>) {
-                        result = concatenateNonEmptyWithSpace(
-                            result,
-                            OPERATOR_TOKENS[irIfThenElseImplBranch.origin],
-                            firstBranch.result.decompile("")
-                        )
-                    }
-                    "($result)"
-                }
-                else -> TODO()
-            }
-        }
-        else -> {
-            return branch.condition.decompile("")
-        }
-    }
-}
+//internal fun concatenateConditions(branch: IrBranch): String {
+//    when (branch.condition) {
+//        is IrIfThenElseImpl -> {
+//            val irIfThenElseImplBranch = branch.condition as IrIfThenElseImpl
+//            val firstBranch = irIfThenElseImplBranch.branches[0]
+//            val secondBranch = irIfThenElseImplBranch.branches[1]
+//            return when (irIfThenElseImplBranch.origin) {
+//                OROR -> return "(" + concatenateNonEmptyWithSpace(
+//                    secondBranch.result.decompile(""),
+//                    OPERATOR_TOKENS[irIfThenElseImplBranch.origin],
+//                    concatenateConditions(firstBranch)
+//                ) + ")"
+//                ANDAND -> {
+//                    var result = concatenateConditions(firstBranch)
+//                    if (firstBranch.result !is IrConst<*>) {
+//                        result = concatenateNonEmptyWithSpace(
+//                            result,
+//                            OPERATOR_TOKENS[irIfThenElseImplBranch.origin],
+//                            firstBranch.result.decompile("")
+//                        )
+//                    }
+//                    "($result)"
+//                }
+//                else -> TODO()
+//            }
+//        }
+//        else -> {
+//            return branch.condition.decompile("")
+//        }
+//    }
+//}
 
 internal fun IrClass.obtainDeclarationStr(): String =
     if (name() == "<no name provided>") "object"
@@ -416,10 +421,12 @@ internal fun IrTypeParameter.obtain() =
     concatenateNonEmptyWithSpace(variance(), name(), bound())
 
 //TODO посмотреть где это используется (особенно с IrTypeAbbreviation)
-internal fun IrTypeArgument.obtain() =
+internal fun IrTypeArgument.obtain(scopeList: List<String>) =
     when (this) {
         is IrStarProjection -> "*"
-        is IrTypeProjection -> "${if (variance.label.isNotEmpty()) variance.label + " " else EMPTY_TOKEN}${type.obtainTypeDescription()}"
+        is IrTypeProjection -> "${if (variance.label.isNotEmpty()) variance.label + " " else EMPTY_TOKEN}${type.obtainTypeDescription(
+            scopeList
+        )}"
         else -> throw AssertionError("Unexpected IrTypeArgument: $this")
     }
 
