@@ -10,15 +10,16 @@ import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
 import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.parentAsClass
+import org.jetbrains.kotlin.ir.util.render
 
 class MagicBoxImpl : IMagicBox {
     private val localDeclarationsWithNameSet = mutableMapOf<String, MutableSet<IrDeclarationWithName>>()
-    private val scopeWithDeclarationReferencesMap = mutableMapOf<String, MutableSet<IrDeclarationReference>>()
     private val scopeWithExplicitTypesMap = mutableMapOf<String, MutableSet<IrType>>()
-    //    private val
+    private val declarationCallInfoList = mutableListOf<DeclarationCallInfo>()
     private var isFreshState = true
 
     override fun putDeclarationWithName(scopeList: List<String>, irDeclarationWithName: IrDeclarationWithName) {
@@ -29,7 +30,7 @@ class MagicBoxImpl : IMagicBox {
 
     override fun putCalledDeclarationReferenceWithScope(scopeList: List<String>, irDeclarationReference: IrDeclarationReference) {
         //Добавляем в маппинг на скоуп
-        scopeWithDeclarationReferencesMap.addToValueSetOrInitializeIt(scopeList, irDeclarationReference)
+        declarationCallInfoList.add(DeclarationCallInfo(scopeList, irDeclarationReference))
         isFreshState = false
     }
 
@@ -70,7 +71,7 @@ class MagicBoxImpl : IMagicBox {
      * Используем для маппинга DeclarationReference, вызываемого в соответствующем скоупе, в строковое представление,
      * используемое для его отображения в генерируемом исходном коде, и информацию, необходимую для его импорта
      */
-    private class CalledDeclarationInfo(val scopeList: List<String>, val irDeclarationReference: IrDeclarationReference) {
+    private class DeclarationCallInfo(val scopeList: List<String>, val irDeclarationReference: IrDeclarationReference) {
         private val calculatedListForImport = mutableListOf<String>()
         private val calculatedListForRender = mutableListOf(irDeclarationReference.name())
 
@@ -81,7 +82,8 @@ class MagicBoxImpl : IMagicBox {
                 //Если функция - топ-левел или объявлена внутри Companion object, то ее следует импортировать, а строковое представление
                 //формируется нетипичным образом, как:
                 // <Имя класса (для функции из безымянного companion) / object'а / пакета (для топ-левел)> + "." + <>
-                else -> EMPTY_TOKEN
+//                is IrSimpleFunction -> owner.parent.sy
+                else -> TODO("Not implemented yet for node $owner!")
 
             }
         }

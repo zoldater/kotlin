@@ -38,7 +38,6 @@ class DecompileIrTreeVisitor(
     internal val printer = Printer(out, "    ")
 
     companion object {
-        val irFileNamesToImportedDeclarationsMap = mutableMapOf<IrFile, Set<String>>()
         //TODO резолвить конфликты имен типов возвращаемых значений.
         // Конфликт - если более 2 записей, заканчивающихся на этот тип
         internal fun IrType.obtainTypeDescription(scopeList: List<String>): String {
@@ -79,11 +78,13 @@ class DecompileIrTreeVisitor(
 
     override fun visitFile(declaration: IrFile, data: List<String>) {
         with(declaration) {
-            val importResolveVisitor = ImportResolveVisitor()
             val scopeList = listOfNotNull(fqName.asString().takeIf { declaration.fqName != FqName.ROOT })
+            val importResolveVisitor = ImportResolveVisitor()
             accept(importResolveVisitor, scopeList)
-            irFileNamesToImportedDeclarationsMap[this] = importResolveVisitor.importDirectivesSet
-            printer.println(declaration.declarations.joinToString(separator = "\n", postfix = "\n") { it.decompile(scopeList) })
+            val decompiledFile = declaration.declarations.joinToString(separator = "\n", postfix = "\n") { it.decompile(scopeList) }
+            val importStatementsStr =
+                importResolveVisitor.magicBox.obtainImportStatementsList().joinToString(separator = "\n", postfix = "\n")
+            printer.println(listOf("// FILE: $path", importStatementsStr, decompiledFile).joinToString("\n"))
         }
     }
 
@@ -662,18 +663,7 @@ class DecompileIrTreeVisitor(
     }
 
     override fun visitModuleFragment(declaration: IrModuleFragment, data: List<String>) {
-        declaration.files.forEach {
-            printer.printlnWithNoIndent("// FILE: ${it.path}")
-            // Чтобы соблюсти очередность package -> imports -> declarations вынуждено вытащил это из visitFile
-            if (it.fqName != FqName.ROOT) {
-                printer.println("package ${it.fqName.asString()}\n")
-            }
-
-            val fileSources = it.decompile(data)
-            printer.println(irFileNamesToImportedDeclarationsMap[it]?.joinToString(separator = "\n", postfix = "\n") { "import $it" })
-            printer.println(fileSources)
-            printer.println()
-        }
+        declaration.files.decompileElements(listOf())
     }
 
 
