@@ -5,11 +5,11 @@
 
 package org.jetbrains.kotlin.decompiler.util.magicbox
 
+import org.jetbrains.kotlin.decompiler.util.EMPTY_TOKEN
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
 import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.parentAsClass
@@ -81,7 +81,7 @@ class MagicBoxImpl : IMagicBox {
                 //Если функция - топ-левел или объявлена внутри Companion object, то ее следует импортировать, а строковое представление
                 //формируется нетипичным образом, как:
                 // <Имя класса (для функции из безымянного companion) / object'а / пакета (для топ-левел)> + "." + <>
-                is IrSimpleFunction
+                else -> EMPTY_TOKEN
 
             }
         }
