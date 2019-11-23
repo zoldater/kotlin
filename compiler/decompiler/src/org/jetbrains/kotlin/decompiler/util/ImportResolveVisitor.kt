@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.decompiler.util
 
+import org.jetbrains.kotlin.decompiler.DecompileIrTreeVisitor.Companion.obtainDescriptionForScope
 import org.jetbrains.kotlin.decompiler.decompile
 import org.jetbrains.kotlin.decompiler.util.magicbox.IMagicBox
 import org.jetbrains.kotlin.decompiler.util.magicbox.MagicBoxImpl
@@ -28,24 +29,16 @@ private val defaultImportRegex = setOf(
     "kotlin.text\\.\\w+"
 ).map { it.toRegex() }
 
-class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElementVisitor<Unit, List<String>>,
-    IMagicBox by magicBox {
+class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElementVisitor<Unit, List<String>>, IMagicBox by magicBox {
 
     override fun visitDeclarationReference(expression: IrDeclarationReference, data: List<String>) {
         TODO("Implement visitor for $expression")
     }
 
     override fun visitFile(declaration: IrFile, data: List<String>) {
-        with(declaration) {
-            declarations
-                .forEach { it.accept(this@ImportResolveVisitor, data) }
-        }
+        declaration.acceptChildren(this, data)
     }
 
-    /**
-     * Class definition processing includes adding a name to the collection of declarations
-     * and sequential processing of supertypes and all members of the class.
-     */
     override fun visitClass(declaration: IrClass, data: List<String>) {
         with(declaration) {
             val scopeList = data + declaration.name()
@@ -114,6 +107,19 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
         //TODO Вроде вызов делегирующего конструктора отображается только через : от primary или secondary конструктора,
         // значит его можно выводить аналогично superTypes, т.е. через тип owner'а
         putExplicitTypeWithScope(data, expression.symbol.owner.returnType)
+    }
+
+    override fun visitConstructorCall(expression: IrConstructorCall, data: List<String>) {
+        with(expression) {
+            dispatchReceiver?.accept(this@ImportResolveVisitor, data)
+            putExplicitTypeWithScope(data, type)
+            (0 until typeArgumentsCount).forEach {
+                putExplicitTypeWithScope(data, getTypeArgument(it)!!)
+            }
+            //TODO добавить проверку наличия defaultValue и именнованных вызовов
+            (0 until expression.valueArgumentsCount)
+                .forEach { getValueArgument(it)?.accept(this@ImportResolveVisitor, data) }
+        }
     }
 
     override fun visitEnumEntry(declaration: IrEnumEntry, data: List<String>) {
@@ -194,7 +200,7 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
         with(declaration) {
             val scopeList = data + name()
             putDeclarationWithName(scopeList, declaration)
-            putExplicitTypeWithScope(scopeList, expandedType)
+//            putExplicitTypeWithScope(scopeList, expandedType)
         }
     }
 

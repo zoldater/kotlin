@@ -5,87 +5,100 @@
 
 package org.jetbrains.kotlin.decompiler.util.magicbox
 
-import org.jetbrains.kotlin.decompiler.util.EMPTY_TOKEN
-import org.jetbrains.kotlin.decompiler.util.name
-import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.decompiler.util.magicbox.info.DeclarationReferenceInfo
+import org.jetbrains.kotlin.decompiler.util.magicbox.info.TypeInfo
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
-import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.ir.util.render
 
 class MagicBoxImpl : IMagicBox {
-    private val localDeclarationsWithNameSet = mutableMapOf<String, MutableSet<IrDeclarationWithName>>()
-    private val scopeWithExplicitTypesMap = mutableMapOf<String, MutableSet<IrType>>()
-    private val declarationCallInfoList = mutableListOf<DeclarationCallInfo>()
+    private val declarationsWithNameByScopeMap = mutableMapOf<String, MutableSet<IrDeclarationWithName>>()
+    private val declarationReferencesByScopeMap = mutableMapOf<String, MutableSet<DeclarationReferenceInfo>>()
+    private val explicitTypesByScopeMap = mutableMapOf<String, MutableSet<TypeInfo>>()
     private var isFreshState = true
 
     override fun putDeclarationWithName(scopeList: List<String>, irDeclarationWithName: IrDeclarationWithName) {
         //Пока только кладем в коробку и врубаем тригер на обновление
-        localDeclarationsWithNameSet.addToValueSetOrInitializeIt(scopeList, irDeclarationWithName)
+        declarationsWithNameByScopeMap.addToValueSetOrInitializeIt(scopeList, irDeclarationWithName)
         isFreshState = false
     }
 
     override fun putCalledDeclarationReferenceWithScope(scopeList: List<String>, irDeclarationReference: IrDeclarationReference) {
         //Добавляем в маппинг на скоуп
-        declarationCallInfoList.add(DeclarationCallInfo(scopeList, irDeclarationReference))
+        declarationReferencesByScopeMap.addToValueSetOrInitializeIt(scopeList, DeclarationReferenceInfo(scopeList, irDeclarationReference))
         isFreshState = false
     }
 
     override fun putExplicitTypeWithScope(scopeList: List<String>, irType: IrType) {
         //Добавляем в маппинг на скоуп
-        scopeWithExplicitTypesMap.addToValueSetOrInitializeIt(scopeList, irType)
+        explicitTypesByScopeMap.addToValueSetOrInitializeIt(scopeList, TypeInfo(scopeList, irType))
         isFreshState = false
     }
 
-    override fun obtainDeclarationReferenceDescription(scopeList: List<String>, irDeclarationReference: IrDeclarationReference) {
+    override fun obtainDeclarationReferenceDescription(scopeList: List<String>, irDeclarationReference: IrDeclarationReference): String {
         if (!isFreshState) refreshState()
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return declarationReferencesByScopeMap[scopeList.joinToString(".")]!!
+            .find { it.irDeclarationReference == irDeclarationReference && it.scopeList == scopeList }!!
+            .calculatedName
     }
 
-    override fun obtainImportStatementsList(): List<String> {
+    override fun obtainImportStatementsList(): String {
         if (!isFreshState) refreshState()
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val declarationImports = declarationReferencesByScopeMap.values
+            .flatMap { set ->
+                set
+                    .map { it.calculatedListForImport.joinToString(".") }
+            }
+        val typeImports = explicitTypesByScopeMap.values
+            .flatMap { set ->
+                set
+                    .map { it.calculatedListForImport.joinToString(".") }
+            }
+
+        val resultSet = mutableSetOf<String>()
+        resultSet.addAll(declarationImports)
+        resultSet.addAll(typeImports)
+        return resultSet.sorted().joinToString("\n", "\n", "\n") { "import $it" }
     }
 
     override fun obtainTypeDescriptionForScope(scopeList: List<String>, irType: IrType): String {
-
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (!isFreshState) refreshState()
+        return explicitTypesByScopeMap[scopeList.joinToString(".")]!!.find { it.irType == irType && it.scopeList == scopeList }!!.calculatedName
     }
 
-    //TODO реализовать алгоритм по резолву
     private fun refreshState() {
+        resolveDeclarationReferencesConflicts()
+        resolveExplicitTypesConflicts()
+        isFreshState = true
     }
+
+    //TODO реализовать алгоритм по резолву имен в местах вызова (Это говно, думай дальше)
+    private fun resolveDeclarationReferencesConflicts() {
+        for ((scope, set) in declarationReferencesByScopeMap) {
+            for (lhs in set.withIndex()) {
+                for (rhs in set.withIndex()) {
+                    if (lhs.index != rhs.index && lhs.value.calculatedName == rhs.value.calculatedName) {
+                        with(rhs.value) {
+                            calculatedName =
+                                (calculatedListForImport.subList(0, calculatedListForImport.size - 1) + calculatedName).joinToString(".")
+                            calculatedListForImport = listOf()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun resolveExplicitTypesConflicts() {
+
+    }
+
 
     private fun <T> MutableMap<String, MutableSet<T>>.addToValueSetOrInitializeIt(scopeList: List<String>, element: T) {
         if (containsKey(scopeList.joinToString("."))) {
             this[scopeList.joinToString(".")]?.add(element)
         } else {
             this[scopeList.joinToString(".")] = mutableSetOf(element)
-        }
-    }
-
-    /**
-     * Используем для маппинга DeclarationReference, вызываемого в соответствующем скоупе, в строковое представление,
-     * используемое для его отображения в генерируемом исходном коде, и информацию, необходимую для его импорта
-     */
-    private class DeclarationCallInfo(val scopeList: List<String>, val irDeclarationReference: IrDeclarationReference) {
-        private val calculatedListForImport = mutableListOf<String>()
-        private val calculatedListForRender = mutableListOf(irDeclarationReference.name())
-
-        private fun <T : IrDeclarationReference> T.name(): String {
-            return when (val owner = symbol.owner) {
-                is IrProperty -> owner.name.asString()
-                is IrConstructor -> owner.parentAsClass.name()
-                //Если функция - топ-левел или объявлена внутри Companion object, то ее следует импортировать, а строковое представление
-                //формируется нетипичным образом, как:
-                // <Имя класса (для функции из безымянного companion) / object'а / пакета (для топ-левел)> + "." + <>
-//                is IrSimpleFunction -> owner.parent.sy
-                else -> TODO("Not implemented yet for node $owner!")
-
-            }
         }
     }
 }

@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.decompiler.util
 
 import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.decompiler.DecompileIrTreeVisitor
-import org.jetbrains.kotlin.decompiler.DecompileIrTreeVisitor.Companion.obtainTypeDescription
+import org.jetbrains.kotlin.decompiler.DecompileIrTreeVisitor.Companion.obtainDescriptionForScope
 import org.jetbrains.kotlin.decompiler.decompile
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -173,7 +173,7 @@ internal fun IrCall.obtainNotEqCall(scopeList: List<String>): String =
         dispatchReceiver?.decompile(scopeList).orEmpty()
 
 internal fun IrCall.obtainNameWithArgs(scopeList: List<String>): String {
-    val typeArguments = (0 until typeArgumentsCount).map { getTypeArgument(it)?.obtainTypeDescription(scopeList) }
+    val typeArguments = (0 until typeArgumentsCount).map { getTypeArgument(it)?.obtainDescriptionForScope(scopeList) }
         .joinToString(", ", "<", ">")
         .takeIf { typeArgumentsCount > 0 } ?: EMPTY_TOKEN
     val result = symbol.owner.name() + typeArguments
@@ -285,7 +285,7 @@ internal fun IrConstructor.obtainValueParameterTypes(scopeList: List<String>): S
                 }
             },
             "${valueParameter.name()}:",
-            (valueParameter.varargElementType?.toKotlinType() ?: valueParameter.type.obtainTypeDescription(scopeList)).toString(),
+            (valueParameter.varargElementType?.toKotlinType() ?: valueParameter.type.obtainDescriptionForScope(scopeList)).toString(),
             if (valueParameter.hasDefaultValue()) " = ${valueParameter.defaultValue!!.decompile(scopeList)}" else EMPTY_TOKEN
         )
     }.takeIf { valueParameters.size > 0 || parentAsClass.constructors.count() > 1 } ?: EMPTY_TOKEN
@@ -297,7 +297,7 @@ internal fun IrFunction.obtainValueParameterTypes(scopeList: List<String>): Stri
             concatenateNonEmptyWithSpace(
                 it.obtainValueParameterFlags(),
                 "${it.name()}:",
-                (it.varargElementType?.toKotlinType() ?: it.type.obtainTypeDescription(scopeList)).toString(),
+                (it.varargElementType?.toKotlinType() ?: it.type.obtainDescriptionForScope(scopeList)).toString(),
                 if (it.hasDefaultValue()) " = ${it.defaultValue!!.decompile(scopeList)}" else EMPTY_TOKEN
             )
         }
@@ -424,7 +424,8 @@ internal fun IrTypeParameter.obtain() =
 internal fun IrTypeArgument.obtain(scopeList: List<String>) =
     when (this) {
         is IrStarProjection -> "*"
-        is IrTypeProjection -> "${if (variance.label.isNotEmpty()) variance.label + " " else EMPTY_TOKEN}${type.obtainTypeDescription(
+        is IrTypeProjection -> "${(variance.label + " ").takeIf { variance.label.isNotEmpty() }
+            ?: EMPTY_TOKEN}${type.obtainDescriptionForScope(
             scopeList
         )}"
         else -> throw AssertionError("Unexpected IrTypeArgument: $this")

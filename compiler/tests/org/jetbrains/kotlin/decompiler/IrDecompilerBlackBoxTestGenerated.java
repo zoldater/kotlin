@@ -1133,6 +1133,24 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         public void testTestNamingConflict1() throws Exception {
             runTest("compiler/testData/decompiler/box/imports/testNamingConflict1.kt");
         }
+
+        @TestMetadata("compiler/testData/decompiler/box/imports/conflicts2311")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Conflicts2311 extends AbstractIrDecompilerBlackBoxTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInConflicts2311() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/decompiler/box/imports/conflicts2311"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("nameConflictFromOuterScopeIntoNested.kt")
+            public void testNameConflictFromOuterScopeIntoNested() throws Exception {
+                runTest("compiler/testData/decompiler/box/imports/conflicts2311/nameConflictFromOuterScopeIntoNested.kt");
+            }
+        }
     }
 
     @TestMetadata("compiler/testData/decompiler/box/objects")

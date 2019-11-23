@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.decompiler
 
-import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.decompiler.util.*
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -38,41 +37,15 @@ class DecompileIrTreeVisitor(
     internal val printer = Printer(out, "    ")
 
     companion object {
-        //TODO резолвить конфликты имен типов возвращаемых значений.
-        // Конфликт - если более 2 записей, заканчивающихся на этот тип
-        internal fun IrType.obtainTypeDescription(scopeList: List<String>): String {
-            if ((this as? IrSimpleType)?.abbreviation != null) {
-                with(abbreviation!!.typeAlias.owner) {
-                    return (fqNameWhenAvailable?.asString() ?: name()) + this@obtainTypeDescription.arguments.joinToString(
-                        ", ",
-                        "<",
-                        ">"
-                    ) { it.obtain(scopeList) }
-                }
-            }
-            return if (toKotlinType().isFunctionTypeOrSubtype) {
-                val arguments = toKotlinType().arguments
-                val returnType = arguments.last().type
-                val inputTypes = arguments.dropLast(1)
-                "${inputTypes.joinToString(", ", prefix = "(", postfix = ")") {
-                    it.type.toString() + ("?".takeIf { isNullable() } ?: EMPTY_TOKEN)
-                }} -> $returnType"
-            } else {
-                if (getClass()?.isLocalClass() == true) {
-                    // Если локальный класс, то оставляем fqName без префикса родительского
-                    // TODO - тут по идее может быть вложенность inner/nested/object.
-                    // Надо брать fqName не от parent, а от самого близкого parent не local
-                    getClass()?.fqNameWhenAvailable?.asString()?.removePrefix(
-                        getClass()?.parent?.fqNameForIrSerialization?.asString()?.let { "$it." } ?: EMPTY_TOKEN
-                    ) ?: EMPTY_TOKEN
-//                    getClass()?.name()
-//                    toKotlinType().toString().substring(startIndex = toKotlinType().toString().indexOfLast { it == '.' })
-                } else {
-                    //Пока так, но нужно резолвить через importStr и сравнение постфиксов
-                    getClass()?.fqNameWhenAvailable?.asString() ?: EMPTY_TOKEN
-                }
-            }
-        }
+        private val importResolversByFileMap = mutableMapOf<IrFile, ImportResolveVisitor>()
+        //Здесь 2 восклицательных знака, т.к. ни один obtain не вызывается до put
+        internal fun IrDeclarationReference.obtainDescriptionForScope(scopeList: List<String>) =
+            importResolversByFileMap[currentFile]!!.obtainDeclarationReferenceDescription(scopeList, this)
+
+        internal fun IrType.obtainDescriptionForScope(scopeList: List<String>) =
+            importResolversByFileMap[currentFile]!!.obtainTypeDescriptionForScope(scopeList, this)
+
+        internal lateinit var currentFile: IrFile
 
     }
 
@@ -80,10 +53,11 @@ class DecompileIrTreeVisitor(
         with(declaration) {
             val scopeList = listOfNotNull(fqName.asString().takeIf { declaration.fqName != FqName.ROOT })
             val importResolveVisitor = ImportResolveVisitor()
+            currentFile = this
+            importResolversByFileMap[this] = importResolveVisitor
             accept(importResolveVisitor, scopeList)
             val decompiledFile = declaration.declarations.joinToString(separator = "\n", postfix = "\n") { it.decompile(scopeList) }
-            val importStatementsStr =
-                importResolveVisitor.magicBox.obtainImportStatementsList().joinToString(separator = "\n", postfix = "\n")
+            val importStatementsStr = importResolveVisitor.magicBox.obtainImportStatementsList()
             printer.println(listOf("// FILE: $path", importStatementsStr, decompiledFile).joinToString("\n"))
         }
     }
@@ -91,9 +65,7 @@ class DecompileIrTreeVisitor(
 
     override fun visitGetObjectValue(expression: IrGetObjectValue, data: List<String>) {
         with(expression) {
-            val owner = symbol.owner
-            if (owner.isCompanion) printer.printWithNoIndent(owner.parentAsClass.name())
-            else printer.printWithNoIndent(expression.type.obtainTypeDescription(data))
+            printer.printWithNoIndent(obtainDescriptionForScope(data))
         }
     }
 
@@ -216,7 +188,7 @@ class DecompileIrTreeVisitor(
             .filterNot { it.isAny() || it.toKotlinType().toString().startsWith("Enum") }
             .filterNot { primaryConstructor?.constructedClass?.symbol?.let { it1 -> it.isSubtypeOfClass(it1) } ?: false }
             .joinToString(", ") {
-                val result = it.obtainTypeDescription(data)
+                val result = it.obtainDescriptionForScope(data)
                 val key = delegatedMap.keys.filter { it.isSubtypeOfClass(it.getClass()!!.symbol) }.firstOrNull()
                 result + if (key != null) " by ${delegatedMap[key]?.decompile(data)}" else EMPTY_TOKEN
             }
@@ -251,7 +223,7 @@ class DecompileIrTreeVisitor(
                     TYPEALIAS_TOKEN,
                     name(),
                     OPERATOR_TOKENS[EQ],
-                    expandedType.obtainTypeDescription(data)
+                    expandedType.obtainDescriptionForScope(data)
                 )
             )
         }
@@ -277,7 +249,7 @@ class DecompileIrTreeVisitor(
                             FUN_TOKEN,
                             obtainTypeParameters(),
                             "${obtainFunctionName()}${obtainValueParameterTypes(data)}",
-                            if (!returnType.isUnit()) ": ${returnType.obtainTypeDescription(scopeList)} " else EMPTY_TOKEN
+                            if (!returnType.isUnit()) ": ${returnType.obtainDescriptionForScope(scopeList)} " else EMPTY_TOKEN
                         )
                     )
                     declaration.body?.accept(this@DecompileIrTreeVisitor, scopeList)
@@ -301,7 +273,7 @@ class DecompileIrTreeVisitor(
                     origin == IrDeclarationOrigin.CATCH_PARAMETER -> concatenateNonEmptyWithSpace(
                         name(),
                         ":",
-                        type.obtainTypeDescription(data)
+                        type.obtainDescriptionForScope(data)
                     )
                     initializer is IrBlock -> {
                         if ((initializer as IrBlock).origin == OBJECT_LITERAL) {
@@ -319,7 +291,7 @@ class DecompileIrTreeVisitor(
                                 obtainVariableFlags(),
                                 name(),
                                 ":",
-                                type.obtainTypeDescription(data),
+                                type.obtainDescriptionForScope(data),
                                 "=",
                                 lastStatement.decompile(data)
                             )
@@ -329,7 +301,7 @@ class DecompileIrTreeVisitor(
                         obtainVariableFlags(),
                         name(),
                         ":",
-                        type.obtainTypeDescription(data),
+                        type.obtainDescriptionForScope(data),
                         "=",
                         initializer?.decompile(data)
                     )
@@ -350,7 +322,7 @@ class DecompileIrTreeVisitor(
 //                            backingField!!.name()
                             //TODO заглушил, т.к. для делегированных пропертей информация выводится некорректно (operator getValue)
 //                            ":",
-//                            backingField!!.type.obtainTypeDescription()
+//                            backingField!!.type.obtainTypeDescriptionForScope()
                         )
                     if (backingField!!.initializer != null) {
                         if (parent is IrClass && parentAsClass.kind == ClassKind.OBJECT) {
@@ -371,7 +343,7 @@ class DecompileIrTreeVisitor(
                     result = concatenateNonEmptyWithSpace(
                         result,
                         name(),
-                        getter?.returnType?.obtainTypeDescription(data)?.let { ": $it" } ?: EMPTY_TOKEN
+                        getter?.returnType?.obtainDescriptionForScope(data)?.let { ": $it" } ?: EMPTY_TOKEN
                     )
                 }
                 printer.println(result)
@@ -384,7 +356,7 @@ class DecompileIrTreeVisitor(
     //TODO когда это используется, вроде все разбираем на уровне проперти?
     override fun visitField(declaration: IrField, data: List<String>) {
         var result =
-            concatenateNonEmptyWithSpace(declaration.name(), ":", declaration.type.obtainTypeDescription(data))
+            concatenateNonEmptyWithSpace(declaration.name(), ":", declaration.type.obtainDescriptionForScope(data))
         if (declaration.initializer != null) {
             result = concatenateNonEmptyWithSpace(result, "=", declaration.initializer!!.decompile(data))
         }
@@ -392,11 +364,13 @@ class DecompileIrTreeVisitor(
     }
 
     override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: List<String>) {
-        if (!expression.symbol.owner.returnType.isAny()) {
-            printer.println(listOf(" : ", expression.symbol.owner.returnType.obtainTypeDescription(data),
-                                   ((0 until expression.valueArgumentsCount)
-                                       .mapNotNull { expression.getValueArgument(it)?.decompile(data) }
-                                       .joinToString(", ", "(", ")"))).joinToString(""))
+        with(expression) {
+            if (!symbol.owner.returnType.isAny()) {
+                printer.println(listOf(" : ", symbol.owner.returnType.obtainDescriptionForScope(data),
+                                       ((0 until expression.valueArgumentsCount)
+                                           .mapNotNull { expression.getValueArgument(it)?.decompile(data) }
+                                           .joinToString(", ", "(", ")"))).joinToString(""))
+            }
         }
     }
 
@@ -475,8 +449,6 @@ class DecompileIrTreeVisitor(
         printer.print(branch.condition.decompile(data))
     }
 
-    private fun collectCommaArguments(condition: IrExpression): String = TODO()
-
     override fun visitElseBranch(branch: IrElseBranch, data: List<String>) {
         printer.print("$ELSE_TOKEN -> ")
         withBracesLn {
@@ -549,19 +521,21 @@ class DecompileIrTreeVisitor(
     }
 
     override fun visitConstructorCall(expression: IrConstructorCall, data: List<String>) {
-        var result = ("${expression.dispatchReceiver?.decompile(data)}.".takeIf { expression.dispatchReceiver != null }
-            ?: EMPTY_TOKEN) + expression.type.obtainTypeDescription(data)
+        with(expression) {
+            var result = ("${dispatchReceiver?.decompile(data)}.".takeIf { dispatchReceiver != null }
+                ?: EMPTY_TOKEN) + type.obtainDescriptionForScope(data)
 //        var irConstructor = expression.symbol.owner
-        result += (0 until expression.typeArgumentsCount).mapNotNull {
-            expression.getTypeArgument(it)?.obtainTypeDescription(data)
+            result += (0 until typeArgumentsCount).mapNotNull {
+                getTypeArgument(it)?.obtainDescriptionForScope(data)
+            }
+                .joinToString(", ")
+                .takeIf { expression.typeArgumentsCount > 0 } ?: EMPTY_TOKEN
+            //TODO добавить проверку наличия defaultValue и именнованных вызовов
+            result += (0 until expression.valueArgumentsCount)
+                .mapNotNull { expression.getValueArgument(it)?.decompile(data) }
+                .joinToString(", ", "(", ")")
+            printer.println(result)
         }
-            .joinToString(", ")
-            .takeIf { expression.typeArgumentsCount > 0 } ?: EMPTY_TOKEN
-        //TODO добавить проверку наличия defaultValue и именнованных вызовов
-        result += (0 until expression.valueArgumentsCount)
-            .mapNotNull { expression.getValueArgument(it)?.decompile(data) }
-            .joinToString(", ", "(", ")")
-        printer.println(result)
     }
 
     override fun visitGetField(expression: IrGetField, data: List<String>) {
@@ -625,10 +599,9 @@ class DecompileIrTreeVisitor(
     override fun visitTypeOperator(expression: IrTypeOperatorCall, data: List<String>) {
         with(expression) {
             when (operator) {
+                //TODO Тут пока костыль, потому что IrTypeOperatorCall не знает о том, откуда он был вызван
                 in TYPE_OPERATOR_TOKENS.keys -> printer.print(
-                    "(${argument.decompile(data)} ${TYPE_OPERATOR_TOKENS[operator]} ${typeOperand.obtainTypeDescription(
-                        data
-                    )})"
+                    "(${argument.decompile(data)} ${TYPE_OPERATOR_TOKENS[operator]} ${typeOperand.getClass()!!.name()})"
                 )
                 IMPLICIT_COERCION_TO_UNIT, IMPLICIT_CAST -> printer.println(argument.decompile(data))
                 else -> TODO("Unexpected type operator $operator!")
@@ -685,7 +658,9 @@ class DecompileIrTreeVisitor(
     }
 
     override fun visitGetEnumValue(expression: IrGetEnumValue, data: List<String>) {
-        printer.printWithNoIndent("${expression.type.obtainTypeDescription(data)}.${expression.symbol.owner.name()}")
+        with(expression) {
+            printer.printWithNoIndent(obtainDescriptionForScope(data))
+        }
     }
 
     override fun visitEnumEntry(declaration: IrEnumEntry, data: List<String>) {
@@ -693,8 +668,9 @@ class DecompileIrTreeVisitor(
     }
 
     override fun visitFunctionReference(expression: IrFunctionReference, data: List<String>) {
-        //TODO умеем пока только сслыки на top-level функции из текущего скоупа
-        printer.printWithNoIndent("::${expression.symbol.owner.name()}")
+        with(expression.symbol.owner) {
+            printer.printWithNoIndent("${(parent as? IrClass)?.defaultType?.obtainDescriptionForScope(data) ?: EMPTY_TOKEN}::${name()}")
+        }
     }
 
     override fun visitFunctionExpression(expression: IrFunctionExpression, data: List<String>) {
@@ -740,7 +716,7 @@ class DecompileIrTreeVisitor(
     override fun visitElement(element: IrElement, data: List<String>) = TODO()
 
     override fun visitClassReference(expression: IrClassReference, data: List<String>) {
-        printer.print("${expression.type.obtainTypeDescription(data)}::class")
+        printer.print("${expression.classType.obtainDescriptionForScope(data)}::class")
     }
 
     private fun List<IrElement>.decompileElements(data: List<String>) {

@@ -28,8 +28,8 @@ interface IMagicBox {
     /**
      *
      */
-    fun obtainDeclarationReferenceDescription(scopeList: List<String>, irDeclarationReference: IrDeclarationReference)
+    fun obtainDeclarationReferenceDescription(scopeList: List<String>, irDeclarationReference: IrDeclarationReference): String
 
-    fun obtainImportStatementsList(): List<String>
+    fun obtainImportStatementsList(): String
     fun obtainTypeDescriptionForScope(scopeList: List<String>, irType: IrType): String
 }
