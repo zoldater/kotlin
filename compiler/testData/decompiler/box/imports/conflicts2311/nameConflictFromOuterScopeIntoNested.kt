@@ -8,18 +8,17 @@ open class ClassName {
 // FILE: nameConflictFromOuterScopeIntoNestedInv.kt
 package ru.spbau.mit.invocation
 
-import ru.spbau.mit.declaration.ClassName as ConflictedClassName
-
-class ClassName : ConflictedClassName() {
+open class ClassName : ru.spbau.mit.declaration.ClassName() {
     override fun foo() = "FAIL"
+}
+
+class NoConflictClass : ClassName() {
+    override fun foo() = "OK"
 }
 
 fun box(): String {
     val className = ClassName()
-    val conflictedClass = ConflictedClassName()
-    if (className.foo() == conflictedClass.foo()) {
-        return className.foo()
-    } else {
-        return conflictedClass.foo()
-    }
+    val conflictedClass = ru.spbau.mit.declaration.ClassName()
+    val noConflictClass = NoConflictClass()
+    return noConflictClass.foo()
 }

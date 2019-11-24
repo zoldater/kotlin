@@ -56,9 +56,10 @@ class DecompileIrTreeVisitor(
             currentFile = this
             importResolversByFileMap[this] = importResolveVisitor
             accept(importResolveVisitor, scopeList)
+            val packageStr = "package ${fqName.asString()}".takeIf { fqName != FqName.ROOT }
             val decompiledFile = declaration.declarations.joinToString(separator = "\n", postfix = "\n") { it.decompile(scopeList) }
             val importStatementsStr = importResolveVisitor.magicBox.obtainImportStatementsList()
-            printer.println(listOf("// FILE: $path", importStatementsStr, decompiledFile).joinToString("\n"))
+            printer.println(listOfNotNull("// FILE: $path", packageStr, importStatementsStr, decompiledFile).joinToString("\n"))
         }
     }
 
@@ -366,7 +367,7 @@ class DecompileIrTreeVisitor(
     override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: List<String>) {
         with(expression) {
             if (!symbol.owner.returnType.isAny()) {
-                printer.println(listOf(" : ", symbol.owner.returnType.obtainDescriptionForScope(data),
+                printer.println(listOf(" : ", obtainDescriptionForScope(data),
                                        ((0 until expression.valueArgumentsCount)
                                            .mapNotNull { expression.getValueArgument(it)?.decompile(data) }
                                            .joinToString(", ", "(", ")"))).joinToString(""))
@@ -523,8 +524,7 @@ class DecompileIrTreeVisitor(
     override fun visitConstructorCall(expression: IrConstructorCall, data: List<String>) {
         with(expression) {
             var result = ("${dispatchReceiver?.decompile(data)}.".takeIf { dispatchReceiver != null }
-                ?: EMPTY_TOKEN) + type.obtainDescriptionForScope(data)
-//        var irConstructor = expression.symbol.owner
+                ?: EMPTY_TOKEN) + obtainDescriptionForScope(data)
             result += (0 until typeArgumentsCount).mapNotNull {
                 getTypeArgument(it)?.obtainDescriptionForScope(data)
             }

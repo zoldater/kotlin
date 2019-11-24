@@ -1150,6 +1150,11 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             public void testNameConflictFromOuterScopeIntoNested() throws Exception {
                 runTest("compiler/testData/decompiler/box/imports/conflicts2311/nameConflictFromOuterScopeIntoNested.kt");
             }
+
+            @TestMetadata("nameConflictStasExample.kt")
+            public void testNameConflictStasExample() throws Exception {
+                runTest("compiler/testData/decompiler/box/imports/conflicts2311/nameConflictStasExample.kt");
+            }
         }
     }
 

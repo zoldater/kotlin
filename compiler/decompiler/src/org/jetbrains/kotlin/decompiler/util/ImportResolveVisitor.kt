@@ -18,21 +18,15 @@ import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
-private val defaultImportRegex = setOf(
-    "kotlin\\.\\w+",
-    "kotlin.annotation\\.\\w+",
-    "kotlin.collections\\.\\w+",
-    "kotlin.comparisons\\.\\w+",
-    "kotlin.io\\.\\w+",
-    "kotlin.ranges\\.\\w+",
-    "kotlin.sequences\\.\\w+",
-    "kotlin.text\\.\\w+"
-).map { it.toRegex() }
 
 class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElementVisitor<Unit, List<String>>, IMagicBox by magicBox {
 
     override fun visitDeclarationReference(expression: IrDeclarationReference, data: List<String>) {
         TODO("Implement visitor for $expression")
+    }
+
+    override fun visitGetValue(expression: IrGetValue, data: List<String>) {
+        //Вроде ничего не нужно делать
     }
 
     override fun visitFile(declaration: IrFile, data: List<String>) {
@@ -92,8 +86,14 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
                     val propName = matchResult?.groups?.get(1)?.value
                     putCalledDeclarationReferenceWithScope(data + listOfNotNull(propName), this)
                 }
+                in OPERATOR_TOKENS -> {
+                }
                 else -> {
-                    putCalledDeclarationReferenceWithScope(data, this)
+                    // Импорт работает только если идет обращение без dispatcher receiver'а
+                    // TODO !!!Сделать симметрично в DecompilerIrTree
+                    if (dispatchReceiver == null) {
+                        putCalledDeclarationReferenceWithScope(data, this)
+                    }
                 }
             }
             (0 until typeArgumentsCount).forEach { putExplicitTypeWithScope(data, getTypeArgument(it)!!) }
@@ -104,15 +104,13 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
 
 
     override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: List<String>) {
-        //TODO Вроде вызов делегирующего конструктора отображается только через : от primary или secondary конструктора,
-        // значит его можно выводить аналогично superTypes, т.е. через тип owner'а
-        putExplicitTypeWithScope(data, expression.symbol.owner.returnType)
+        putCalledDeclarationReferenceWithScope(data, expression)
     }
 
     override fun visitConstructorCall(expression: IrConstructorCall, data: List<String>) {
         with(expression) {
             dispatchReceiver?.accept(this@ImportResolveVisitor, data)
-            putExplicitTypeWithScope(data, type)
+            putCalledDeclarationReferenceWithScope(data, this)
             (0 until typeArgumentsCount).forEach {
                 putExplicitTypeWithScope(data, getTypeArgument(it)!!)
             }

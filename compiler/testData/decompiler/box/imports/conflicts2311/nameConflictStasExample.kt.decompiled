@@ -1,0 +1,24 @@
+// FILE: /nameConflictStasExample.kt
+package ru.spbau.mit
+
+
+
+open  class A {
+}
+class B {
+    open  class A {
+    }
+    class C : B.A() {
+    }
+    class D : B.A() {
+    }
+    class E : ru.spbau.mit.A() {
+    }
+}
+fun box() : String  {
+    val a : A = ru.spbau.mit.A()
+    val a1 : B.A = B.A()
+    val c : B.C = B.C()
+    val e : B.E = B.E()
+    return "OK"
+}
