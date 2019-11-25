@@ -5,11 +5,12 @@
 
 package org.jetbrains.kotlin.decompiler.util.magicbox.info
 
-import org.jetbrains.kotlin.decompiler.util.EMPTY_TOKEN
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
+import org.jetbrains.kotlin.ir.util.getPackageFragment
+import org.jetbrains.kotlin.ir.util.parentAsClass
 
 /**
  * Используем для маппинга DeclarationReference, вызываемого в соответствующем скоупе, в строковое представление,
@@ -25,24 +26,20 @@ internal class DeclarationReferenceInfo(val scopeList: List<String>, val irDecla
             val ownerPackage = (symbol.owner as? IrDeclarationWithName)?.getPackageFragment()?.fqName?.asString()
             val ownerFqName = (symbol.owner as? IrDeclarationWithName)?.fqNameWhenAvailable?.asString()
             return listOfNotNull(ownerPackage) +
-                    (ownerFqName?.removePrefix("$ownerPackage.")?.split(".")?.filter { it.matches("\\w+".toRegex()) }
+                    (ownerFqName
+                        ?.removePrefix("$ownerPackage.")
+                        ?.removeSuffix(".${this.obtainDefaultName()}")
+                        ?.split(".")
+                        ?.filter { it.matches("\\w+".toRegex()) }
                         ?: listOf())
         }
 
-        private fun <T : IrDeclarationReference> T.obtainDefaultName(): String {
+        internal fun <T : IrDeclarationReference> T.obtainDefaultName(): String {
             return when (val owner = symbol.owner) {
                 !is IrDeclarationWithName -> TODO("Implemented only for node IrDeclarationWithName owner!")
                 is IrConstructor -> owner.parentAsClass.name()
                 is IrEnumEntry, is IrTypeAlias -> owner.name.asString()
-                is IrClass -> {
-                    var defaultName = owner.name.asString()
-                    var parent = owner.parent
-                    while (parent is IrClass) {
-                        defaultName = "${parent.name()}.$defaultName"
-                        parent = parent.parent
-                    }
-                    return defaultName
-                }
+                is IrClass -> owner.name()
                 //Если функция или property - топ-левел или объявлена внутри Companion object,
                 // то ее можно импортировать и обращатсья по имени.
                 is IrSimpleFunction, is IrProperty -> {

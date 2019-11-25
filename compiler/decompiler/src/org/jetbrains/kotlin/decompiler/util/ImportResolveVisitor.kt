@@ -25,6 +25,15 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
         TODO("Implement visitor for $expression")
     }
 
+    override fun visitGetField(expression: IrGetField, data: List<String>) {
+        expression.receiver?.accept(this, data)
+    }
+
+    override fun visitSetField(expression: IrSetField, data: List<String>) {
+        expression.value.accept(this, data)
+        expression.receiver?.accept(this, data)
+    }
+
     override fun visitGetValue(expression: IrGetValue, data: List<String>) {
         //Вроде ничего не нужно делать
     }
@@ -40,7 +49,7 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
             // Для енамов в суперах лежит Enum<MyType>, который почему-то не isEnum
             //TODO обработка superTypes через коробочку
             superTypes.filterNot { it.isAny() || it.toKotlinType().toString().startsWith("Enum") }
-                .forEach { putExplicitTypeWithScope(scopeList, it) }
+                .forEach { putExplicitTypeWithScope(scopeList, (it as IrSimpleType)) }
             declarations.filterNot {
                 it.origin in setOf(
                     IrDeclarationOrigin.FAKE_OVERRIDE,
@@ -54,7 +63,7 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
 
     override fun visitProperty(declaration: IrProperty, data: List<String>) {
         with(declaration) {
-            val scopeList = data + name()
+            val scopeList = data
             if (parent is IrFile || parentAsClass.isCompanion || parentAsClass.isObject) {
                 putDeclarationWithName(scopeList, this)
             }
@@ -78,25 +87,8 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
         with(expression) {
             dispatchReceiver?.accept(this@ImportResolveVisitor, data)
             extensionReceiver?.accept(this@ImportResolveVisitor, data)
-            when (origin) {
-                IrStatementOrigin.GET_PROPERTY -> {
-                    val fullName = symbol.owner.name()
-                    val regex = """<get-(.+)>""".toRegex()
-                    val matchResult = regex.find(fullName)
-                    val propName = matchResult?.groups?.get(1)?.value
-                    putCalledDeclarationReferenceWithScope(data + listOfNotNull(propName), this)
-                }
-                in OPERATOR_TOKENS -> {
-                }
-                else -> {
-                    // Импорт работает только если идет обращение без dispatcher receiver'а
-                    // TODO !!!Сделать симметрично в DecompilerIrTree
-                    if (dispatchReceiver == null) {
-                        putCalledDeclarationReferenceWithScope(data, this)
-                    }
-                }
-            }
-            (0 until typeArgumentsCount).forEach { putExplicitTypeWithScope(data, getTypeArgument(it)!!) }
+            putCalledDeclarationReferenceWithScope(data, this)
+            (0 until typeArgumentsCount).forEach { putExplicitTypeWithScope(data, (getTypeArgument(it) as IrSimpleType)) }
             //TODO Может ли быть конфликт при обработке аргументов не с местом вызова, а с вызывающим owner'ом?
             (0 until valueArgumentsCount).forEach { getValueArgument(it)?.accept(this@ImportResolveVisitor, data) }
         }
@@ -112,7 +104,7 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
             dispatchReceiver?.accept(this@ImportResolveVisitor, data)
             putCalledDeclarationReferenceWithScope(data, this)
             (0 until typeArgumentsCount).forEach {
-                putExplicitTypeWithScope(data, getTypeArgument(it)!!)
+                putExplicitTypeWithScope(data, (getTypeArgument(it) as IrSimpleType))
             }
             //TODO добавить проверку наличия defaultValue и именнованных вызовов
             (0 until expression.valueArgumentsCount)
@@ -122,7 +114,7 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
 
     override fun visitEnumEntry(declaration: IrEnumEntry, data: List<String>) {
         with(declaration) {
-            val scopeList = data + name()
+            val scopeList = data
             putDeclarationWithName(scopeList, declaration)
             //TODO Может ли быть конфликт при обработке аргументов не с местом вызова, а с вызывающим owner'ом?
             initializerExpression?.accept(this@ImportResolveVisitor, scopeList)
@@ -131,8 +123,8 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
 
     override fun visitEnumConstructorCall(expression: IrEnumConstructorCall, data: List<String>) {
         with(expression) {
-            putExplicitTypeWithScope(data, symbol.owner.returnType)
-            (0 until typeArgumentsCount).forEach { putExplicitTypeWithScope(data, getTypeArgument(it)!!) }
+            putExplicitTypeWithScope(data, symbol.owner.returnType as IrSimpleType)
+            (0 until typeArgumentsCount).forEach { putExplicitTypeWithScope(data, (getTypeArgument(it) as IrSimpleType)) }
             //TODO Может ли быть конфликт при обработке аргументов не с местом вызова, а с вызывающим owner'ом?
             (0 until valueArgumentsCount).forEach { getValueArgument(it)?.accept(this@ImportResolveVisitor, data) }
         }
@@ -148,20 +140,19 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
 
     override fun visitValueParameter(declaration: IrValueParameter, data: List<String>) {
         with(declaration) {
-            putExplicitTypeWithScope(data, type)
+            putExplicitTypeWithScope(data, type as IrSimpleType)
             defaultValue?.accept(this@ImportResolveVisitor, data)
         }
     }
 
     override fun visitFunction(declaration: IrFunction, data: List<String>) {
         with(declaration) {
-            val scopeList = data + declaration.name()
-            putDeclarationWithName(scopeList, declaration)
-            putExplicitTypeWithScope(scopeList, returnType)
+            putDeclarationWithName(data, declaration)
+            putExplicitTypeWithScope(data, returnType as IrSimpleType)
             //TODO тут нужен data или scopeList? Когда это может сломаться?
-            typeParameters.forEach { it.accept(this@ImportResolveVisitor, scopeList) }
-            explicitParameters.forEach { it.accept(this@ImportResolveVisitor, scopeList) }
-            body?.accept(this@ImportResolveVisitor, scopeList)
+            typeParameters.forEach { it.accept(this@ImportResolveVisitor, data) }
+            explicitParameters.forEach { it.accept(this@ImportResolveVisitor, data) }
+            body?.accept(this@ImportResolveVisitor, data)
         }
     }
 
@@ -183,7 +174,7 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
     override fun visitVariable(declaration: IrVariable, data: List<String>) {
         //Здесь обрабатываем тип (потому что мог быть введен явно, а мы выводим явно всегда) и initializer
         with(declaration) {
-            putExplicitTypeWithScope(data, type)
+            putExplicitTypeWithScope(data, type as IrSimpleType)
             initializer?.accept(this@ImportResolveVisitor, data)
         }
     }
@@ -196,7 +187,7 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
 
     override fun visitTypeAlias(declaration: IrTypeAlias, data: List<String>) {
         with(declaration) {
-            val scopeList = data + name()
+            val scopeList = data
             putDeclarationWithName(scopeList, declaration)
 //            putExplicitTypeWithScope(scopeList, expandedType)
         }
@@ -236,7 +227,7 @@ class ImportResolveVisitor(val magicBox: IMagicBox = MagicBoxImpl()) : IrElement
         with(expression) {
             argument.accept(this@ImportResolveVisitor, data)
             when (operator) {
-                CAST, SAFE_CAST, INSTANCEOF, NOT_INSTANCEOF -> putExplicitTypeWithScope(data, typeOperand)
+                CAST, SAFE_CAST, INSTANCEOF, NOT_INSTANCEOF -> putExplicitTypeWithScope(data, typeOperand as IrSimpleType)
                 else -> {
                 }
             }

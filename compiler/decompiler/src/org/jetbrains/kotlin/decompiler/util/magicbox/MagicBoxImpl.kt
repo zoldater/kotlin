@@ -5,21 +5,23 @@
 
 package org.jetbrains.kotlin.decompiler.util.magicbox
 
-import org.jetbrains.kotlin.builtins.isBuiltinExtensionFunctionalType
 import org.jetbrains.kotlin.decompiler.util.magicbox.info.DeclarationReferenceInfo
-import org.jetbrains.kotlin.decompiler.util.magicbox.info.TypeInfo
+import org.jetbrains.kotlin.decompiler.util.magicbox.info.DeclarationReferenceInfo.Companion.obtainDefaultName
+import org.jetbrains.kotlin.decompiler.util.magicbox.info.TypeClassInfo
 import org.jetbrains.kotlin.decompiler.util.name
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.isKClass
-import org.jetbrains.kotlin.ir.types.toKotlinType
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
+import org.jetbrains.kotlin.ir.util.parentAsClass
 
 class MagicBoxImpl : IMagicBox {
     private val declarationsWithNameByScopeMap = mutableMapOf<String, MutableSet<IrDeclarationWithName>>()
     private val declarationReferencesByScopeMap = mutableMapOf<String, MutableSet<DeclarationReferenceInfo>>()
-    private val explicitTypesByScopeMap = mutableMapOf<String, MutableSet<TypeInfo>>()
+    private val explicitTypesByScopeMap = mutableMapOf<String, MutableSet<TypeClassInfo>>()
     private var isFreshState = true
 
     companion object {
@@ -41,19 +43,21 @@ class MagicBoxImpl : IMagicBox {
         isFreshState = false
     }
 
-    override fun putExplicitTypeWithScope(scopeList: List<String>, irType: IrType) {
+    override fun putExplicitTypeWithScope(scopeList: List<String>, irSimpleType: IrSimpleType) {
         //Добавляем в маппинг на скоуп
-        if (!irType.isKClass()) {
-            explicitTypesByScopeMap.addToValueSetOrInitializeIt(scopeList, TypeInfo(scopeList, irType))
-            isFreshState = false
-        }
+        irSimpleType.getClass()
+        explicitTypesByScopeMap.addToValueSetOrInitializeIt(scopeList, TypeClassInfo(scopeList, irSimpleType))
+        isFreshState = false
     }
 
     override fun obtainDeclarationReferenceDescription(scopeList: List<String>, irDeclarationReference: IrDeclarationReference): String {
         if (!isFreshState) refreshState()
-        return declarationReferencesByScopeMap[scopeList.joinToString(".")]!!
-            .find { it.irDeclarationReference == irDeclarationReference && it.scopeList == scopeList }!!
-            .calculatedName
+        return declarationReferencesByScopeMap
+            .filter { it.key.startsWith(scopeList.joinToString(".")) || it.key.startsWith("kotlin") }
+            .flatMap { it.value }
+            .find { it.irDeclarationReference == irDeclarationReference && it.scopeList == scopeList }
+            ?.calculatedName
+            ?: irDeclarationReference.obtainDefaultName()
     }
 
     override fun obtainImportStatementsList(): String {
@@ -64,18 +68,18 @@ class MagicBoxImpl : IMagicBox {
                     .filterNot { it.calculatedListForImport.size <= 1 }
                     .map { it.calculatedListForImport.joinToString(".") }
             }
-//        val typeImports = explicitTypesByScopeMap.values
-//            .flatMap { set ->
-//                set
-//                    .filterNot { it.calculatedListForImport.size <= 1 }
-//                    .map { it.calculatedListForImport.joinToString(".") }
-//            }
+        val typeImports = explicitTypesByScopeMap.values
+            .flatMap { set ->
+                set
+                    .filterNot { it.calculatedListForImport.size <= 1 }
+                    .map { it.calculatedListForImport.joinToString(".") }
+            }
 
         val localDeclarations = declarationsWithNameByScopeMap.values.flatten().mapNotNull { it.fqNameWhenAvailable?.asString() }
 
         val resultSet = mutableSetOf<String>()
         resultSet.addAll(declarationImports)
-//        resultSet.addAll(typeImports)
+        resultSet.addAll(typeImports)
         resultSet.removeAll(localDeclarations)
         return resultSet
             .sorted()
@@ -84,9 +88,16 @@ class MagicBoxImpl : IMagicBox {
             .joinToString("\n", "\n", "\n") { "import $it" }
     }
 
-    override fun obtainTypeDescriptionForScope(scopeList: List<String>, irType: IrType): String {
+    override fun obtainTypeDescriptionForScope(scopeList: List<String>, irSimpleType: IrSimpleType): String {
+        //Если это стандратный тип
         if (!isFreshState) refreshState()
-        return explicitTypesByScopeMap[scopeList.joinToString(".")]!!.find { it.irType == irType && it.scopeList == scopeList }!!.calculatedName
+        return explicitTypesByScopeMap
+            .filter { it.key.startsWith(scopeList.joinToString(".")) || it.key.startsWith("kotlin") }
+            .flatMap { it.value }
+            .find { it.irSimpleType == irSimpleType && it.scopeList == scopeList }
+            ?.calculatedName
+        // Это костыль, но пока пойдет
+            ?: irSimpleType.getClass()!!.name()
     }
 
     private fun refreshState() {
@@ -103,11 +114,17 @@ class MagicBoxImpl : IMagicBox {
                     if (lhs.index != rhs.index && lhs.value.calculatedName == rhs.value.calculatedName) {
                         rhs.value.doResolveStep()
                     }
-                }
-                for (declWithNameSet in declarationsWithNameByScopeMap.values) {
-                    for (declWithName in declWithNameSet) {
-                        if (declWithName.name() == lhs.value.calculatedName) {
-                            lhs.value.doResolveStep()
+                    for ((declWithNameScope, declWithNameSet) in declarationsWithNameByScopeMap) {
+                        for (declWithName in declWithNameSet) {
+                            if (declScope.startsWith(declWithNameScope)
+                                && declWithName.name() == rhs.value.calculatedName
+                                && declWithName != rhs.value.irDeclarationReference.symbol.owner
+                                && (declWithName != rhs.value.irDeclarationReference.symbol.owner)
+                                && !(rhs.value.irDeclarationReference is IrConstructorCall
+                                        && declWithName == (rhs.value.irDeclarationReference.symbol.owner as IrConstructor).parentAsClass)
+                            ) {
+                                rhs.value.doResolveStep()
+                            }
                         }
                     }
                 }
@@ -122,11 +139,20 @@ class MagicBoxImpl : IMagicBox {
                     if (lhsTypeInfo.index != rhsTypeInfo.index && lhsTypeInfo.value.calculatedName == rhsTypeInfo.value.calculatedName) {
                         rhsTypeInfo.value.doResolveStep()
                     }
+                    for ((declWithNameScope, declWithNameSet) in declarationsWithNameByScopeMap) {
+                        for (declWithName in declWithNameSet) {
+                            if (typeScope.startsWith(declWithNameScope)
+                                && declWithName.name() == rhsTypeInfo.value.calculatedName
+                                && declWithName != rhsTypeInfo.value.irSimpleType.getClass()
+                            ) {
+                                rhsTypeInfo.value.doResolveStep()
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-
 
     private fun <T> MutableMap<String, MutableSet<T>>.addToValueSetOrInitializeIt(scopeList: List<String>, element: T) {
         if (containsKey(scopeList.joinToString("."))) {

@@ -5,37 +5,36 @@
 
 package org.jetbrains.kotlin.decompiler.util.magicbox.info
 
-import org.jetbrains.kotlin.builtins.isFunctionType
-import org.jetbrains.kotlin.decompiler.util.EMPTY_TOKEN
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.getClass
-import org.jetbrains.kotlin.ir.types.isKClass
-import org.jetbrains.kotlin.ir.types.toKotlinType
-import org.jetbrains.kotlin.ir.util.file
-import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.getPackageFragment
 
 /**
- * Используем для маппинга DeclarationReference, вызываемого в соответствующем скоупе, в строковое представление,
+ * Используем для маппинга явного вывода типа, вызываемого в соответствующем скоупе, в строковое представление,
  * используемое для его отображения в генерируемом исходном коде, и информацию, необходимую для его импорта
  */
-internal class TypeInfo(val scopeList: List<String>, val irType: IrType) : IrNodeInfo<IrType> {
-    override var calculatedListForImport = irType.obtainDefaultImportStatement()
-    override var calculatedName = irType.obtainDefaultName()
+internal class TypeClassInfo(val scopeList: List<String>, val irSimpleType: IrSimpleType) : IrNodeInfo<IrSimpleType> {
+    override var calculatedListForImport = irSimpleType.obtainDefaultImportStatement()
+    override var calculatedName = irSimpleType.obtainDefaultName()
 
     companion object {
-        private fun IrType.obtainDefaultImportStatement(): List<String> {
+        private fun IrSimpleType.obtainDefaultImportStatement(): List<String> {
             val typeClassFqName = getClass()?.fqNameWhenAvailable?.asString()
             val typeClassPackage = getClass()?.getPackageFragment()?.fqName?.asString()
-            return listOfNotNull(typeClassPackage) + (typeClassFqName?.removePrefix("$typeClassPackage.")?.split(".")?.filter { it.matches("\\w+".toRegex()) }
-                ?: listOf())
+            return listOfNotNull(typeClassPackage) + (
+                    typeClassFqName
+                        ?.removePrefix("$typeClassPackage.")
+                        ?.removeSuffix(".${this.obtainDefaultName()}")
+                        ?.split(".")
+                        ?.filter { it.matches("\\w+".toRegex()) }
+                        ?: listOf())
         }
 
         //TODO Хотя тут возможно целесообразно вместо падения через toKotlinType вытаскивать, но надо смотреть
-        private fun IrType.obtainDefaultName(): String {
+        internal fun IrSimpleType.obtainDefaultName(): String {
             val clazz = getClass()
             var defaultName = clazz?.name()
             var parent = clazz?.parent
@@ -44,7 +43,6 @@ internal class TypeInfo(val scopeList: List<String>, val irType: IrType) : IrNod
                 parent = parent.parent
             }
             return defaultName ?: TODO("Cannot obtain name for the type without class!")
-
         }
     }
 

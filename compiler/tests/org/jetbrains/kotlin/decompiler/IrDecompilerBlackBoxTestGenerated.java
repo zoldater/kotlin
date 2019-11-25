@@ -1146,6 +1146,11 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/decompiler/box/imports/conflicts2311"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
             }
 
+            @TestMetadata("nameConflictDima.kt")
+            public void testNameConflictDima() throws Exception {
+                runTest("compiler/testData/decompiler/box/imports/conflicts2311/nameConflictDima.kt");
+            }
+
             @TestMetadata("nameConflictFromOuterScopeIntoNested.kt")
             public void testNameConflictFromOuterScopeIntoNested() throws Exception {
                 runTest("compiler/testData/decompiler/box/imports/conflicts2311/nameConflictFromOuterScopeIntoNested.kt");

@@ -5,9 +5,15 @@ open class A
 
 class B {
     open class A
-    class C: A()
-    class D: B.A()
-    class E: ru.spbau.mit.A()
+    class C : A()
+    class D : B.A() {
+        val c = C()
+    }
+
+    class E : ru.spbau.mit.A() {
+        val b = B()
+        val a = A()
+    }
 }
 
 fun box(): String {

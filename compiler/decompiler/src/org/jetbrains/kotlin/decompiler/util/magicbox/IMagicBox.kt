@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.decompiler.util.magicbox
 
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
 import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
+import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 
 interface IMagicBox {
@@ -23,7 +24,7 @@ interface IMagicBox {
      */
     fun putCalledDeclarationReferenceWithScope(scopeList: List<String>, irDeclarationReference: IrDeclarationReference)
 
-    fun putExplicitTypeWithScope(scopeList: List<String>, irType: IrType)
+    fun putExplicitTypeWithScope(scopeList: List<String>, irSimpleType: IrSimpleType)
 
     /**
      *
@@ -31,5 +32,5 @@ interface IMagicBox {
     fun obtainDeclarationReferenceDescription(scopeList: List<String>, irDeclarationReference: IrDeclarationReference): String
 
     fun obtainImportStatementsList(): String
-    fun obtainTypeDescriptionForScope(scopeList: List<String>, irType: IrType): String
+    fun obtainTypeDescriptionForScope(scopeList: List<String>, irSimpleType: IrSimpleType): String
 }

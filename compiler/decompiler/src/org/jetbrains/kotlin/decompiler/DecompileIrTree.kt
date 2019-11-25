@@ -43,7 +43,7 @@ class DecompileIrTreeVisitor(
             importResolversByFileMap[currentFile]!!.obtainDeclarationReferenceDescription(scopeList, this)
 
         internal fun IrType.obtainDescriptionForScope(scopeList: List<String>) =
-            importResolversByFileMap[currentFile]!!.obtainTypeDescriptionForScope(scopeList, this)
+            importResolversByFileMap[currentFile]!!.obtainTypeDescriptionForScope(scopeList, this as IrSimpleType)
 
         internal lateinit var currentFile: IrFile
 
@@ -88,7 +88,7 @@ class DecompileIrTreeVisitor(
                 printer.println((expression.value as IrBlock).statements[0].decompile(data + "return"))
                 printer.println("$RETURN_TOKEN ${(expression.value as IrBlock).statements[1].decompile(data + "return")}")
             }
-            data.last() == "lambda" -> expression.value.accept(this, data)
+            data.last() == "lambda" -> expression.value.accept(this, data.dropLast(1))
             else -> printer.println("$RETURN_TOKEN ${expression.value.decompile(data + "return")}")
         }
     }
@@ -237,7 +237,7 @@ class DecompileIrTreeVisitor(
 
     //TODO А когда тут DEFAULT_PROPERTY_ACCESSOR и что с ним делать?
     override fun visitSimpleFunction(declaration: IrSimpleFunction, data: List<String>) {
-        val scopeList = data + declaration.name()
+        val scopeList = data
         with(declaration) {
             when {
                 origin != DEFAULT_PROPERTY_ACCESSOR && origin != DELEGATED_MEMBER -> {
@@ -281,6 +281,8 @@ class DecompileIrTreeVisitor(
                             concatenateNonEmptyWithSpace(
                                 obtainVariableFlags(),
                                 name(),
+                                ":",
+                                type.obtainDescriptionForScope(data),
                                 "=",
                                 initializer?.decompile(data)
                             )
@@ -319,11 +321,11 @@ class DecompileIrTreeVisitor(
                     result =
                         concatenateNonEmptyWithSpace(
                             result,
-                            declaration.name()
+                            declaration.name(),
 //                            backingField!!.name()
                             //TODO заглушил, т.к. для делегированных пропертей информация выводится некорректно (operator getValue)
-//                            ":",
-//                            backingField!!.type.obtainTypeDescriptionForScope()
+                            ":",
+                            backingField!!.type.obtainDescriptionForScope(data)
                         )
                     if (backingField!!.initializer != null) {
                         if (parent is IrClass && parentAsClass.kind == ClassKind.OBJECT) {
@@ -404,7 +406,7 @@ class DecompileIrTreeVisitor(
                 )
                 else -> {
                     if (data.last() == "return") {
-                        printer.printWithNoIndent("$IF_TOKEN  (${expression.branches[0].decompile(data)})")
+                        printer.printWithNoIndent("$IF_TOKEN  (${expression.branches[0].decompile(data.dropLast(1))})")
                     } else {
                         printer.print("$IF_TOKEN  (${expression.branches[0].decompile(data)})")
                     }
@@ -425,20 +427,22 @@ class DecompileIrTreeVisitor(
                 }
             }
         } else {
-            if (data.last() == "return") {
+            val scopeList = if (data.last() == "return") {
                 printer.printWithNoIndent(WHEN_TOKEN)
+                data.dropLast(1)
             } else {
                 printer.print(WHEN_TOKEN)
+                data
             }
             withBracesLn {
                 expression.branches.forEach {
                     if (it is IrElseBranch) {
                         printer.print("else -> ")
                     } else {
-                        printer.print(" (${it.condition.decompile(data)}) ->")
+                        printer.print(" (${it.condition.decompile(scopeList)}) ->")
                     }
                     withBracesLn {
-                        printer.println(it.result.decompile(data))
+                        printer.println(it.result.decompile(scopeList))
                     }
                 }
             }
@@ -549,7 +553,6 @@ class DecompileIrTreeVisitor(
         val backFieldSymbolVal = expression.symbol.owner.name()
         printer.println("$receiverValue.$backFieldSymbolVal = $initValue")
     }
-
 
     override fun visitWhileLoop(loop: IrWhileLoop, data: List<String>) {
         printer.print("$WHILE_TOKEN (${loop.condition.decompile(data)})")
