@@ -17,6 +17,8 @@ import org.jetbrains.kotlin.codegen.*
 import org.jetbrains.kotlin.codegen.defaultConstructor.AbstractDefaultArgumentsReflectionTest
 import org.jetbrains.kotlin.codegen.flags.AbstractWriteFlagsTest
 import org.jetbrains.kotlin.codegen.ir.*
+import org.jetbrains.kotlin.decompiler.AbstractIrDecompilerBlackBoxTest
+import org.jetbrains.kotlin.decompiler.AbstractIrDecompilerTextTestCase
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.builder.AbstractRawFirBuilderTestCase
 import org.jetbrains.kotlin.fir.java.AbstractFirTypeEnhancementTest
@@ -50,8 +52,8 @@ import org.jetbrains.kotlin.resolve.constraintSystem.AbstractConstraintSystemTes
 import org.jetbrains.kotlin.serialization.AbstractLocalClassProtoTest
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.types.AbstractTypeBindingTest
-import org.jetbrains.kotlin.visualizer.psi.AbstractPsiVisualizer
 import org.jetbrains.kotlin.visualizer.fir.AbstractFirVisualizer
+import org.jetbrains.kotlin.visualizer.psi.AbstractPsiVisualizer
 
 fun main(args: Array<String>) {
     System.setProperty("java.awt.headless", "true")
@@ -190,6 +192,15 @@ fun main(args: Array<String>) {
             model("codegen/bytecodeText", targetBackend = TargetBackend.JVM)
         }
 
+        testClass<AbstractIrDecompilerTextTestCase> {
+            model("decompiler", excludeDirs = listOf("box"))
+        }
+
+        testClass<AbstractIrDecompilerBlackBoxTest> {
+            model("decompiler/box")
+//            model("codegen/box")
+        }
+
         testClass<AbstractIrTextTestCase> {
             model("ir/irText")
         }
@@ -239,7 +250,12 @@ fun main(args: Array<String>) {
             model("loadJava/compiledKotlin", testMethod = "doTestCompiledKotlin")
             model("loadJava/compiledKotlinWithStdlib", testMethod = "doTestCompiledKotlinWithStdlib")
             model("loadJava/javaAgainstKotlin", extension = "txt", testMethod = "doTestJavaAgainstKotlin")
-            model("loadJava/kotlinAgainstCompiledJavaWithKotlin", extension = "kt", testMethod = "doTestKotlinAgainstCompiledJavaWithKotlin", recursive = false)
+            model(
+                "loadJava/kotlinAgainstCompiledJavaWithKotlin",
+                extension = "kt",
+                testMethod = "doTestKotlinAgainstCompiledJavaWithKotlin",
+                recursive = false
+            )
             model("loadJava/sourceJava", extension = "java", testMethod = "doTestSourceJava")
         }
 
@@ -250,7 +266,12 @@ fun main(args: Array<String>) {
             model("loadJava/compiledKotlin", testMethod = "doTestCompiledKotlin")
             model("loadJava/compiledKotlinWithStdlib", testMethod = "doTestCompiledKotlinWithStdlib")
             model("loadJava/javaAgainstKotlin", extension = "txt", testMethod = "doTestJavaAgainstKotlin")
-            model("loadJava/kotlinAgainstCompiledJavaWithKotlin", extension = "kt", testMethod = "doTestKotlinAgainstCompiledJavaWithKotlin", recursive = false)
+            model(
+                "loadJava/kotlinAgainstCompiledJavaWithKotlin",
+                extension = "kt",
+                testMethod = "doTestKotlinAgainstCompiledJavaWithKotlin",
+                recursive = false
+            )
             model("loadJava/sourceJava", extension = "java", testMethod = "doTestSourceJava")
         }
 
@@ -263,8 +284,18 @@ fun main(args: Array<String>) {
         }
 
         testClass<AbstractCompileJavaAgainstKotlinTest> {
-            model("compileJavaAgainstKotlin", testClassName = "WithoutJavac", testMethod = "doTestWithoutJavac", targetBackend = TargetBackend.JVM)
-            model("compileJavaAgainstKotlin", testClassName = "WithJavac", testMethod = "doTestWithJavac", targetBackend = TargetBackend.JVM)
+            model(
+                "compileJavaAgainstKotlin",
+                testClassName = "WithoutJavac",
+                testMethod = "doTestWithoutJavac",
+                targetBackend = TargetBackend.JVM
+            )
+            model(
+                "compileJavaAgainstKotlin",
+                testClassName = "WithJavac",
+                testMethod = "doTestWithJavac",
+                targetBackend = TargetBackend.JVM
+            )
         }
 
         testClass<AbstractCompileKotlinAgainstJavaTest> {
@@ -366,7 +397,12 @@ fun main(args: Array<String>) {
         }
 
         testClass<AbstractIrCompileJavaAgainstKotlinTest> {
-            model("compileJavaAgainstKotlin", testClassName = "WithoutJavac", testMethod = "doTestWithoutJavac", targetBackend = TargetBackend.JVM_IR)
+            model(
+                "compileJavaAgainstKotlin",
+                testClassName = "WithoutJavac",
+                testMethod = "doTestWithoutJavac",
+                targetBackend = TargetBackend.JVM_IR
+            )
             //model("compileJavaAgainstKotlin", testClassName = "WithJavac", testMethod = "doTestWithJavac", targetBackend = TargetBackend.JVM_IR)
         }
 

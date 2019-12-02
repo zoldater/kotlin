@@ -1,0 +1,41 @@
+// FILE: /TestNamingConflict1.kt
+package ru.spbau.mit
+
+
+
+open  class A {
+    open  class B {
+    }
+}
+open  class B {
+    open  class A : ru.spbau.mit.A() {
+    }
+    open  class C : ru.spbau.mit.A.B() {
+    }
+    open  class D : ru.spbau.mit.B.A() {
+    }
+}
+open  class C {
+    class B : ru.spbau.mit.A.B() {
+    }
+    companion object {
+        fun foo() : ru.spbau.mit.C.B  {
+            return ru.spbau.mit.C.B()
+        }
+
+    }
+}
+fun box() : kotlin.String  {
+    class LocalChild : ru.spbau.mit.C() {
+        fun bar() : ru.spbau.mit.C.B  {
+            return C.foo()
+        }
+
+    }
+    val bar : ru.spbau.mit.C.B = LocalChild().bar()
+    return if  ((bar is ru.spbau.mit.A.B)) {
+        "OK"
+    } else {
+        "FAIL"
+    }
+}

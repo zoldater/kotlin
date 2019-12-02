@@ -1,0 +1,20 @@
+// FILE: /classes_simple.kt
+
+class TestClass {
+    fun foo() {
+    }
+
+    fun bar() {
+    }
+
+}
+interface TestInterface {
+    abstract  fun foo()
+}
+object TestObject {
+}
+annotation class TestAnnotationClass {
+}
+fun box() : String  {
+    return "OK"
+}

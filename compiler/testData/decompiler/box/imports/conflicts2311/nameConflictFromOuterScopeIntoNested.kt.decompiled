@@ -1,0 +1,35 @@
+// FILE: /nameConflictFromOuterScopeIntoNestedDecl.kt
+package ru.spbau.mit.declaration
+
+
+
+open  class ClassName {
+    open  fun foo() : String  {
+        return "OK"
+    }
+
+}
+
+// FILE: /nameConflictFromOuterScopeIntoNestedInv.kt
+package ru.spbau.mit.invocation
+
+
+
+open  class ClassName : ru.spbau.mit.declaration.ClassName() {
+    override fun foo() : String  {
+        return "FAIL"
+    }
+
+}
+class NoConflictClass : ru.spbau.mit.invocation.ClassName() {
+    override fun foo() : String  {
+        return "OK"
+    }
+
+}
+fun box() : String  {
+    val className : ClassName = ru.spbau.mit.invocation.ClassName()
+    val conflictedClass : ru.spbau.mit.declaration.ClassName = ru.spbau.mit.declaration.ClassName()
+    val noConflictClass : NoConflictClass = ru.spbau.mit.invocation.NoConflictClass()
+    return noConflictClass.foo()
+}
