@@ -63,6 +63,7 @@ dependencies {
     testCompileOnly(project(":kotlin-reflect-api"))
     testRuntime(intellijDep()) { includeJars("idea_rt") }
     testRuntime(project(":kotlin-reflect"))
+    testCompile(projectTests(":kotlin-decompiler"))
 
     if (Ide.IJ()) {
         testCompileOnly(jpsBuildTest())

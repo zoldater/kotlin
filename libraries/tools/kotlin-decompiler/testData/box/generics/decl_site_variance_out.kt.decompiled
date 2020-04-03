@@ -1,0 +1,12 @@
+// FILE: /decl_site_variance_out.kt
+
+interface Source<out T> {
+    abstract  fun nextT() : T
+}
+fun demo(strs: Source<String>) {
+    val objects : Source<Any> = strs
+}
+
+fun box() : String  {
+    return "OK"
+}

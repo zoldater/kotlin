@@ -1,0 +1,22 @@
+// FILE: /kt11833_2.kt
+
+
+abstract  class Father {
+    abstract  inner class InClass {
+        abstract  fun work() : String
+    }
+}
+class Child : Father() {
+    fun test() : InClass  {
+        return object : InClass() {
+    override fun work() : String  {
+        return "OK"
+    }
+
+}
+    }
+
+}
+fun box() : String  {
+    return Child().test().work()
+}

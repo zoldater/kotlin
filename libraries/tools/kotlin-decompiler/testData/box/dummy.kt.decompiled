@@ -1,0 +1,5 @@
+// FILE: /dummy.kt
+
+fun box() : String  {
+    return "OK"
+}
