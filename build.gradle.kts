@@ -221,7 +221,6 @@ extra["compilerModules"] = arrayOf(
     ":compiler:config",
     ":compiler:config.jvm",
     ":compiler:container",
-    ":compiler:decompiler",
     ":compiler:resolution",
     ":compiler:serialization",
     ":compiler:psi",
