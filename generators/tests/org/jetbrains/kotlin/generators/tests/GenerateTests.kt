@@ -1099,14 +1099,14 @@ fun main(args: Array<String>) {
 
     testGroup(
         "libraries/tools/kotlin-decompiler/test",
-        "libraries/tools/kotlin-decompiler/test"
+        "libraries/tools/kotlin-decompiler/testData"
     ) {
         testClass<AbstractIrDecompilerTextTestCase> {
-            model("decompiler", excludeDirs = listOf("box"))
+            model(".", excludeDirs = listOf("box"))
         }
 
         testClass<AbstractIrDecompilerBlackBoxTest> {
-            model("decompiler/box")
+            model("box")
         }
 
 
