@@ -30,9 +30,7 @@ class ImportResolveVisitor(val importDirectivesSet: MutableSet<String> = mutable
     private val calledNamesSet = mutableSetOf<String>()
 
     companion object {
-        private fun MutableSet<String>.add(nullable: String?) {
-            if (nullable != null) add(nullable)
-        }
+        private fun MutableSet<String>.add(nullable: String?) = nullable?.let { add(it) }
 
         fun IrType.asImportStr() =
             (this as? IrSimpleType)?.abbreviation?.typeAlias?.owner?.fqNameWhenAvailable?.asString()

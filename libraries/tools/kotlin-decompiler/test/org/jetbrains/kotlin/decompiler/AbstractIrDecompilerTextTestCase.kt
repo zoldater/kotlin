@@ -44,11 +44,10 @@ abstract class AbstractIrDecompilerTextTestCase : AbstractIrGeneratorTestCase() 
         val decompiledFileSources = File(wholeFile.absolutePath.replace(".kt", ".kt.decompiled"))
         KotlinTestUtils.assertEqualsToFile(decompiledFileSources, decompiledSources)
     }
-
-
 }
 
 abstract class AbstractIrDecompilerBlackBoxTest : AbstractIrDecompilerTextTestCase() {
+
     private val blackBoxTestRunner = object : AbstractIrBlackBoxCodegenTest() {
         override fun extractConfigurationKind(files: List<TestFile>): ConfigurationKind {
             return ConfigurationKind.ALL
