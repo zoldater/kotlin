@@ -31,14 +31,13 @@ fun IrElement.decompile(data: String): String =
     }.toString().trimEnd()
 
 
-class DecompileIrTreeVisitor(
-    out: Appendable
-) : IrElementVisitor<Unit, String> {
+class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
 
     internal val printer = Printer(out, "    ")
 
     companion object {
         val irFileNamesToImportedDeclarationsMap = mutableMapOf<String, Set<String>>()
+
         //TODO резолвить конфликты имен типов возвращаемых значений.
         // Конфликт - если более 2 записей, заканчивающихся на этот тип
         internal fun IrType.obtainTypeDescription(): String {

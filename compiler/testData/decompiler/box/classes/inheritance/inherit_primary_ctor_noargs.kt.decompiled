@@ -1,9 +1,0 @@
-open  class ParentClass() {
-}
-class ChildClass(): ParentClass () {
-}
-fun box() : String  {
-    val parentClass : ParentClass = ParentClass()
-    val childClass : ChildClass = ChildClass()
-    return "OK"
-}
