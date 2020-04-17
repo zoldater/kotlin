@@ -1313,10 +1313,10 @@ fun main(args: Array<String>) {
         }
 
         testClass<AbstractIncrementalMultiplatformJvmCompilerRunnerTest> {
-            model("incremental/singleModule/common", extension = null, excludeParentDirs = true)
+            model("incremental/mpp/allPlatforms", extension = null, excludeParentDirs = true)
         }
         testClass<AbstractIncrementalMultiplatformJsCompilerRunnerTest> {
-            model("incremental/singleModule/common", extension = null, excludeParentDirs = true)
+            model("incremental/mpp/allPlatforms", extension = null, excludeParentDirs = true)
         }
     }
 
