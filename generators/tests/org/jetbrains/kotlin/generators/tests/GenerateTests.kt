@@ -1453,7 +1453,9 @@ fun main(args: Array<String>) {
             model("addImport", testMethod = "doPerfTest", pattern = KT_WITHOUT_DOTS_IN_NAME)
         }
 
-
+        testClass<AbstractPerformanceTypingIndentationTest> {
+            model("indentationOnNewline", testMethod = "doPerfTest", pattern = KT_OR_KTS_WITHOUT_DOTS_IN_NAME)
+        }
     }
 
     testGroup("idea/performanceTests/test", "idea/idea-completion/testData") {
