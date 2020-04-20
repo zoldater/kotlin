@@ -381,7 +381,8 @@ class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
     }
 
     override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall, data: String) {
-        printer.println(expression.decompile(data))
+        //TODO BUG with recursion here
+//        printer.println(expression.decompile(data))
     }
 
     override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: String) {
@@ -453,8 +454,6 @@ class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
     override fun visitBranch(branch: IrBranch, data: String) {
         printer.print(branch.condition.decompile(data))
     }
-
-    private fun collectCommaArguments(condition: IrExpression): String = TODO()
 
     override fun visitElseBranch(branch: IrElseBranch, data: String) {
         printer.print("$ELSE_TOKEN -> ")
@@ -699,7 +698,7 @@ class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
             indented {
                 val body = expression.function.body
                 if (body?.statements?.size == 1) {
-                    val firstStatement = body?.statements?.get(0)
+                    val firstStatement = body.statements[0]
                     if (firstStatement is IrReturn) {
                         val returnStatementCall = (firstStatement as IrReturnImpl).value as IrMemberAccessExpression
                         val leftFromArrowParams = (0 until returnStatementCall.valueArgumentsCount)
