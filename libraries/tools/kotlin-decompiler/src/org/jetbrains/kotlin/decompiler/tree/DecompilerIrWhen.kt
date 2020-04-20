@@ -3,7 +3,8 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.decompiler.printer.factory
+package org.jetbrains.kotlin.decompiler.tree
 
-class PrinterFactory {
-}
+import org.jetbrains.kotlin.ir.expressions.IrWhen
+
+class DecompilerIrWhen(override val element: IrWhen) : DecompilerIrElement<IrWhen>, IrWhen by element
