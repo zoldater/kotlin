@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
-import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
-import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
+import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 
-class DecompilerIrTypeParameter(override val element: IrTypeAlias) : DecompilerIrElement<IrTypeAlias>, IrTypeAlias by element
+class DecompilerIrTypeParameter(override val element: IrTypeParameter) : DecompilerIrDeclaration

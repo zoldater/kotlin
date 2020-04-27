@@ -3,9 +3,11 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.decompiler.tree.declarations.classes
+package org.jetbrains.kotlin.decompiler.tree.containers
 
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerIrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 
-abstract class DecompilerIrClassCommon(override val element: IrClass) : DecompilerIrDeclaration
+interface DecompilerIrStatementsContainer {
+    val declarations: List<DecompilerIrDeclaration>
+}

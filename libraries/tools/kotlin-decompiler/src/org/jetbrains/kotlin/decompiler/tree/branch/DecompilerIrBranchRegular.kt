@@ -5,12 +5,12 @@
 
 package org.jetbrains.kotlin.decompiler.tree.branch
 
-import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerIrExpression
 import org.jetbrains.kotlin.ir.expressions.IrBranch
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 
-abstract class DecompilerIrBranch(override val element: IrBranch) : DecompilerIrElement<IrBranch> {
-    abstract val dirCondition: DecompilerIrExpression
-    abstract val dirResult: DecompilerIrExpression
-}
+class DecompilerIrBranchRegular(
+    override val element: IrBranch,
+    override val dirCondition: DecompilerIrExpression,
+    override val dirResult: DecompilerIrExpression
+) : DecompilerIrBranch(element)

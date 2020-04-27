@@ -537,7 +537,7 @@ class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
 //        }
 //            .joinToString(", ")
 //            .takeIf { expression.typeArgumentsCount > 0 } ?: EMPTY_TOKEN
-        //TODO добавить проверку наличия defaultValue и именнованных вызовов
+        //TODO добавить проверку наличия defaultValue и именованных вызовов
         result += (0 until expression.valueArgumentsCount)
             .mapNotNull { expression.getValueArgument(it)?.decompile(data) }
             .joinToString(", ", "(", ")")

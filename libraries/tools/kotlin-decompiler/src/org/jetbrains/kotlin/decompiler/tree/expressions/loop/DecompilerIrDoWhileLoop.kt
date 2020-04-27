@@ -5,6 +5,29 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions.loop
 
+import org.jetbrains.kotlin.decompiler.tree.DecompilerIrStatement
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerIrExpression
+import org.jetbrains.kotlin.decompiler.util.insideParentheses
+import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.ir.expressions.IrDoWhileLoop
+import org.jetbrains.kotlin.utils.Printer
 
-class DecompilerIrDoWhileLoop(override val element: IrDoWhileLoop) : DecompilerIrLoop<IrDoWhileLoop>(element)
+class DecompilerIrDoWhileLoop(
+    override val element: IrDoWhileLoop,
+    override val expressionParentStatement: DecompilerIrStatement,
+    override val decompiledBody: DecompilerIrExpression?,
+    override val decompiledCondition: DecompilerIrExpression
+) : DecompilerIrLoop(element, expressionParentStatement) {
+    override fun produceSources(printer: Printer) {
+        with(printer) {
+            print("do")
+            withBraces {
+                decompiledBody?.produceSources(this)
+            }
+            print("while ")
+            insideParentheses {
+                decompiledCondition.produceSources(printer)
+            }
+        }
+    }
+}

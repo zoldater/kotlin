@@ -3,21 +3,20 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.decompiler.tree.expressions.loop
+package org.jetbrains.kotlin.decompiler.tree.expressions.call
 
 import org.jetbrains.kotlin.decompiler.printer.DecompilerIrSourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrStatement
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerIrExpression
-import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrLoop
-import org.jetbrains.kotlin.utils.Printer
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrEnumConstructorCall
 
-abstract class DecompilerIrLoop(
-    override val element: IrLoop,
+class DecompilerIrEnumConstructorCall(
+    override val element: IrEnumConstructorCall,
     override val expressionParentStatement: DecompilerIrStatement
 ) : DecompilerIrExpression, DecompilerIrSourceProducible {
-
-    abstract val decompiledBody: DecompilerIrExpression?
-    abstract val decompiledCondition: DecompilerIrExpression
+    override fun produceSources(): String {
+        TODO("Not yet implemented")
+    }
 }

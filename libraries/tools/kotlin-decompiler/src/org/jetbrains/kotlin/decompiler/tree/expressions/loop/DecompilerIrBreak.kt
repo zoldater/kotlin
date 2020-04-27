@@ -5,6 +5,11 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions.loop
 
+import org.jetbrains.kotlin.decompiler.tree.DecompilerIrStatement
 import org.jetbrains.kotlin.ir.expressions.IrBreak
 
-class DecompilerIrBreak(override val element: IrBreak) : DecompilerIrBreakContinue<IrBreak>(element)
+class DecompilerIrBreak(
+    override val element: IrBreak,
+    override val expressionParentStatement: DecompilerIrStatement
+) : DecompilerIrBreakContinue(element, "break") {
+}

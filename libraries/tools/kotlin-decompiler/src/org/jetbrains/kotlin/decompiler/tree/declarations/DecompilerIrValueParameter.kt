@@ -8,5 +8,4 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 
-class DecompilerIrValueParameter(override val element: IrValueParameter) : DecompilerIrElement<IrValueParameter>,
-    IrValueParameter by element
+class DecompilerIrValueParameter(override val element: IrValueParameter) : DecompilerIrDeclaration

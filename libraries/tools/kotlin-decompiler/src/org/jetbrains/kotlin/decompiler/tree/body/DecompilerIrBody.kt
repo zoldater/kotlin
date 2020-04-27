@@ -8,4 +8,4 @@ package org.jetbrains.kotlin.decompiler.tree.body
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.ir.expressions.IrBody
 
-interface DecompilerIrBody<T : IrBody> : DecompilerIrElement<T>
+interface DecompilerIrBody : DecompilerIrElement<IrBody>

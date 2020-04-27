@@ -8,4 +8,4 @@ package org.jetbrains.kotlin.decompiler.tree.body
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 
-class DecompilerIrBlockBody(override val element: IrBlockBody) : DecompilerIrBody<IrBlockBody>, IrBlockBody by element
+class DecompilerIrBlockBody(override val element: IrBlockBody) : DecompilerIrBody

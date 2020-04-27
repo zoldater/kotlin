@@ -8,6 +8,16 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 import org.jetbrains.kotlin.decompiler.printer.DecompilerIrSourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrStatement
-import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.decompiler.tree.branch.DecompilerIrBranch
+import org.jetbrains.kotlin.ir.expressions.IrBranch
+import org.jetbrains.kotlin.ir.expressions.IrWhen
+import org.jetbrains.kotlin.utils.Printer
 
-interface DecompilerIrExpression : DecompilerIrStatement, DecompilerIrSourceProducible
+class DecompilerIrWhen(
+    override val element: IrWhen,
+    val dirBranches: List<DecompilerIrBranch>
+) : DecompilerIrExpression, DecompilerIrSourceProducible {
+    override fun produceSources(printer: Printer) {
+        TODO("Not yet implemented")
+    }
+}

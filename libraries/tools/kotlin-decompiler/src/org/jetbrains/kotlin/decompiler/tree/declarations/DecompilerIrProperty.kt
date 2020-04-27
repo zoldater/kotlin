@@ -8,4 +8,4 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 
-class DecompilerIrProperty(override val element: IrProperty) : DecompilerIrElement<IrProperty>, IrProperty by element
+class DecompilerIrProperty(override val element: IrProperty) : DecompilerIrDeclaration

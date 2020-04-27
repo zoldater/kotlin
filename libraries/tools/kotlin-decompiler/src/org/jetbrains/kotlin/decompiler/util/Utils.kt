@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.types.typeUtil.isInterface
+import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 val OPERATOR_TOKENS = mapOf<IrStatementOrigin, String>(
@@ -106,6 +107,25 @@ internal inline fun DecompileIrTreeVisitor.indented(body: () -> Unit) {
     printer.popIndent()
 }
 
+internal inline fun Printer.indented(body: () -> Unit) {
+    pushIndent()
+    body()
+    popIndent()
+}
+
+internal inline fun Printer.withBraces(body: () -> Unit) {
+    printlnWithNoIndent(" {")
+    indented(body)
+    print("} ")
+}
+
+internal inline fun Printer.insideParentheses(body: () -> Unit) {
+    printlnWithNoIndent("(")
+    body()
+    printWithNoIndent(")")
+}
+
+
 internal fun concatenateNonEmptyWithSpace(vararg flags: String?) =
     flags.filterNotNull()
         .filterNot { it.isEmpty() }
@@ -116,7 +136,7 @@ internal fun concatenateNonEmptyWithSpace(vararg flags: String?) =
                 EMPTY_TOKEN
         }
 
-internal inline fun IrDeclaration.name(): String = descriptor.name.asString()
+internal  fun IrDeclaration.name(): String = descriptor.name.asString()
 
 internal fun IrTypeAlias.obtainTypeAliasFlags(): String =
     concatenateNonEmptyWithSpace(

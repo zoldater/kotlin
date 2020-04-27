@@ -8,4 +8,4 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.ir.declarations.IrField
 
-class DecompilerIrField(override val element: IrField) : DecompilerIrElement<IrField>, IrField by element
+class DecompilerIrField(override val element: IrField) : DecompilerIrDeclaration
