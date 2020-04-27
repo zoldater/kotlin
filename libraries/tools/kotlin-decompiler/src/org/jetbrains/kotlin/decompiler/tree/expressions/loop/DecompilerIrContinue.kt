@@ -5,6 +5,12 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions.loop
 
+import org.jetbrains.kotlin.decompiler.printer.DecompilerIrSourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerIrStatement
 import org.jetbrains.kotlin.ir.expressions.IrContinue
 
-class DecompilerIrContinue(override val element: IrContinue) : DecompilerIrBreakContinue<IrContinue>(element)
+class DecompilerIrContinue(
+    override val element: IrContinue,
+    override val expressionParentStatement: DecompilerIrStatement
+) : DecompilerIrBreakContinue(element, "continue") {
+}

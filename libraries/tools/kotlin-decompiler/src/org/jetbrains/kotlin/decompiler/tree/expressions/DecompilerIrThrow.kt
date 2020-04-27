@@ -5,7 +5,24 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
+import org.jetbrains.kotlin.decompiler.printer.DecompilerIrSourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
+import org.jetbrains.kotlin.decompiler.tree.DecompilerIrStatement
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrThrow
+import org.jetbrains.kotlin.utils.Printer
 
-class DecompilerIrThrow(override val element: IrThrow) : DecompilerIrElement<IrThrow>, IrThrow by element
+class DecompilerIrThrow(
+    override val element: IrThrow,
+    val throwableExpression: DecompilerIrExpression
+) : DecompilerIrExpression, DecompilerIrSourceProducible {
+
+    override fun produceSources(printer: Printer) {
+        TODO("Not yet implemented")
+    }
+
+    companion object {
+        const val THROW_TOKEN: String = "throw"
+    }
+
+}

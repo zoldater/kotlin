@@ -8,4 +8,4 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 
-class DecompilerIrEnumEntry(override val element: IrEnumEntry) : DecompilerIrElement<IrEnumEntry>, IrEnumEntry by element
+class DecompilerIrEnumEntry(override val element: IrEnumEntry) : DecompilerIrDeclaration

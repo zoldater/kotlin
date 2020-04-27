@@ -7,4 +7,4 @@ package org.jetbrains.kotlin.decompiler.tree.body
 
 import org.jetbrains.kotlin.ir.expressions.IrSyntheticBody
 
-class DecompilerIrSyntheticBody(override val element: IrSyntheticBody) : DecompilerIrBody<IrSyntheticBody>, IrSyntheticBody by element
+class DecompilerIrSyntheticBody(override val element: IrSyntheticBody) : DecompilerIrBody

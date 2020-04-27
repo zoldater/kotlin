@@ -5,8 +5,15 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
+import org.jetbrains.kotlin.decompiler.printer.DecompilerIrSourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
+import org.jetbrains.kotlin.decompiler.tree.DecompilerIrStatement
 import org.jetbrains.kotlin.ir.expressions.IrThrow
 import org.jetbrains.kotlin.ir.expressions.IrTry
+import org.jetbrains.kotlin.utils.Printer
 
-class DecompilerIrTry(override val element: IrTry) : DecompilerIrElement<IrTry>, IrTry by element
+class DecompilerIrTry(override val element: IrTry) : DecompilerIrExpression, DecompilerIrSourceProducible {
+    override fun produceSources(printer: Printer) {
+        TODO("Not yet implemented")
+    }
+}

@@ -7,4 +7,7 @@ package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
-class DecompilerIrModule(override val element: IrModuleFragment) : DecompilerIrElement<IrModuleFragment>, IrModuleFragment by element
+class DecompilerIrModule(
+    override val element: IrModuleFragment,
+    val decompilerIrFiles: List<DecompilerIrFile>
+) : DecompilerIrElement<IrModuleFragment>

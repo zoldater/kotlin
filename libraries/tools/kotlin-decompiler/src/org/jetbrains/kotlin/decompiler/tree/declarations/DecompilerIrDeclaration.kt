@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
+import org.jetbrains.kotlin.decompiler.tree.DecompilerIrStatement
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 
-interface DecompilerIrDeclaration<T : IrDeclaration> : DecompilerIrElement<T>
+interface DecompilerIrDeclaration : DecompilerIrStatement

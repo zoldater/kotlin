@@ -6,8 +6,8 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations.functions.constructor
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
+import org.jetbrains.kotlin.decompiler.tree.declarations.functions.DecompilerIrFunction
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.expressions.IrBranch
 
-abstract class DecompilerIrConstructorCommon(override val element: IrConstructor) : DecompilerIrElement<IrConstructor>,
-    IrConstructor by element
+abstract class DecompilerIrConstructorCommon(override val element: IrConstructor) : DecompilerIrFunction

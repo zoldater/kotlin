@@ -5,6 +5,12 @@
 
 package org.jetbrains.kotlin.decompiler.tree
 
+import org.jetbrains.kotlin.decompiler.tree.containers.DecompilerIrDeclarationContainer
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerIrDeclaration
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFile
 
-class DecompilerIrFile(override val element: IrFile) : DecompilerIrElement<IrFile>, IrFile by element
+class DecompilerIrFile(
+    override val element: IrFile,
+    override val declarations: List<DecompilerIrDeclaration>
+) : DecompilerIrElement<IrFile>, DecompilerIrDeclarationContainer

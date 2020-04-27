@@ -7,4 +7,4 @@ package org.jetbrains.kotlin.decompiler.tree.body
 
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 
-class DecompilerIrExpressionBody(override val element: IrExpressionBody) : DecompilerIrBody<IrExpressionBody>, IrExpressionBody by element
+class DecompilerIrExpressionBody(override val element: IrExpressionBody) : DecompilerIrBody

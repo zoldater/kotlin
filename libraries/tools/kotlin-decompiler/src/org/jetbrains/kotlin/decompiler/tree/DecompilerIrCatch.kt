@@ -5,6 +5,29 @@
 
 package org.jetbrains.kotlin.decompiler.tree
 
+import org.jetbrains.kotlin.decompiler.printer.DecompilerIrSourceProducible
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerIrVariable
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerIrExpression
+import org.jetbrains.kotlin.decompiler.util.insideParentheses
+import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.ir.expressions.IrCatch
+import org.jetbrains.kotlin.utils.Printer
 
-class DecompilerIrCatch(override val element: IrCatch) : DecompilerIrElement<IrCatch>, IrCatch by element
+class DecompilerIrCatch(
+    override val element: IrCatch,
+    val dirCatchParameter: DecompilerIrVariable,
+    val dirResult: DecompilerIrExpression
+) : DecompilerIrElement<IrCatch>, DecompilerIrSourceProducible {
+    override fun produceSources(printer: Printer) {
+        with(printer) {
+            printWithNoIndent("catch")
+            insideParentheses {
+                // TODO could produce extra indent
+                dirCatchParameter.produceSources(printer)
+            }
+            withBraces {
+                dirResult.produceSources(printer)
+            }
+        }
+    }
+}

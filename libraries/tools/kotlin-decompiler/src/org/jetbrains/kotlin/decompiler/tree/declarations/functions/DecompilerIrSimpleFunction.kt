@@ -7,5 +7,4 @@ package org.jetbrains.kotlin.decompiler.tree.declarations.functions
 
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 
-class DecompilerIrSimpleFunction(override val element: IrSimpleFunction) : DecompilerIrFunction<IrSimpleFunction>,
-    IrSimpleFunction by element
+class DecompilerIrSimpleFunction(override val element: IrSimpleFunction) : DecompilerIrFunction

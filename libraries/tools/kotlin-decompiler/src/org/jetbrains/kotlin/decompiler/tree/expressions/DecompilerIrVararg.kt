@@ -5,7 +5,14 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
+import org.jetbrains.kotlin.decompiler.printer.DecompilerIrSourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
+import org.jetbrains.kotlin.decompiler.tree.DecompilerIrStatement
 import org.jetbrains.kotlin.ir.expressions.IrVararg
+import org.jetbrains.kotlin.utils.Printer
 
-class DecompilerIrVararg(override val element: IrVararg) : DecompilerIrElement<IrVararg>, IrVararg by element
+class DecompilerIrVararg(override val element: IrVararg) : DecompilerIrExpression, DecompilerIrSourceProducible {
+    override fun produceSources(printer: Printer) {
+        TODO("Not yet implemented")
+    }
+}

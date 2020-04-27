@@ -8,4 +8,4 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
 
-class DecompilerIrTypeAlias(override val element: IrTypeAlias) : DecompilerIrElement<IrTypeAlias>, IrTypeAlias by element
+class DecompilerIrTypeAlias(override val element: IrTypeAlias) : DecompilerIrDeclaration

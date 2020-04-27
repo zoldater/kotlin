@@ -9,5 +9,4 @@ import org.jetbrains.kotlin.decompiler.tree.DecompilerIrElement
 import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 
-class DecompilerIrAnonymousInitializer(override val element: IrAnonymousInitializer) : DecompilerIrElement<IrAnonymousInitializer>,
-    IrAnonymousInitializer by element
+class DecompilerIrAnonymousInitializer(override val element: IrAnonymousInitializer) : DecompilerIrDeclaration
