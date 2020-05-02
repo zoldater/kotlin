@@ -1,7 +1,6 @@
 plugins {
     kotlin("jvm")
     id("jps-compatible")
-
 }
 
 repositories {
@@ -15,6 +14,7 @@ dependencies {
     implementation(project(":compiler:ir.tree"))
     implementation(project(":idea:formatter"))
     implementation(project(":compiler:ir.serialization.common"))
+    implementation(project(":compiler:fir:tree:tree-generator"))
 
 
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
@@ -28,8 +28,8 @@ dependencies {
     testCompileOnly(projectTests(":compiler:tests-common"))
     testCompileOnly(projectTests(":compiler:fir:analysis-tests"))
 
-    testCompileOnly(project(":kotlin-reflect-api"))
-    testRuntimeOnly(project(":kotlin-reflect"))
+//    testCompileOnly(project(":kotlin-reflect-api"))
+//    testRuntimeOnly(project(":kotlin-reflect"))
     testRuntimeOnly(project(":core:descriptors.runtime"))
 
     Platform[192].orHigher {
