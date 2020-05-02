@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.decompiler.DecompileIrTreeVisitor.Companion.obtainTy
 import org.jetbrains.kotlin.decompiler.decompile
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin.*
@@ -18,7 +19,6 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.types.typeUtil.isInterface
-import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 val OPERATOR_TOKENS = mapOf<IrStatementOrigin, String>(
@@ -88,6 +88,7 @@ const val RETURN_TOKEN = "return"
 const val OVERRIDE_TOKEN = "override"
 const val FUN_TOKEN = "fun"
 
+
 internal inline fun DecompileIrTreeVisitor.withBracesLn(body: () -> Unit) {
     printer.printlnWithNoIndent(" {")
     indented(body)
@@ -107,24 +108,26 @@ internal inline fun DecompileIrTreeVisitor.indented(body: () -> Unit) {
     printer.popIndent()
 }
 
-internal inline fun Printer.indented(body: () -> Unit) {
+internal inline fun SmartPrinter.indented(body: () -> Unit) {
     pushIndent()
     body()
     popIndent()
 }
 
-internal inline fun Printer.withBraces(body: () -> Unit) {
-    printlnWithNoIndent(" {")
+internal inline fun SmartPrinter.withBraces(body: () -> Unit) {
+    println(" {")
     indented(body)
     print("} ")
 }
 
-internal inline fun Printer.insideParentheses(body: () -> Unit) {
-    printlnWithNoIndent("(")
+internal inline fun SmartPrinter.insideParentheses(body: () -> Unit) {
+    print("(")
     body()
-    printWithNoIndent(")")
+    print(")")
 }
 
+val IrValueAccessExpression.ownerName: String
+    get() = symbol.owner.name()
 
 internal fun concatenateNonEmptyWithSpace(vararg flags: String?) =
     flags.filterNotNull()
@@ -136,7 +139,7 @@ internal fun concatenateNonEmptyWithSpace(vararg flags: String?) =
                 EMPTY_TOKEN
         }
 
-internal  fun IrDeclaration.name(): String = descriptor.name.asString()
+internal fun IrDeclaration.name(): String = descriptor.name.asString()
 
 internal fun IrTypeAlias.obtainTypeAliasFlags(): String =
     concatenateNonEmptyWithSpace(

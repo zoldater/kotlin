@@ -1,0 +1,44 @@
+/*
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
+ */
+
+package org.jetbrains.kotlin.decompiler.tree.expressions
+
+import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeCatch
+import org.jetbrains.kotlin.decompiler.util.withBraces
+import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
+import org.jetbrains.kotlin.ir.expressions.IrTry
+
+class DecompilerTreeTry(
+    override val element: IrTry,
+    private val tryResult: DecompilerTreeExpression,
+    private val catches: List<DecompilerTreeCatch>,
+    private val finallyExpression: DecompilerTreeExpression?
+) : DecompilerTreeExpression, SourceProducible {
+    override fun produceSources(printer: SmartPrinter) {
+        with(printer) {
+            print(TRY)
+            withBraces {
+                tryResult.produceSources(this)
+            }
+            println()
+            catches.forEach {
+                it.produceSources(this)
+            }
+            finallyExpression?.also {
+                print(FINALLY)
+                withBraces {
+                    it.produceSources(this)
+                }
+            }
+        }
+    }
+
+    companion object {
+        const val TRY = "try"
+        const val FINALLY = "finally"
+
+    }
+}
