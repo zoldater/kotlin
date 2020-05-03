@@ -6,30 +6,30 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeClass
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeEnumEntry
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetObjectValue
-import org.jetbrains.kotlin.ir.expressions.IrGetValue
-import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 
-class DecompilerTreeGetEnumValue(override val element: IrGetEnumValue) : DecompilerTreeExpression, SourceProducible {
+class DecompilerTreeGetEnumValue(
+    override val element: IrGetEnumValue,
+    val parentDeclaration: DecompilerTreeEnumEntry
+) : DecompilerTreeExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         //TODO replace fqName with short name
         //TODO try to find out NPE cases
-        printer.print(element.symbol.owner.fqNameWhenAvailable!!.asString())
+        parentDeclaration.nameIfExists?.also { printer.print(it) }
     }
 }
 
-class DecompilerTreeGetObjectValue(override val element: IrGetObjectValue) : DecompilerTreeExpression, SourceProducible {
+class DecompilerTreeGetObjectValue(
+    override val element: IrGetObjectValue,
+    val parentDeclaration: AbstractDecompilerTreeClass
+) : DecompilerTreeExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         //TODO replace fqName with short name
         //TODO try to find out NPE cases
-        printer.print(element.symbol.owner.fqNameWhenAvailable!!.asString())
-    }
-}
-
-class DecompilerTreeGetValue(override val element: IrGetValue) : DecompilerTreeExpression, SourceProducible {
-    override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        parentDeclaration.nameIfExists?.also { printer.print(it) }
     }
 }

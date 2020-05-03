@@ -3,13 +3,25 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.decompiler.tree.branch
+package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeExpression
 import org.jetbrains.kotlin.ir.expressions.IrBranch
+import org.jetbrains.kotlin.ir.expressions.IrElseBranch
+
+abstract class DecompilerTreeBranch(override val element: IrBranch) : DecompilerTreeElement {
+    abstract val condition: DecompilerTreeExpression
+    abstract val result: DecompilerTreeExpression
+}
 
 class DecompilerTreeBranchRegular(
     override val element: IrBranch,
+    override val condition: DecompilerTreeExpression,
+    override val result: DecompilerTreeExpression
+) : DecompilerTreeBranch(element)
+
+class DecompilerTreeElseBranch(
+    override val element: IrElseBranch,
     override val condition: DecompilerTreeExpression,
     override val result: DecompilerTreeExpression
 ) : DecompilerTreeBranch(element)

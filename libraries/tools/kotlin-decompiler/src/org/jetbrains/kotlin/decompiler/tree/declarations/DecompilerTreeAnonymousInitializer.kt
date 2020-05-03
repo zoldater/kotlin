@@ -7,23 +7,25 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBlockBody
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
 
 class DecompilerTreeAnonymousInitializer(
     override val element: IrAnonymousInitializer,
-    private val body: DecompilerTreeBlockBody
+    private val body: DecompilerTreeBlockBody,
+    override val annotations: List<DecompilerTreeConstructorCall> = emptyList(),
+    override val annotationTarget: String? = null
 ) : DecompilerTreeDeclaration, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
             //TODO investigate isStatic flag effect
             print(INIT)
             withBraces {
-
+                body.produceSources(this)
             }
         }
-
     }
 
     companion object {

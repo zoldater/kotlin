@@ -23,11 +23,21 @@ class DecompilerTreeValueParameter(
     override val annotations: List<DecompilerTreeConstructorCall>,
     override val annotationTarget: String?,
     override val type: DecompilerTreeType,
-    val varargType: DecompilerTreeType? = null,
-    var defaultValue: DecompilerTreeExpressionBody? = null
+    val varargType: DecompilerTreeType?,
+    var defaultValue: DecompilerTreeExpressionBody?
 ) : DecompilerTreeValueDeclaration {
+
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        with(element) {
+            listOfNotNull(
+                "vararg".takeIf { varargElementType != null },
+                "crossinline".takeIf { isCrossinline },
+                "noinline".takeIf { isNoinline },
+                nameIfExists?.let { "$it:" },
+                varargType?.decompile() ?: this@DecompilerTreeValueParameter.type.decompile(),
+                this@DecompilerTreeValueParameter.defaultValue?.let { "= ${it.decompile()}" }
+            ).joinToString(" ").also { printer.print(it) }
+        }
     }
 }
 

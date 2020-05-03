@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeExpression
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrBody
@@ -23,7 +24,10 @@ class DecompilerTreeBlockBody(override val element: IrBlockBody, override val de
     }
 }
 
-class DecompilerTreeExpressionBody(override val element: IrExpressionBody) : DecompilerTreeBody {
+class DecompilerTreeExpressionBody(
+    override val element: IrExpressionBody,
+    val expression: DecompilerTreeExpression
+) : DecompilerTreeBody {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")
     }

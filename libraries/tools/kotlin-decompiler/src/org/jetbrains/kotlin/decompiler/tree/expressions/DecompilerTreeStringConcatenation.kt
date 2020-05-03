@@ -16,12 +16,10 @@ class DecompilerTreeStringConcatenation(
     DecompilerTreeExpression,
     SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-
-        val concatenatedArguments = arguments.map { arg ->
-            arg to StringBuilder().also { arg.produceSources(SmartPrinter(it)) }
-        }.joinToString("", "\"", "\"") { (k, v) ->
-            if (k is DecompilerTreeConst) k.element.value?.toString() ?: "" else "\${$v}"
-        }
+        val concatenatedArguments = arguments.map { it to it.decompile() }
+            .joinToString("", "\"", "\"") { (k, v) ->
+                if (k is DecompilerTreeConst) k.element.value?.toString() ?: "" else "\${$v}"
+            }
         printer.print(concatenatedArguments)
     }
 }
