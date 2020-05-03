@@ -5,23 +5,33 @@
 
 package org.jetbrains.kotlin.decompiler.tree
 
+import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeExpression
+import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrBranch
 import org.jetbrains.kotlin.ir.expressions.IrElseBranch
 
-abstract class DecompilerTreeBranch(override val element: IrBranch) : DecompilerTreeElement {
+abstract class AbstractDecompilerTreeBranch(override val element: IrBranch) : DecompilerTreeElement, SourceProducible {
     abstract val condition: DecompilerTreeExpression
     abstract val result: DecompilerTreeExpression
 }
 
-class DecompilerTreeBranchRegular(
+class DecompilerTreeBranch(
     override val element: IrBranch,
     override val condition: DecompilerTreeExpression,
     override val result: DecompilerTreeExpression
-) : DecompilerTreeBranch(element)
+) : AbstractDecompilerTreeBranch(element) {
+    override fun produceSources(printer: SmartPrinter) {
+        TODO("Not yet implemented")
+    }
+}
 
 class DecompilerTreeElseBranch(
     override val element: IrElseBranch,
     override val condition: DecompilerTreeExpression,
     override val result: DecompilerTreeExpression
-) : DecompilerTreeBranch(element)
+) : AbstractDecompilerTreeBranch(element) {
+    override fun produceSources(printer: SmartPrinter) {
+        TODO("Not yet implemented")
+    }
+}

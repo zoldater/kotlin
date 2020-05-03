@@ -8,10 +8,11 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatement
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatementsContainer
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeVarargElement
+import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
-import org.jetbrains.kotlin.ir.expressions.IrContainerExpression
-import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.*
 
 interface DecompilerTreeExpression : DecompilerTreeStatement, DecompilerTreeVarargElement, SourceProducible {
     override val element: IrExpression
@@ -30,9 +31,50 @@ interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression {
 
 class DecompilerTreeContainerExpression(
     override val element: IrContainerExpression,
-    override val declarations: List<DecompilerTreeStatement>
+    override val statements: List<DecompilerTreeStatement>
 ) : DecompilerTreeExpression, DecompilerTreeStatementsContainer {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        with(printer) {
+            withBraces {
+                statements.forEach { println(it.decompile()) }
+            }
+        }
+    }
+}
+
+class DecompilerTreeGetClass(
+    override val element: IrGetClass,
+    private val argument: DecompilerTreeExpression
+) : DecompilerTreeExpression {
+    override fun produceSources(printer: SmartPrinter) {
+        printer.print("${argument.decompile()}::class")
+    }
+
+}
+
+class DecompilerTreeInstanceInitializerCall(override val element: IrInstanceInitializerCall) : DecompilerTreeExpression {
+    override fun produceSources(printer: SmartPrinter) = Unit
+}
+
+class DecompilerTreeTypeOperatorCall(
+    override val element: IrTypeOperatorCall,
+    private val argument: DecompilerTreeExpression,
+    private val typeOperand: DecompilerTreeType
+) : DecompilerTreeExpression {
+    override fun produceSources(printer: SmartPrinter) {
+        listOfNotNull(
+            argument.decompile(),
+            operatorsMap[element.operator]?.let { "$it ${typeOperand.decompile()}" }
+        ).joinToString(" ")
+            .also { printer.print(it) }
+    }
+
+    companion object {
+        val operatorsMap = mapOf(
+            IrTypeOperator.CAST to "as",
+            IrTypeOperator.SAFE_CAST to "as?",
+            IrTypeOperator.INSTANCEOF to "is",
+            IrTypeOperator.NOT_INSTANCEOF to "!is"
+        )
     }
 }

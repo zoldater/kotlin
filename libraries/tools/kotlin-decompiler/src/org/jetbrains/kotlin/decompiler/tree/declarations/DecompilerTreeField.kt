@@ -5,10 +5,24 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
-import org.jetbrains.kotlin.decompiler.tree.expressions.call.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeExpressionBody
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.util.name
+import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrField
 
 class DecompilerTreeField(
     override val element: IrField,
-    override val annotations: List<DecompilerTreeConstructorCall>
-) : DecompilerTreeDeclaration
+    override val annotations: List<DecompilerTreeConstructorCall>,
+    override val annotationTarget: String? = "field",
+    val initializer: DecompilerTreeExpressionBody?,
+    val type: DecompilerTreeType
+) : DecompilerTreeDeclaration {
+    override fun produceSources(printer: SmartPrinter) {
+        annotationSourcesList.forEach { printer.println(it) }
+        listOfNotNull(element.name().let { "$it:" }, type.decompile(), initializer?.let { "= ${it.decompile()}" })
+            .joinToString(" ")
+            .also { printer.println(it) }
+    }
+}

@@ -25,9 +25,12 @@ interface DecompilerTreeDeclarationContainer {
 }
 
 interface DecompilerTreeStatementsContainer {
-    val declarations: List<DecompilerTreeStatement>
+    val statements: List<DecompilerTreeStatement>
 }
 
 interface DecompilerTreeTypeParametersContainer {
-    var typeParameters: List<DecompilerTreeTypeParameter>
+    val typeParameters: List<DecompilerTreeTypeParameter>
+
+    val typeParametersForPrint: String?
+        get() = typeParameters.joinToString(", ", "<", ">") { it.decompile() }.takeIf { typeParameters.isNotEmpty() }
 }

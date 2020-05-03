@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.isLocalClass
 
-internal fun IrType.toDecompilerTreeType(): DecompilerTreeType =
+internal fun IrType.buildType(): DecompilerTreeType =
     when {
         toKotlinType().isFunctionTypeOrSubtype -> DecompilerTreeFunctionalType(this)
         classOrNull?.owner?.isLocalClass() ?: false -> DecompilerTreeLocalClassType(this)

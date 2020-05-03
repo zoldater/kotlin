@@ -38,8 +38,8 @@ class DecompilerTreeWhileLoop(
 
 class DecompilerTreeDoWhileLoop(
     override val element: IrDoWhileLoop,
-    override val decompiledBody: DecompilerTreeExpression?,
-    override val decompiledCondition: DecompilerTreeExpression
+    override val decompiledCondition: DecompilerTreeExpression,
+    override val decompiledBody: DecompilerTreeExpression?
 ) : DecompilerTreeLoop(element) {
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
