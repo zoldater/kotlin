@@ -5,12 +5,15 @@
 
 package org.jetbrains.kotlin.decompiler.tree
 
+import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 
 interface DecompilerTreeElement {
     val element: IrElement
 }
+
+interface DecompilerTreeVarargElement : DecompilerTreeElement, SourceProducible
 
 interface DecompilerTreeStatement : DecompilerTreeElement {
     override val element: IrStatement

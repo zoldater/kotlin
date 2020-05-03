@@ -8,11 +8,12 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatement
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatementsContainer
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeVarargElement
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrContainerExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 
-interface DecompilerTreeExpression : DecompilerTreeStatement, SourceProducible {
+interface DecompilerTreeExpression : DecompilerTreeStatement, DecompilerTreeVarargElement, SourceProducible {
     override val element: IrExpression
 }
 

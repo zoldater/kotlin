@@ -6,18 +6,17 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeVarargElement
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 
 class DecompilerTreeVararg(
     override val element: IrVararg,
     //TODO check the correctness with this type
-    private val elements: List<SourceProducible>
+    private val elements: List<DecompilerTreeVarargElement>
 ) : DecompilerTreeExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-        val varargElementSources = elements.joinToString(separator = ", ") { el ->
-            StringBuilder().also { el.produceSources(SmartPrinter(it)) }
-        }
+        val varargElementSources = elements.joinToString(separator = ", ") { it.decompile() }
         printer.print(varargElementSources)
     }
 }

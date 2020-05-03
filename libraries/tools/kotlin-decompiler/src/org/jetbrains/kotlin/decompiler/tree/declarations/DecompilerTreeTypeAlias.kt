@@ -5,10 +5,24 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
-import org.jetbrains.kotlin.decompiler.tree.expressions.call.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.util.name
+import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
 
 class DecompilerTreeTypeAlias(
     override val element: IrTypeAlias,
-    override val annotations: List<DecompilerTreeConstructorCall>
-) : DecompilerTreeDeclaration
+    override val annotations: List<DecompilerTreeConstructorCall>,
+    override val annotationTarget: String? = null,
+    val aliasedType: DecompilerTreeType
+) : DecompilerTreeDeclaration {
+    override fun produceSources(printer: SmartPrinter) {
+        with(element) {
+            printer.println(
+                listOfNotNull("actual".takeIf { isActual }, "typealias", name(), "=", aliasedType.decompile())
+                    .joinToString(" ")
+            )
+        }
+    }
+}
