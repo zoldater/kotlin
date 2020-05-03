@@ -17,7 +17,7 @@ interface DecompilerTreeBody : DecompilerTreeElement, SourceProducible {
     override val element: IrBody
 }
 
-class DecompilerTreeBlockBody(override val element: IrBlockBody, override val declarations: List<DecompilerTreeStatement>) :
+class DecompilerTreeBlockBody(override val element: IrBlockBody, override val statements: List<DecompilerTreeStatement>) :
     DecompilerTreeBody, DecompilerTreeStatementsContainer {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")

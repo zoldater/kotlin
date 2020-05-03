@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.decompiler.builder
 import org.jetbrains.kotlin.decompiler.tree.*
 import org.jetbrains.kotlin.decompiler.tree.declarations.*
 import org.jetbrains.kotlin.decompiler.tree.expressions.*
-import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.descriptors.ClassKind.*
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -17,6 +17,8 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 class DecompilerTreeCreator {
 
     internal class DecompilerTreeConstructionVisitor : IrElementVisitor<DecompilerTreeElement, Nothing?> {
+        private val buildingCacheMap = mutableMapOf<IrElement, DecompilerTreeElement>()
+
         override fun visitElement(element: IrElement, data: Nothing?): DecompilerTreeElement {
             TODO("Element $element was not properly built")
         }
@@ -43,15 +45,25 @@ class DecompilerTreeCreator {
             TODO("Declaration $declaration was not properly built")
         }
 
-        override fun visitClass(declaration: IrClass, data: Nothing?): AbstractDecompilerTreeClass = declaration.constructClass()
+        override fun visitClass(declaration: IrClass, data: Nothing?): AbstractDecompilerTreeClass = with(declaration) {
+            return when (kind) {
+                INTERFACE -> DecompilerTreeInterface(this, decompiledDeclarations, decompiledAnnotations, buildTypeParameters)
+                ANNOTATION_CLASS -> DecompilerTreeAnnotationClass(this, decompiledDeclarations, decompiledAnnotations, buildTypeParameters)
+                ENUM_CLASS -> DecompilerTreeEnumClass(this, decompiledDeclarations, decompiledAnnotations, buildTypeParameters)
+                //TODO is it enough for `object SomeObj` val x = object : Any {...}
+                OBJECT -> DecompilerTreeObject(this, decompiledDeclarations, decompiledAnnotations, buildTypeParameters)
+                else -> DecompilerTreeClass(this, decompiledDeclarations, decompiledAnnotations, buildTypeParameters)
+            }
+        }
 
         override fun visitSimpleFunction(declaration: IrSimpleFunction, data: Nothing?): DecompilerTreeSimpleFunction = with(declaration) {
             DecompilerTreeSimpleFunction(
-                this, decompiledAnnotations, returnType.toDecompilerTreeType(),
+                this, decompiledAnnotations, returnType.buildType(),
                 dispatchReceiverParameter?.buildValueParameter(),
                 extensionReceiverParameter?.buildValueParameter(),
                 valueParameters.buildValueParameters(),
-                body?.buildElement()//TODO is it necessary to implicitly declare <IrBody, DecompilerTreeBody>?
+                body?.buildElement(), //TODO is it necessary to implicitly declare <IrBody, DecompilerTreeBody>?
+                buildTypeParameters
             )
         }
 
@@ -61,14 +73,20 @@ class DecompilerTreeCreator {
         override fun visitProperty(declaration: IrProperty, data: Nothing?): DecompilerTreeProperty {
         }
 
-        override fun visitField(declaration: IrField, data: Nothing?): DecompilerTreeField {
+        override fun visitField(declaration: IrField, data: Nothing?): DecompilerTreeField = with(declaration) {
+            DecompilerTreeField(
+                this, decompiledAnnotations,
+                initializer = initializer?.buildElement(),
+                type = type.buildType()
+            )
         }
 
         override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty, data: Nothing?): DecompilerTreeElement {
+            TODO("Local delegated property $declaration was not built")
         }
 
         override fun visitVariable(declaration: IrVariable, data: Nothing?): AbstractDecompilerTreeVariable = with(declaration) {
-            DecompilerTreeVariable(this, decompiledAnnotations, type.toDecompilerTreeType(), initializer?.buildExpression())
+            DecompilerTreeVariable(this, decompiledAnnotations, type.buildType(), initializer?.buildExpression())
         }
 
         override fun visitEnumEntry(declaration: IrEnumEntry, data: Nothing?): DecompilerTreeEnumEntry = with(declaration) {
@@ -81,8 +99,8 @@ class DecompilerTreeCreator {
                 DecompilerTreeAnonymousInitializer(this, body.buildElement())
             }
 
-        override fun visitTypeParameter(declaration: IrTypeParameter, data: Nothing?): DecompilerTreeElement {
-            return super.visitTypeParameter(declaration, data)
+        override fun visitTypeParameter(declaration: IrTypeParameter, data: Nothing?): DecompilerTreeTypeParameter = with(declaration) {
+            DecompilerTreeTypeParameter(this, decompiledAnnotations)
         }
 
         override fun visitValueParameter(declaration: IrValueParameter, data: Nothing?): DecompilerTreeElement = with(declaration) {
@@ -91,26 +109,30 @@ class DecompilerTreeCreator {
                 decompiledAnnotations,
                 //TODO calculate annotation target
                 null,
-                type.toDecompilerTreeType(),
-                varargElementType?.toDecompilerTreeType(),
+                type.buildType(),
+                varargElementType?.buildType(),
                 defaultValue?.buildElement()
             )
         }
 
         override fun visitTypeAlias(declaration: IrTypeAlias, data: Nothing?): DecompilerTreeTypeAlias = with(declaration) {
-            DecompilerTreeTypeAlias(this, decompiledAnnotations, aliasedType = expandedType.toDecompilerTreeType())
+            DecompilerTreeTypeAlias(
+                this, decompiledAnnotations,
+                aliasedType = expandedType.buildType(),
+                typeParameters = buildTypeParameters
+            )
         }
 
-        override fun visitBody(body: IrBody, data: Nothing?): DecompilerTreeBody {
+        override fun visitExpressionBody(body: IrExpressionBody, data: Nothing?): DecompilerTreeExpressionBody = with(body) {
+            DecompilerTreeExpressionBody(this, expression.buildExpression())
         }
 
-        override fun visitExpressionBody(body: IrExpressionBody, data: Nothing?): DecompilerTreeExpressionBody {
+        override fun visitBlockBody(body: IrBlockBody, data: Nothing?): DecompilerTreeBlockBody = with(body) {
+            DecompilerTreeBlockBody(this, statements.buildElements())
         }
 
-        override fun visitBlockBody(body: IrBlockBody, data: Nothing?): DecompilerTreeBlockBody {
-        }
-
-        override fun visitSyntheticBody(body: IrSyntheticBody, data: Nothing?): DecompilerTreeSyntheticBody {
+        override fun visitSyntheticBody(body: IrSyntheticBody, data: Nothing?): DecompilerTreeSyntheticBody = with(body) {
+            DecompilerTreeSyntheticBody(this)
         }
 
         override fun visitExpression(expression: IrExpression, data: Nothing?): DecompilerTreeExpression {
@@ -120,7 +142,7 @@ class DecompilerTreeCreator {
         override fun <T> visitConst(expression: IrConst<T>, data: Nothing?): DecompilerTreeConst = DecompilerTreeConst(expression)
 
         override fun visitVararg(expression: IrVararg, data: Nothing?): DecompilerTreeVararg = with(expression) {
-            return DecompilerTreeVararg(this, elements.buildElements<IrVarargElement, DecompilerTreeVarargElement>())
+            return DecompilerTreeVararg(this, elements.buildElements())
         }
 
         override fun visitSpreadElement(spread: IrSpreadElement, data: Nothing?): DecompilerTreeSpread = with(spread) {
@@ -139,7 +161,7 @@ class DecompilerTreeCreator {
         }
 
         override fun visitGetObjectValue(expression: IrGetObjectValue, data: Nothing?): DecompilerTreeGetObjectValue = with(expression) {
-            val parent = symbol.owner.constructClass()
+            val parent = symbol.owner.buildElement<IrClass, DecompilerTreeClass>()
             return DecompilerTreeGetObjectValue(this, parent)
         }
 
@@ -162,20 +184,108 @@ class DecompilerTreeCreator {
             DecompilerTreeSetField(this, receiver?.buildExpression(), value.buildExpression())
         }
 
+        override fun visitCall(expression: IrCall, data: Nothing?): AbstractDecompilerTreeCall = with(expression) {
+            buildCall(buildDispatchReceiver, buildExtensionReceiver, buildValueArguments)
+        }
+
+        override fun visitConstructorCall(expression: IrConstructorCall, data: Nothing?): DecompilerTreeConstructorCall = with(expression) {
+            DecompilerTreeConstructorCall(this, buildDispatchReceiver, buildExtensionReceiver, buildValueArguments)
+        }
+
+        override fun visitDelegatingConstructorCall(
+            expression: IrDelegatingConstructorCall,
+            data: Nothing?
+        ): DecompilerTreeDelegatingConstructorCall = with(expression) {
+            DecompilerTreeDelegatingConstructorCall(this, buildDispatchReceiver, buildExtensionReceiver, buildValueArguments)
+        }
+
+        override fun visitEnumConstructorCall(expression: IrEnumConstructorCall, data: Nothing?): DecompilerTreeEnumConstructorCall =
+            with(expression) {
+                DecompilerTreeEnumConstructorCall(this, buildDispatchReceiver, buildExtensionReceiver, buildValueArguments)
+            }
+
+        override fun visitGetClass(expression: IrGetClass, data: Nothing?): DecompilerTreeGetClass =
+            DecompilerTreeGetClass(expression, expression.argument.buildExpression())
+
+        override fun visitFunctionReference(expression: IrFunctionReference, data: Nothing?): DecompilerTreeFunctionReference =
+            with(expression) {
+                DecompilerTreeFunctionReference(this, buildDispatchReceiver, buildExtensionReceiver, buildValueArguments)
+            }
+
+        override fun visitPropertyReference(expression: IrPropertyReference, data: Nothing?): DecompilerTreePropertyReference =
+            with(expression) {
+                DecompilerTreePropertyReference(this, buildDispatchReceiver, buildExtensionReceiver, buildValueArguments)
+            }
+
+        override fun visitLocalDelegatedPropertyReference(
+            expression: IrLocalDelegatedPropertyReference,
+            data: Nothing?
+        ): DecompilerTreeLocalDelegatedPropertyReference =
+            with(expression) {
+                DecompilerTreeLocalDelegatedPropertyReference(this, buildDispatchReceiver, buildExtensionReceiver, buildValueArguments)
+            }
+
+        override fun visitFunctionExpression(expression: IrFunctionExpression, data: Nothing?): DecompilerTreeFunctionExpression =
+            with(expression) {
+                DecompilerTreeFunctionExpression(this, function.buildElement())
+            }
+
+
+        override fun visitClassReference(expression: IrClassReference, data: Nothing?): DecompilerTreeClassReference = with(expression) {
+            DecompilerTreeClassReference(this, classType.buildType())
+        }
+
+        override fun visitInstanceInitializerCall(
+            expression: IrInstanceInitializerCall,
+            data: Nothing?
+        ): DecompilerTreeInstanceInitializerCall = DecompilerTreeInstanceInitializerCall(expression)
+
+
+        override fun visitTypeOperator(expression: IrTypeOperatorCall, data: Nothing?): DecompilerTreeTypeOperatorCall = with(expression) {
+            DecompilerTreeTypeOperatorCall(this, argument.buildExpression(), typeOperand.buildType())
+        }
+
         override fun visitWhen(expression: IrWhen, data: Nothing?): DecompilerTreeWhen {
             val branches =
-                expression.branches.map { it.accept(this, data) as DecompilerTreeBranch }
+                expression.branches.map { it.accept(this, data) as AbstractDecompilerTreeBranch }
             return DecompilerTreeWhen(expression, branches)
         }
 
-        override fun visitBranch(branch: IrBranch, data: Nothing?): DecompilerTreeBranch {
-            val condition = branch.condition.buildExpression()
-            val result = branch.result.buildExpression()
-            return when (branch) {
-                is IrElseBranch -> DecompilerTreeElseBranch(branch, condition, result)
-                else -> DecompilerTreeBranchRegular(branch, condition, result)
+        override fun visitBranch(branch: IrBranch, data: Nothing?): AbstractDecompilerTreeBranch = with(branch) {
+            DecompilerTreeBranch(branch, condition.buildExpression(), result.buildExpression())
+        }
+
+        override fun visitElseBranch(branch: IrElseBranch, data: Nothing?): DecompilerTreeElseBranch = with(branch) {
+            DecompilerTreeElseBranch(branch, condition.buildExpression(), result.buildExpression())
+        }
+
+        override fun visitWhileLoop(loop: IrWhileLoop, data: Nothing?): DecompilerTreeWhileLoop = with(loop) {
+            DecompilerTreeWhileLoop(this, condition.buildExpression(), body?.buildExpression())
+        }
+
+        override fun visitDoWhileLoop(loop: IrDoWhileLoop, data: Nothing?): DecompilerTreeDoWhileLoop = with(loop) {
+            DecompilerTreeDoWhileLoop(this, condition.buildExpression(), body?.buildExpression())
+        }
+
+        override fun visitTry(aTry: IrTry, data: Nothing?): DecompilerTreeTry = with(aTry) {
+            DecompilerTreeTry(this, tryResult.buildExpression(), catches.buildElements(), finallyExpression?.buildExpression())
+        }
+
+        override fun visitCatch(aCatch: IrCatch, data: Nothing?): DecompilerTreeCatch {
+            with(aCatch) {
+                val dirCatchParameter = DecompilerTreeCatchParameterVariable(
+                    catchParameter,
+                    catchParameter.decompiledAnnotations,
+                    catchParameter.type.buildType()
+                )
+                val dirResult = aCatch.result.buildExpression()
+                return DecompilerTreeCatch(this, dirCatchParameter, dirResult)
             }
         }
+
+        override fun visitBreak(jump: IrBreak, data: Nothing?): DecompilerTreeBreak = DecompilerTreeBreak(jump)
+
+        override fun visitContinue(jump: IrContinue, data: Nothing?): DecompilerTreeContinue = DecompilerTreeContinue(jump)
 
         override fun visitReturn(expression: IrReturn, data: Nothing?): DecompilerTreeReturn {
             val value = expression.value.buildExpression()
@@ -188,29 +298,12 @@ class DecompilerTreeCreator {
             return DecompilerTreeThrow(expression, throwable)
         }
 
-        override fun visitFunctionExpression(expression: IrFunctionExpression, data: Nothing?): DecompilerTreeFunctionExpression =
-            with(expression) {
-                val dirFunction = function.buildElement<IrSimpleFunction, DecompilerTreeSimpleFunction>()
-                DecompilerTreeFunctionExpression(this, dirFunction)
-            }
-
-
-        override fun visitCatch(aCatch: IrCatch, data: Nothing?): DecompilerTreeCatch {
-            with(aCatch) {
-                val dirCatchParameter = DecompilerTreeCatchParameterVariable(
-                    catchParameter,
-                    catchParameter.decompiledAnnotations,
-                    catchParameter.type.toDecompilerTreeType()
-                )
-                val dirResult = aCatch.result.buildExpression()
-                return DecompilerTreeCatch(this, dirCatchParameter, dirResult)
-            }
-        }
-
 
         @Suppress("UNCHECKED_CAST")
         internal fun <T : IrElement, R : DecompilerTreeElement> T.buildElement(): R =
-            accept(this@DecompilerTreeConstructionVisitor, null) as R
+            (buildingCacheMap[this] ?: run {
+                accept(this@DecompilerTreeConstructionVisitor, null).also { buildingCacheMap += this to it }
+            }) as R
 
         private fun <T : IrElement, R : DecompilerTreeElement> Iterable<T>.buildElements(): List<R> =
             map { it.buildElement() }
@@ -240,15 +333,17 @@ class DecompilerTreeCreator {
         private val IrDeclarationContainer.decompiledDeclarations: List<DecompilerTreeDeclaration>
             get() = declarations.buildDeclarations()
 
-        private fun IrClass.constructClass(): AbstractDecompilerTreeClass = when (kind) {
-            ClassKind.INTERFACE -> DecompilerTreeInterface(this, decompiledDeclarations, decompiledAnnotations)
-            ClassKind.ANNOTATION_CLASS -> DecompilerTreeAnnotationClass(this, decompiledDeclarations, decompiledAnnotations)
-            ClassKind.ENUM_CLASS -> DecompilerTreeEnumClass(this, decompiledDeclarations, decompiledAnnotations)
-            //TODO is it enough for `object SomeObj` val x = object : Any {...}
-            ClassKind.OBJECT -> DecompilerTreeObject(this, decompiledDeclarations, decompiledAnnotations)
-            else -> DecompilerTreeClass(this, decompiledDeclarations, decompiledAnnotations)
-        }
+        private val IrMemberAccessExpression.buildValueArguments
+            get() = (0 until valueArgumentsCount).mapNotNull { getValueArgument(it) }.buildExpressions()
 
+        private val IrMemberAccessExpression.buildDispatchReceiver: DecompilerTreeExpression?
+            get() = dispatchReceiver?.buildExpression()
+
+        private val IrMemberAccessExpression.buildExtensionReceiver: DecompilerTreeExpression?
+            get() = extensionReceiver?.buildExpression()
+
+        private val IrTypeParametersContainer.buildTypeParameters: List<DecompilerTreeTypeParameter>
+            get() = typeParameters.buildElements()
     }
 
     companion object {

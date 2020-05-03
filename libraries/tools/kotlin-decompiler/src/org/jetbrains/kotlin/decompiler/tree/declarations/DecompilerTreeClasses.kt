@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeDeclarationContainer
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeTypeParametersContainer
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.descriptors.Modality
@@ -18,7 +19,7 @@ abstract class AbstractDecompilerTreeClass(
     override val declarations: List<DecompilerTreeDeclaration>,
     override val annotations: List<DecompilerTreeConstructorCall>,
     override val annotationTarget: String? = null
-) : DecompilerTreeDeclaration, DecompilerTreeDeclarationContainer {
+) : DecompilerTreeDeclaration, DecompilerTreeDeclarationContainer, DecompilerTreeTypeParametersContainer {
     open val isDefaultModality: Boolean = element.modality == Modality.FINAL
     abstract val keyword: String
 
@@ -35,7 +36,8 @@ abstract class AbstractDecompilerTreeClass(
                 "inline".takeIf { isInline },
                 "data".takeIf { isData },
                 keyword,
-                nameIfExists
+                nameIfExists,
+                typeParametersForPrint
             ).joinToString(separator = " ")
         }
     }
@@ -44,7 +46,8 @@ abstract class AbstractDecompilerTreeClass(
 class DecompilerTreeInterface(
     element: IrClass,
     declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeConstructorCall>
+    annotations: List<DecompilerTreeConstructorCall>,
+    override var typeParameters: List<DecompilerTreeTypeParameter>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations) {
     override val keyword: String = "interface"
     override val isDefaultModality: Boolean = element.modality == Modality.OPEN
@@ -57,7 +60,8 @@ class DecompilerTreeInterface(
 class DecompilerTreeClass(
     element: IrClass,
     declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeConstructorCall>
+    annotations: List<DecompilerTreeConstructorCall>,
+    override var typeParameters: List<DecompilerTreeTypeParameter>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations) {
     override val keyword: String = "class"
 
@@ -69,7 +73,8 @@ class DecompilerTreeClass(
 class DecompilerTreeEnumClass(
     element: IrClass,
     declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeConstructorCall>
+    annotations: List<DecompilerTreeConstructorCall>,
+    override var typeParameters: List<DecompilerTreeTypeParameter>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations) {
     override val keyword: String = "enum class"
 
@@ -81,7 +86,8 @@ class DecompilerTreeEnumClass(
 class DecompilerTreeAnnotationClass(
     element: IrClass,
     declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeConstructorCall>
+    annotations: List<DecompilerTreeConstructorCall>,
+    override var typeParameters: List<DecompilerTreeTypeParameter>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations) {
     override val keyword: String = "annotation class"
 
@@ -93,7 +99,8 @@ class DecompilerTreeAnnotationClass(
 class DecompilerTreeObject(
     element: IrClass,
     declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeConstructorCall>
+    annotations: List<DecompilerTreeConstructorCall>,
+    override var typeParameters: List<DecompilerTreeTypeParameter>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations) {
     override val keyword: String = "object"
     override val nameIfExists: String? = element.name().takeIf { it != "<no name provided>" }

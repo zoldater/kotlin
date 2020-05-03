@@ -5,10 +5,16 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
-import org.jetbrains.kotlin.decompiler.tree.expressions.call.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 
 class DecompilerTreeTypeParameter(
     override val element: IrTypeParameter,
-    override val annotations: List<DecompilerTreeConstructorCall>
-) : DecompilerTreeDeclaration
+    override val annotations: List<DecompilerTreeConstructorCall>,
+    override val annotationTarget: String? = null
+) : DecompilerTreeDeclaration {
+    override fun produceSources(printer: SmartPrinter) {
+        TODO("Not yet implemented")
+    }
+}

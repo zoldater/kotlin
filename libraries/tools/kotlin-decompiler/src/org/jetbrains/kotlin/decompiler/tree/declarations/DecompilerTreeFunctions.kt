@@ -8,8 +8,10 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeTypeParametersContainer
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.util.name
+import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -17,7 +19,7 @@ import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 
-interface DecompilerTreeFunction : DecompilerTreeDeclaration, SourceProducible {
+interface DecompilerTreeFunction : DecompilerTreeDeclaration, DecompilerTreeTypeParametersContainer, SourceProducible {
     override val element: IrFunction
     val returnType: DecompilerTreeType
     var dispatchReceiverParameter: DecompilerTreeValueParameter?
@@ -41,8 +43,6 @@ interface DecompilerTreeFunction : DecompilerTreeDeclaration, SourceProducible {
         get() = with(element) {
             listOfNotNull(
                 visibilityIfExists?.takeIf { visibility != Visibilities.DEFAULT_VISIBILITY },
-//                annotationSourcesList.joinToString(" ").takeIf { annotationSourcesList.isNotEmpty() },
-//                visibilityIfExists?.takeIf { visibility != Visibilities.DEFAULT_VISIBILITY },
                 // Could this be true for constructors
                 "expect".takeIf { isExpect },
                 modalityIfExists,
@@ -54,12 +54,8 @@ interface DecompilerTreeFunction : DecompilerTreeDeclaration, SourceProducible {
                 "operator".takeIf { isOperator }
             )
         }
-    val valueParametersSources: List<String>
-        get() = valueParameters.map { it.decompile() }
-
-    override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
-    }
+    val valueParametersForPrint: String
+        get() = valueParameters.joinToString(", ", prefix = "(", postfix = ")") { it.decompile() }
 }
 
 class DecompilerTreeSimpleFunction(
@@ -69,7 +65,8 @@ class DecompilerTreeSimpleFunction(
     override var dispatchReceiverParameter: DecompilerTreeValueParameter?,
     override var extensionReceiverParameter: DecompilerTreeValueParameter?,
     override var valueParameters: List<DecompilerTreeValueParameter>,
-    override var body: DecompilerTreeBody?
+    override var body: DecompilerTreeBody?,
+    override var typeParameters: List<DecompilerTreeTypeParameter>
 ) : DecompilerTreeFunction {
 
     //TODO implement workaround for interface open fun with default OPEN
@@ -87,6 +84,20 @@ class DecompilerTreeSimpleFunction(
     override val isOperator: Boolean
         get() = element.isOperator
 
+    override fun produceSources(printer: SmartPrinter) {
+        with(printer) {
+            print(
+                listOfNotNull(functionFlags.joinToString(" "), "fun", typeParametersForPrint, valueParametersForPrint)
+                    .joinToString(" ")
+            )
+            body?.also {
+                withBraces {
+                    it.produceSources(this)
+                }
+            }
+        }
+    }
+
 }
 
 class DecompilerTreeConstructor(
@@ -96,9 +107,14 @@ class DecompilerTreeConstructor(
     override var dispatchReceiverParameter: DecompilerTreeValueParameter?,
     override var extensionReceiverParameter: DecompilerTreeValueParameter?,
     override var valueParameters: List<DecompilerTreeValueParameter>,
-    override var body: DecompilerTreeBody?
+    override var body: DecompilerTreeBody?,
+    override var typeParameters: List<DecompilerTreeTypeParameter>
 ) : DecompilerTreeFunction {
     override val modalityIfExists: String? = null
+
+    override fun produceSources(printer: SmartPrinter) {
+        TODO("Not yet implemented")
+    }
 //    override val keyword: String? =
 //        "constructor".takeIf { annotations.isNotEmpty() || element.visibility != Visibilities.DEFAULT_VISIBILITY }
 }

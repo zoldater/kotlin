@@ -15,6 +15,6 @@ interface DecompilerTreeElement {
 
 interface DecompilerTreeVarargElement : DecompilerTreeElement, SourceProducible
 
-interface DecompilerTreeStatement : DecompilerTreeElement {
+interface DecompilerTreeStatement : DecompilerTreeElement, SourceProducible {
     override val element: IrStatement
 }
