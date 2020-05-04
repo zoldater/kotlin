@@ -22,7 +22,7 @@ class DecompilerTreeBranch(
     override val result: DecompilerTreeExpression
 ) : AbstractDecompilerTreeBranch(element) {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        printer.println("${condition.decompile()} -> ${result.decompile()}")
     }
 }
 
@@ -32,6 +32,6 @@ class DecompilerTreeElseBranch(
     override val result: DecompilerTreeExpression
 ) : AbstractDecompilerTreeBranch(element) {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        printer.println("else -> ${result.decompile()}")
     }
 }

@@ -10,11 +10,13 @@ import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeTypeParametersContainer
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.util.name
+import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.descriptors.ClassKind.*
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.types.isAny
 
 abstract class AbstractDecompilerTreeClass(
     final override val element: IrClass,
@@ -38,11 +40,16 @@ abstract class AbstractDecompilerTreeClass(
         get() = declarations.filterIsInstance(DecompilerTreeAnonymousInitializer::class.java)
 
     protected val properties: List<DecompilerTreeProperty>
-        get() = declarations.filterIsInstance(DecompilerTreeProperty::class.java)
+        get() = declarations.filterIsInstance(DecompilerTreeProperty::class.java).filterNot { it.element.isFakeOverride }
 
     protected val methods: List<DecompilerTreeSimpleFunction>
-        get() = declarations.filterIsInstance(DecompilerTreeSimpleFunction::class.java)
+        get() = declarations.filterIsInstance(DecompilerTreeSimpleFunction::class.java).filterNot { it.element.isFakeOverride }
 
+    protected val otherPrintableDeclarations: List<DecompilerTreeDeclaration>
+        get() = declarations.filterNot { it is DecompilerTreeConstructor }
+            .filterNot { it in initSections }
+            .filterNot { it in properties }
+            .filterNot { it in methods }
 
     val computeModifiersAndName: String
         get() = with(element) {
@@ -59,8 +66,6 @@ abstract class AbstractDecompilerTreeClass(
                 typeParametersForPrint
             ).joinToString(separator = " ")
         }
-
-
 }
 
 
@@ -73,10 +78,24 @@ class DecompilerTreeInterface(
     superTypes: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
     override val keyword: String = "interface"
-    override val isDefaultModality: Boolean = element.modality == Modality.OPEN
+    override val isDefaultModality: Boolean = element.modality == Modality.ABSTRACT
 
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        with(printer) {
+            listOfNotNull(
+                computeModifiersAndName,
+                primaryConstructor?.decompile(),
+                superTypes.filterNot { it.irType.isAny() }.takeIf { it.isNotEmpty() }
+                    ?.joinToString(prefix = ": ") { it.decompile() }
+            ).joinToString(" ").also { print(it) }
+            if (properties.isNotEmpty() || methods.isNotEmpty() || otherPrintableDeclarations.isNotEmpty()) {
+                withBraces {
+                    listOf(properties, methods, otherPrintableDeclarations).flatten().forEach {
+                        it.produceSources(this)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -89,9 +108,31 @@ class DecompilerTreeClass(
     superTypes: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
     override val keyword: String = "class"
+    private val isTrivialPrimaryCtorDelegate: Boolean
+        get() = primaryConstructor?.delegatingConstructorCall?.type?.irType?.isAny() ?: false
 
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        val nonTrivialCall = primaryConstructor?.delegatingConstructorCall
+            ?.takeIf { !isTrivialPrimaryCtorDelegate }
+        val nonTrivialCallDecompiled = nonTrivialCall?.let { "${it.type.decompile()}${it.decompile()}" }
+        val nonTrivialSuperTypes = superTypes.filterNot { it.irType.isAny() }
+            .filterNot { it.irType == nonTrivialCall?.type?.irType }
+
+        with(printer) {
+            listOfNotNull(
+                computeModifiersAndName,
+                primaryConstructor?.decompile(),
+                ":".takeIf { nonTrivialCallDecompiled != null || nonTrivialSuperTypes.isNotEmpty() },
+                nonTrivialCallDecompiled,
+                nonTrivialSuperTypes.takeIf { it.isNotEmpty() }?.joinToString { it.decompile() }
+            ).joinToString(" ").also { print(it) }
+
+            withBraces {
+                listOfNotNull(properties, initSections, secondaryConstructors, methods, otherPrintableDeclarations).flatten()
+                    .forEach { it.produceSources(this) }
+            }
+
+        }
     }
 }
 

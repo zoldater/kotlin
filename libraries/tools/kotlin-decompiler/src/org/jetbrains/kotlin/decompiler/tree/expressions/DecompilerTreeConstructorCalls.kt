@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
@@ -15,7 +16,8 @@ class DecompilerTreeConstructorCall(
     override val element: IrConstructorCall,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")
@@ -26,7 +28,8 @@ class DecompilerTreeDelegatingConstructorCall(
     override val element: IrDelegatingConstructorCall,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
 ) :
     DecompilerTreeMemberAccessExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
@@ -38,9 +41,10 @@ class DecompilerTreeEnumConstructorCall(
     override val element: IrEnumConstructorCall,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        printer.print(valueArgumentsInsideParentheses)
     }
 }

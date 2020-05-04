@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.util.ownerName
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
@@ -17,7 +18,7 @@ interface DecompilerTreeValueAccess : DecompilerTreeExpression {
     override val element: IrValueAccessExpression
 }
 
-class DecompilerTreeGetValue(override val element: IrGetValue) : DecompilerTreeValueAccess {
+class DecompilerTreeGetValue(override val element: IrGetValue, override val type: DecompilerTreeType) : DecompilerTreeValueAccess {
     override fun produceSources(printer: SmartPrinter) {
         // TODO process receiver and <this> value
         printer.print(element.ownerName)
@@ -26,7 +27,8 @@ class DecompilerTreeGetValue(override val element: IrGetValue) : DecompilerTreeV
 
 class DecompilerTreeSetVariable(
     override val element: IrSetVariable,
-    private val value: DecompilerTreeExpression
+    private val value: DecompilerTreeExpression,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeValueAccess, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         with(element) {

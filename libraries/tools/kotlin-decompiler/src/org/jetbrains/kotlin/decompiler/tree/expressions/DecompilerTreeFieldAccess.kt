@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrFieldAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetField
@@ -20,18 +21,22 @@ interface DecompilerTreeFieldAccess : DecompilerTreeExpression {
         get() = receiver?.decompile()?.let { "$it.${element.symbol.owner.name.asString()}" } ?: element.symbol.owner.name.asString()
 }
 
-class DecompilerTreeGetField(override val element: IrGetField, override val receiver: DecompilerTreeExpression?) :
-    DecompilerTreeFieldAccess {
+class DecompilerTreeGetField(
+    override val element: IrGetField,
+    override val receiver: DecompilerTreeExpression?,
+    override val type: DecompilerTreeType
+) : DecompilerTreeFieldAccess {
     override fun produceSources(printer: SmartPrinter) {
         printer.print(lhs)
     }
 }
 
 class DecompilerTreeSetField(
-    override val element: IrSetField, override val receiver: DecompilerTreeExpression?,
-    private val value: DecompilerTreeExpression
-) :
-    DecompilerTreeFieldAccess {
+    override val element: IrSetField,
+    override val receiver: DecompilerTreeExpression?,
+    private val value: DecompilerTreeExpression,
+    override val type: DecompilerTreeType
+) : DecompilerTreeFieldAccess {
     override fun produceSources(printer: SmartPrinter) {
         printer.print("$lhs = ${value.decompile()}")
     }

@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.util.indented
 import org.jetbrains.kotlin.decompiler.util.insideParentheses
 import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -21,7 +23,8 @@ abstract class DecompilerTreeLoop(override val element: IrLoop) : DecompilerTree
 class DecompilerTreeWhileLoop(
     override val element: IrWhileLoop,
     override val decompiledCondition: DecompilerTreeExpression,
-    override val decompiledBody: DecompilerTreeExpression?
+    override val decompiledBody: DecompilerTreeExpression?,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeLoop(element) {
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
@@ -39,15 +42,16 @@ class DecompilerTreeWhileLoop(
 class DecompilerTreeDoWhileLoop(
     override val element: IrDoWhileLoop,
     override val decompiledCondition: DecompilerTreeExpression,
-    override val decompiledBody: DecompilerTreeExpression?
+    override val decompiledBody: DecompilerTreeExpression?,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeLoop(element) {
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
-            print("do")
-            withBraces {
+            println("do {")
+            indented {
                 decompiledBody?.produceSources(this)
             }
-            print("while ")
+            print("} while ")
             insideParentheses {
                 decompiledCondition.produceSources(printer)
             }

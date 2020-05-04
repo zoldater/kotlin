@@ -6,14 +6,15 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
 
 class DecompilerTreeStringConcatenation(
     override val element: IrStringConcatenation,
-    private val arguments: List<DecompilerTreeExpression>
-) :
-    DecompilerTreeExpression,
+    private val arguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
+) : DecompilerTreeExpression,
     SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         val concatenatedArguments = arguments.map { it to it.decompile() }
