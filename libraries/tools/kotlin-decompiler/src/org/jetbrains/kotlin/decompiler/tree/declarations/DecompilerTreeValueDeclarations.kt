@@ -7,25 +7,29 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeExpressionBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.tree.buildType
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeExpression
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
+import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 
 interface DecompilerTreeValueDeclaration : DecompilerTreeDeclaration {
+    override val element: IrValueDeclaration
     val type: DecompilerTreeType
+        get() = element.type.buildType()
 }
 
 class DecompilerTreeValueParameter(
     override val element: IrValueParameter,
     override val annotations: List<DecompilerTreeConstructorCall>,
-    override val annotationTarget: String?,
-    override val type: DecompilerTreeType,
-    val varargType: DecompilerTreeType?,
-    var defaultValue: DecompilerTreeExpressionBody?
+    var defaultValue: DecompilerTreeExpressionBody?,
+    override val annotationTarget: String? = null
 ) : DecompilerTreeValueDeclaration {
+    private val varargType: DecompilerTreeType?
+        get() = element.varargElementType?.buildType()
 
     override fun produceSources(printer: SmartPrinter) {
         with(element) {
@@ -51,7 +55,6 @@ abstract class AbstractDecompilerTreeVariable(
 class DecompilerTreeVariable(
     override val element: IrVariable,
     override val annotations: List<DecompilerTreeConstructorCall>,
-    override val type: DecompilerTreeType,
     initializer: DecompilerTreeExpression?
 ) : AbstractDecompilerTreeVariable(element, annotations, initializer) {
     override fun produceSources(printer: SmartPrinter) {
@@ -70,7 +73,6 @@ class DecompilerTreeVariable(
 class DecompilerTreeCatchParameterVariable(
     override val element: IrVariable,
     override val annotations: List<DecompilerTreeConstructorCall>,
-    override val type: DecompilerTreeType,
 ) : AbstractDecompilerTreeVariable(element, annotations, null) {
     override fun produceSources(printer: SmartPrinter) {
         printer.print("${element.name()}: ${type.decompile()}")

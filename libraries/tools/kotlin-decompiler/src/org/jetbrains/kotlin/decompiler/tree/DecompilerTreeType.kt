@@ -5,20 +5,13 @@
 
 package org.jetbrains.kotlin.decompiler.tree
 
-import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
-import org.jetbrains.kotlin.ir.types.*
-import org.jetbrains.kotlin.ir.util.isLocalClass
-
-internal fun IrType.buildType(): DecompilerTreeType =
-    when {
-        toKotlinType().isFunctionTypeOrSubtype -> DecompilerTreeFunctionalType(this)
-        classOrNull?.owner?.isLocalClass() ?: false -> DecompilerTreeLocalClassType(this)
-        else -> DecompilerTreeSimpleType(this)
-    }
-
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.getClass
+import org.jetbrains.kotlin.ir.types.isNullable
+import org.jetbrains.kotlin.ir.types.toKotlinType
 
 interface DecompilerTreeType : SourceProducible {
     val irType: IrType

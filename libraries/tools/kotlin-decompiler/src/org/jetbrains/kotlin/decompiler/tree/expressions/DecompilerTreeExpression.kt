@@ -16,6 +16,8 @@ import org.jetbrains.kotlin.ir.expressions.*
 
 interface DecompilerTreeExpression : DecompilerTreeStatement, DecompilerTreeVarargElement, SourceProducible {
     override val element: IrExpression
+    val type: DecompilerTreeType
+        get() = element.type.buildType()
 }
 
 interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression {
@@ -52,15 +54,19 @@ class DecompilerTreeGetClass(
 
 }
 
-class DecompilerTreeInstanceInitializerCall(override val element: IrInstanceInitializerCall) : DecompilerTreeExpression {
+class DecompilerTreeInstanceInitializerCall(
+    override val element: IrInstanceInitializerCall
+) : DecompilerTreeExpression {
     override fun produceSources(printer: SmartPrinter) = Unit
 }
 
 class DecompilerTreeTypeOperatorCall(
     override val element: IrTypeOperatorCall,
-    private val argument: DecompilerTreeExpression,
-    private val typeOperand: DecompilerTreeType
+    private val argument: DecompilerTreeExpression
 ) : DecompilerTreeExpression {
+    private val typeOperand: DecompilerTreeType
+        get() = element.typeOperand.buildType()
+
     override fun produceSources(printer: SmartPrinter) {
         listOfNotNull(
             argument.decompile(),

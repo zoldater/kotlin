@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.tree.buildType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
@@ -13,8 +14,12 @@ import org.jetbrains.kotlin.ir.expressions.IrLocalDelegatedPropertyReference
 import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 
 
-class DecompilerTreeClassReference(override val element: IrClassReference, private val classType: DecompilerTreeType) :
+class DecompilerTreeClassReference(override val element: IrClassReference) :
     DecompilerTreeExpression {
+
+    private val classType: DecompilerTreeType
+        get() = element.classType.buildType()
+
     override fun produceSources(printer: SmartPrinter) {
         printer.print("${classType.decompile()}::class")
     }

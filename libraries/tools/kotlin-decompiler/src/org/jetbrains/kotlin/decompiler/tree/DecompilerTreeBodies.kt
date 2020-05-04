@@ -17,24 +17,21 @@ interface DecompilerTreeBody : DecompilerTreeElement, SourceProducible {
     override val element: IrBody
 }
 
-class DecompilerTreeBlockBody(override val element: IrBlockBody, override val statements: List<DecompilerTreeStatement>) :
+class DecompilerTreeBlockBody(
+    override val element: IrBlockBody,
+    override val statements: List<DecompilerTreeStatement>
+) :
     DecompilerTreeBody, DecompilerTreeStatementsContainer {
-    override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
-    }
+    override fun produceSources(printer: SmartPrinter) = Unit
 }
 
 class DecompilerTreeExpressionBody(
     override val element: IrExpressionBody,
     val expression: DecompilerTreeExpression
 ) : DecompilerTreeBody {
-    override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
-    }
+    override fun produceSources(printer: SmartPrinter) = Unit
 }
 
 class DecompilerTreeSyntheticBody(override val element: IrSyntheticBody) : DecompilerTreeBody {
-    override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
-    }
+    override fun produceSources(printer: SmartPrinter) = Unit
 }

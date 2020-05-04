@@ -15,9 +15,9 @@ import org.jetbrains.kotlin.ir.declarations.IrField
 class DecompilerTreeField(
     override val element: IrField,
     override val annotations: List<DecompilerTreeConstructorCall>,
-    override val annotationTarget: String? = "field",
     val initializer: DecompilerTreeExpressionBody?,
-    val type: DecompilerTreeType
+    val type: DecompilerTreeType,
+    override val annotationTarget: String? = "field"
 ) : DecompilerTreeDeclaration {
     override fun produceSources(printer: SmartPrinter) {
         annotationSourcesList.forEach { printer.println(it) }

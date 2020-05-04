@@ -22,6 +22,8 @@ abstract class DecompilerTreeBreakContinue(
     }
 }
 
-class DecompilerTreeBreak(override val element: IrBreak) : DecompilerTreeBreakContinue(element, "break")
+class DecompilerTreeBreak(override val element: IrBreak) :
+    DecompilerTreeBreakContinue(element, "break")
 
-class DecompilerTreeContinue(override val element: IrContinue) : DecompilerTreeBreakContinue(element, "continue")
+class DecompilerTreeContinue(override val element: IrContinue) :
+    DecompilerTreeBreakContinue(element, "continue")
