@@ -6,13 +6,15 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeSimpleFunction
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 
 class DecompilerTreeFunctionExpression(
     override val element: IrFunctionExpression,
-    val dirFunction: DecompilerTreeSimpleFunction,
+    val function: DecompilerTreeSimpleFunction,
+    override val type: DecompilerTreeType,
 ) : DecompilerTreeExpression,
     SourceProducible {
     override fun produceSources(printer: SmartPrinter) {

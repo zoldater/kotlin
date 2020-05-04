@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.ir.expressions.*
 interface DecompilerTreeExpression : DecompilerTreeStatement, DecompilerTreeVarargElement, SourceProducible {
     override val element: IrExpression
     val type: DecompilerTreeType
-        get() = element.type.buildType()
 }
 
 interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression {
@@ -33,7 +32,8 @@ interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression {
 
 class DecompilerTreeContainerExpression(
     override val element: IrContainerExpression,
-    override val statements: List<DecompilerTreeStatement>
+    override val statements: List<DecompilerTreeStatement>,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeExpression, DecompilerTreeStatementsContainer {
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
@@ -46,7 +46,8 @@ class DecompilerTreeContainerExpression(
 
 class DecompilerTreeGetClass(
     override val element: IrGetClass,
-    private val argument: DecompilerTreeExpression
+    private val argument: DecompilerTreeExpression,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeExpression {
     override fun produceSources(printer: SmartPrinter) {
         printer.print("${argument.decompile()}::class")
@@ -55,17 +56,18 @@ class DecompilerTreeGetClass(
 }
 
 class DecompilerTreeInstanceInitializerCall(
-    override val element: IrInstanceInitializerCall
+    override val element: IrInstanceInitializerCall,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeExpression {
     override fun produceSources(printer: SmartPrinter) = Unit
 }
 
 class DecompilerTreeTypeOperatorCall(
     override val element: IrTypeOperatorCall,
-    private val argument: DecompilerTreeExpression
-) : DecompilerTreeExpression {
+    private val argument: DecompilerTreeExpression,
+    override val type: DecompilerTreeType,
     private val typeOperand: DecompilerTreeType
-        get() = element.typeOperand.buildType()
+) : DecompilerTreeExpression {
 
     override fun produceSources(printer: SmartPrinter) {
         listOfNotNull(

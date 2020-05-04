@@ -6,12 +6,14 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 
 abstract class AbstractDecompilerTreeCall(
     override val element: IrCall,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression, SourceProducible {
     val leftOperand: DecompilerTreeExpression?
         get() = dispatchReceiver ?: valueArguments.getOrNull(0)
@@ -23,17 +25,24 @@ abstract class AbstractDecompilerTreeCall(
 internal fun IrCall.buildCall(
     dispatchReceiver: DecompilerTreeExpression?,
     extensionReceiver: DecompilerTreeExpression?,
-    valueArguments: List<DecompilerTreeExpression>
+    valueArguments: List<DecompilerTreeExpression>,
+    type: DecompilerTreeType
 ): AbstractDecompilerTreeCall =
     when (origin) {
-        in DecompilerTreeCallUnaryOp.originMap.keys -> DecompilerTreeCallUnaryOp(this, dispatchReceiver, extensionReceiver, valueArguments)
+        in DecompilerTreeCallUnaryOp.originMap.keys -> DecompilerTreeCallUnaryOp(
+            this,
+            dispatchReceiver,
+            extensionReceiver,
+            valueArguments,
+            type
+        )
         in DecompilerTreeCallBinaryOp.originMap.keys -> DecompilerTreeCallBinaryOp(
             this,
             dispatchReceiver,
             extensionReceiver,
-            valueArguments
+            valueArguments, type
         )
-        else -> DecompilerTreeNamedCall(this, dispatchReceiver, extensionReceiver, valueArguments)
+        else -> DecompilerTreeNamedCall(this, dispatchReceiver, extensionReceiver, valueArguments, type)
     }
 
 
@@ -41,8 +50,9 @@ class DecompilerTreeCallUnaryOp(
     element: IrCall,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>
-) : AbstractDecompilerTreeCall(element) {
+    override val valueArguments: List<DecompilerTreeExpression>,
+    type: DecompilerTreeType
+) : AbstractDecompilerTreeCall(element, type) {
 
     override fun produceSources(printer: SmartPrinter) {
         check(element.origin in originMap.keys) { "Origin ${element.origin?.toString()} is not unary operation!" }
@@ -72,8 +82,9 @@ class DecompilerTreeCallBinaryOp(
     element: IrCall,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>
-) : AbstractDecompilerTreeCall(element) {
+    override val valueArguments: List<DecompilerTreeExpression>,
+    type: DecompilerTreeType
+) : AbstractDecompilerTreeCall(element, type) {
     override fun produceSources(printer: SmartPrinter) {
         check(element.origin in originMap.keys) { "Origin ${element.origin?.toString()} is not binary operation!" }
 
@@ -110,8 +121,9 @@ class DecompilerTreeNamedCall(
     element: IrCall,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>
-) : AbstractDecompilerTreeCall(element) {
+    override val valueArguments: List<DecompilerTreeExpression>,
+    type: DecompilerTreeType
+) : AbstractDecompilerTreeCall(element, type) {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")
     }

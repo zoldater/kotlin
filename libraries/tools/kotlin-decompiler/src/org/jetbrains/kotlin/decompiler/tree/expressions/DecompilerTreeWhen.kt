@@ -6,15 +6,39 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
-import org.jetbrains.kotlin.decompiler.tree.branch.DecompilerTreeBranch
+import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeBranch
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.util.withBraces
+import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrWhen
-import org.jetbrains.kotlin.utils.Printer
 
-class DecompilerTreeWhen(
+abstract class AbstractDecompilerTreeWhen(
     override val element: IrWhen,
-    val dirBranches: List<DecompilerTreeBranch>
-) : DecompilerTreeExpression, SourceProducible {
-    override fun produceSources(printer: Printer) {
+    val branches: List<AbstractDecompilerTreeBranch>,
+    override val type: DecompilerTreeType
+) : DecompilerTreeExpression, SourceProducible
+
+//TODO extend WhenWithReceiver, WhenWithDeclaringReceiver
+class DecompilerTreeWhen(
+    element: IrWhen,
+    branches: List<AbstractDecompilerTreeBranch>,
+    type: DecompilerTreeType
+) : AbstractDecompilerTreeWhen(element, branches, type) {
+    override fun produceSources(printer: SmartPrinter) {
+        with(printer) {
+            print("when")
+            withBraces {
+                branches.forEach { it.produceSources(this) }
+            }
+        }
+    }
+}
+
+class DecompilerTreeIfThenElse(
+    element: IrWhen, branches: List<AbstractDecompilerTreeBranch>,
+    type: DecompilerTreeType
+) : AbstractDecompilerTreeWhen(element, branches, type) {
+    override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")
     }
 }

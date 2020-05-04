@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.tree.buildType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrClassReference
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
@@ -14,11 +13,11 @@ import org.jetbrains.kotlin.ir.expressions.IrLocalDelegatedPropertyReference
 import org.jetbrains.kotlin.ir.expressions.IrPropertyReference
 
 
-class DecompilerTreeClassReference(override val element: IrClassReference) :
-    DecompilerTreeExpression {
-
+class DecompilerTreeClassReference(
+    override val element: IrClassReference,
+    override val type: DecompilerTreeType,
     private val classType: DecompilerTreeType
-        get() = element.classType.buildType()
+) : DecompilerTreeExpression {
 
     override fun produceSources(printer: SmartPrinter) {
         printer.print("${classType.decompile()}::class")
@@ -29,7 +28,8 @@ class DecompilerTreeFunctionReference(
     override val element: IrFunctionReference,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")
@@ -40,7 +40,8 @@ class DecompilerTreePropertyReference(
     override val element: IrPropertyReference,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")
@@ -51,7 +52,8 @@ class DecompilerTreeLocalDelegatedPropertyReference(
     override val element: IrLocalDelegatedPropertyReference,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")

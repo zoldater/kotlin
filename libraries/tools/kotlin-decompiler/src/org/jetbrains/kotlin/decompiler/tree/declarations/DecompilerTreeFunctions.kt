@@ -125,7 +125,16 @@ class DecompilerTreeConstructor(
         listOfNotNull(annotationSourcesList.joinToString(" "),
                       functionFlags.joinToString(" "),
                       "constructor".takeIf { !element.isPrimary || isTrivial }
-        ).joinToString(" ").also { printer.print("$it${valueParametersForPrint.takeIf { valueParameters.isNotEmpty() }}") }
+        ).joinToString(" ")
+            .also { printer.print("$it${valueParametersForPrint.takeIf { valueParameters.isNotEmpty() || element.isPrimary }}") }
+        if (!element.isPrimary) {
+            printer.print(" : this${delegatingConstructorCall?.decompile()}")
+            body?.also {
+                printer.withBraces {
+                    it.produceSources(printer)
+                }
+            }
+        }
 
     }
 }

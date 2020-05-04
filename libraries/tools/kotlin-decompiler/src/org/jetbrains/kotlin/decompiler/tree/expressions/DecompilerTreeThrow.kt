@@ -6,12 +6,14 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrThrow
 
 class DecompilerTreeThrow(
     override val element: IrThrow,
-    val value: DecompilerTreeExpression
+    val value: DecompilerTreeExpression,
+    override val type: DecompilerTreeType
 ) : DecompilerTreeExpression, SourceProducible {
 
     override fun produceSources(printer: SmartPrinter) {

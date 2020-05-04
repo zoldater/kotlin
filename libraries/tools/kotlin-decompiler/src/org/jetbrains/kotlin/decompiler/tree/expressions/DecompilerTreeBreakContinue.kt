@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrBreak
 import org.jetbrains.kotlin.ir.expressions.IrBreakContinue
@@ -13,6 +14,7 @@ import org.jetbrains.kotlin.ir.expressions.IrContinue
 
 abstract class DecompilerTreeBreakContinue(
     override val element: IrBreakContinue,
+    override val type: DecompilerTreeType,
     val token: String
 ) : DecompilerTreeExpression,
     SourceProducible {
@@ -22,8 +24,8 @@ abstract class DecompilerTreeBreakContinue(
     }
 }
 
-class DecompilerTreeBreak(override val element: IrBreak) :
-    DecompilerTreeBreakContinue(element, "break")
+class DecompilerTreeBreak(override val element: IrBreak, type: DecompilerTreeType) :
+    DecompilerTreeBreakContinue(element, type, "break")
 
-class DecompilerTreeContinue(override val element: IrContinue) :
-    DecompilerTreeBreakContinue(element, "continue")
+class DecompilerTreeContinue(override val element: IrContinue, type: DecompilerTreeType) :
+    DecompilerTreeBreakContinue(element, type, "continue")
