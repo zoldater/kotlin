@@ -6,10 +6,12 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBlockBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeTypeParametersContainer
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeDelegatingConstructorCall
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.descriptors.Modality
@@ -30,13 +32,14 @@ interface DecompilerTreeFunction : DecompilerTreeDeclaration, DecompilerTreeType
         get() = null
 
     val modalityIfExists: String?
-    open val isOverridden: Boolean
+
+    val isOverridden: Boolean
         get() = false
-    open val isTailrec: Boolean
+    val isTailrec: Boolean
         get() = false
-    open val isSuspend: Boolean
+    val isSuspend: Boolean
         get() = false
-    open val isOperator: Boolean
+    val isOperator: Boolean
         get() = false
 
     val functionFlags: List<String>
@@ -111,10 +114,18 @@ class DecompilerTreeConstructor(
     override var typeParameters: List<DecompilerTreeTypeParameter>
 ) : DecompilerTreeFunction {
     override val modalityIfExists: String? = null
+    val isTrivial: Boolean
+        get() = annotationSourcesList.isNotEmpty() || functionFlags.isNotEmpty()
+
+    val delegatingConstructorCall: DecompilerTreeDelegatingConstructorCall?
+        get() = (body as? DecompilerTreeBlockBody)?.statements
+            ?.filterIsInstance(DecompilerTreeDelegatingConstructorCall::class.java)?.firstOrNull()
 
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        listOfNotNull(annotationSourcesList.joinToString(" "),
+                      functionFlags.joinToString(" "),
+                      "constructor".takeIf { !element.isPrimary || isTrivial }
+        ).joinToString(" ").also { printer.print("$it${valueParametersForPrint.takeIf { valueParameters.isNotEmpty() }}") }
+
     }
-//    override val keyword: String? =
-//        "constructor".takeIf { annotations.isNotEmpty() || element.visibility != Visibilities.DEFAULT_VISIBILITY }
 }

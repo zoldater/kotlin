@@ -30,7 +30,7 @@ class DecompilerTreeDelegatingConstructorCall(
 ) :
     DecompilerTreeMemberAccessExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        printer.print(valueArgumentsInsideParentheses)
     }
 }
 
