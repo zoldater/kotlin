@@ -7,6 +7,25 @@ package org.jetbrains.kotlin.decompiler.printer
 
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 
+internal inline fun SmartPrinter.indented(body: () -> Unit) {
+    pushIndent()
+    body()
+    popIndent()
+}
+
+internal inline fun SmartPrinter.withBraces(body: () -> Unit) {
+    println(" {")
+    indented(body)
+    println("} ")
+}
+
+internal inline fun SmartPrinter.insideParentheses(body: () -> Unit) {
+    print("(")
+    body()
+    print(")")
+}
+
+
 
 interface SourceProducible {
     fun produceSources(printer: SmartPrinter)

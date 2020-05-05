@@ -108,24 +108,6 @@ internal inline fun DecompileIrTreeVisitor.indented(body: () -> Unit) {
     printer.popIndent()
 }
 
-internal inline fun SmartPrinter.indented(body: () -> Unit) {
-    pushIndent()
-    body()
-    popIndent()
-}
-
-internal inline fun SmartPrinter.withBraces(body: () -> Unit) {
-    println(" {")
-    indented(body)
-    print("} ")
-}
-
-internal inline fun SmartPrinter.insideParentheses(body: () -> Unit) {
-    print("(")
-    body()
-    print(")")
-}
-
 val IrValueAccessExpression.ownerName: String
     get() = symbol.owner.name()
 
@@ -228,7 +210,7 @@ internal fun IrCall.obtainNameWithArgs(): String {
 internal fun IrCall.obtainOperatorEqCall(): String {
     val valueArgument = getValueArgument(0)
     return when (valueArgument) {
-        is IrMemberAccessExpression -> with(valueArgument as IrMemberAccessExpression) {
+        is IrMemberAccessExpression -> with(valueArgument) {
             val leftOperand = if (dispatchReceiver != null) dispatchReceiver else getValueArgument(0)
             val rightOperand = if (dispatchReceiver != null) getValueArgument(0) else getValueArgument(1)
             concatenateNonEmptyWithSpace(

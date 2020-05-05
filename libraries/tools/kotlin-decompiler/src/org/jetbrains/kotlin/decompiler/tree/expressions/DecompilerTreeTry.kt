@@ -6,9 +6,9 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeCatch
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrTry
 
@@ -21,7 +21,7 @@ class DecompilerTreeTry(
 ) : DecompilerTreeExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
-            print(TRY)
+            print("try")
             withBraces {
                 tryResult.produceSources(this)
             }
@@ -30,17 +30,11 @@ class DecompilerTreeTry(
                 it.produceSources(this)
             }
             finallyExpression?.also {
-                print(FINALLY)
+                print("finally")
                 withBraces {
                     it.produceSources(this)
                 }
             }
         }
-    }
-
-    companion object {
-        const val TRY = "try"
-        const val FINALLY = "finally"
-
     }
 }

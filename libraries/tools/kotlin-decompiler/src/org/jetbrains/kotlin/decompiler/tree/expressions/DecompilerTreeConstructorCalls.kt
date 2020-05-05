@@ -20,7 +20,7 @@ class DecompilerTreeConstructorCall(
     override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        "${type.decompile()}${valueArgumentsInsideParenthesesOrNull ?: "()"}".also { printer.print(it) }
     }
 }
 
@@ -33,7 +33,7 @@ class DecompilerTreeDelegatingConstructorCall(
 ) :
     DecompilerTreeMemberAccessExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-        printer.print(valueArgumentsInsideParentheses)
+        "${type.decompile()}${valueArgumentsInsideParenthesesOrNull ?: "()"}".also { printer.print(it) }
     }
 }
 
@@ -45,6 +45,6 @@ class DecompilerTreeEnumConstructorCall(
     override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-        printer.print(valueArgumentsInsideParentheses)
+        valueArgumentsInsideParenthesesOrNull?.also { printer.print(it) }
     }
 }

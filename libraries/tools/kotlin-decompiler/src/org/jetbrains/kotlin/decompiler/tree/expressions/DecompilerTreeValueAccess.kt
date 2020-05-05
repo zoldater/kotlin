@@ -7,12 +7,14 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.util.ownerName
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrSetVariable
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrValueAccessExpression
+
+internal val IrValueAccessExpression.ownerName: String
+    get() = symbol.owner.name.asString()
 
 interface DecompilerTreeValueAccess : DecompilerTreeExpression {
     override val element: IrValueAccessExpression

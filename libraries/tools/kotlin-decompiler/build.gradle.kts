@@ -27,9 +27,6 @@ dependencies {
     testCompileOnly(project(":kotlin-test:kotlin-test-junit"))
     testCompileOnly(projectTests(":compiler:tests-common"))
     testCompileOnly(projectTests(":compiler:fir:analysis-tests"))
-
-//    testCompileOnly(project(":kotlin-reflect-api"))
-//    testRuntimeOnly(project(":kotlin-reflect"))
     testRuntimeOnly(project(":core:descriptors.runtime"))
 
     Platform[192].orHigher {

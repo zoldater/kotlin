@@ -12,10 +12,10 @@ import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 
 class DecompilerTreeSpread(
     override val element: IrSpreadElement,
-    private val dirExpression: DecompilerTreeExpression
+    private val expression: DecompilerTreeExpression
 ) : DecompilerTreeVarargElement, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-        printer.print("*${dirExpression.decompile()}")
+        printer.print("*${expression.decompile()}")
     }
 
 }

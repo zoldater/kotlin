@@ -5,33 +5,63 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
+import org.jetbrains.kotlin.decompiler.decompile
+import org.jetbrains.kotlin.decompiler.printer.indented
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 
+//TODO Maybe we need different nodes for abstract val property and property without backingField
 class DecompilerTreeProperty(
     override val element: IrProperty,
     override val annotations: List<DecompilerTreeConstructorCall>,
     private val backingField: DecompilerTreeField?,
-    var getter: DecompilerTreeSimpleFunction?,
-    var setter: DecompilerTreeSimpleFunction?
+    private val getter: DecompilerTreeSimpleFunction?,
+    private val setter: DecompilerTreeSimpleFunction?,
 ) : DecompilerTreeDeclaration {
     override val annotationTarget: String = "property"
+    var defaultModality: Modality = Modality.FINAL
+
+    private val propertyFlagsOrNull: String?
+        get() = with(element) {
+            listOfNotNull(
+                visibility.takeIf { it in setOf(Visibilities.PUBLIC, Visibilities.LOCAL) }?.name?.toLowerCase(),
+                "expect".takeIf { isExpect },
+                modality.takeIf { it != defaultModality },
+                "external".takeIf { isExternal },
+                "const".takeIf { isConst },
+                "lateinit".takeIf { isLateinit },
+                "var".takeIf { isVar } ?: "val"
+            ).joinToString(" ")
+        }
+    private val propertyTypeStringOrNull: String?
+        get() = backingField?.type?.decompile() ?: getter?.returnType?.decompile()
+
+    private val initializerStringOrNull: String?
+        get() = backingField?.initializer?.decompile()?.let { "= $it" }
+
+    private val headerWithTypeAndInitializer: String
+        get() = listOfNotNull(
+            propertyFlagsOrNull,
+            propertyTypeStringOrNull?.let { "${element.name()}: $it" } ?: element.name(),
+            initializerStringOrNull
+        ).joinToString(" ")
 
     override fun produceSources(printer: SmartPrinter) {
-        with(element) {
-            listOfNotNull(
-                visibilityIfExists,
-                "expect".takeIf { isExpect },
-                modality.takeIf { it != Modality.FINAL }?.name,
-                "external".takeIf { isExternal },
-//                "external".takeIf { isFakeOverride },
-
-
-                "const".takeIf { isConst })
+        with(printer) {
+            println(headerWithTypeAndInitializer)
+            getter?.also {
+                indented {
+                    it.produceSources(this)
+                }
+            }
+            setter?.also {
+                indented {
+                    it.produceSources(this)
+                }
+            }
         }
-        TODO("Not yet implemented")
     }
-
 }

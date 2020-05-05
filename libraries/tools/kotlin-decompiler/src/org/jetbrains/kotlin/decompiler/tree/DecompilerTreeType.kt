@@ -6,7 +6,9 @@
 package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
-import org.jetbrains.kotlin.decompiler.util.name
+import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeClass
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeClass
+import org.jetbrains.kotlin.decompiler.tree.declarations.name
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
@@ -15,15 +17,21 @@ import org.jetbrains.kotlin.ir.types.toKotlinType
 
 interface DecompilerTreeType : SourceProducible {
     val irType: IrType
+    var typeClassIfExists: AbstractDecompilerTreeClass?
 }
 
-class DecompilerTreeSimpleType(override val irType: IrType) : DecompilerTreeType {
+class DecompilerTreeSimpleType(
+    override val irType: IrType,
+    override var typeClassIfExists: AbstractDecompilerTreeClass?
+) :
+    DecompilerTreeType {
     override fun produceSources(printer: SmartPrinter) {
-        printer.print(irType.toKotlinType().toString())
+        printer.print(typeClassIfExists?.nameIfExists ?: irType.toKotlinType().toString())
     }
 }
 
-class DecompilerTreeFunctionalType(override val irType: IrType) : DecompilerTreeType {
+class DecompilerTreeFunctionalType(override val irType: IrType, override var typeClassIfExists: AbstractDecompilerTreeClass? = null) :
+    DecompilerTreeType {
     override fun produceSources(printer: SmartPrinter) {
         //TODO Looks like very bad implementation of type description collecting
         with(irType) {
@@ -40,10 +48,3 @@ class DecompilerTreeFunctionalType(override val irType: IrType) : DecompilerTree
         }
     }
 }
-
-class DecompilerTreeLocalClassType(override val irType: IrType) : DecompilerTreeType {
-    override fun produceSources(printer: SmartPrinter) {
-        printer.print(irType.getClass()!!.name())
-    }
-}
-

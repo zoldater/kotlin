@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
-import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.types.isAny

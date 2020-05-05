@@ -5,67 +5,110 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
+import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeDeclarationContainer
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeTypeParametersContainer
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
-import org.jetbrains.kotlin.decompiler.util.name
-import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.descriptors.ClassKind.*
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.types.isAny
+import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.types.toKotlinType
+import org.jetbrains.kotlin.ir.util.isAnnotationClass
+import org.jetbrains.kotlin.ir.util.isFakeOverride
+import org.jetbrains.kotlin.types.typeUtil.isEnum
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 abstract class AbstractDecompilerTreeClass(
     final override val element: IrClass,
     override val declarations: List<DecompilerTreeDeclaration>,
     override val annotations: List<DecompilerTreeConstructorCall>,
     val superTypes: List<DecompilerTreeType>,
-    override val annotationTarget: String? = null
+    override val annotationTarget: String? = null,
 ) : DecompilerTreeDeclaration, DecompilerTreeDeclarationContainer, DecompilerTreeTypeParametersContainer {
     open val isDefaultModality: Boolean = element.modality == Modality.FINAL
     abstract val keyword: String
     abstract val thisReceiver: DecompilerTreeValueParameter?
 
+    protected open val nonTrivialSuperInterfaces: List<DecompilerTreeType>
+        get() = superTypes.filterNot { it.irType.isAny() || it.irType.isUnit() }
+            .filterNot { it.typeClassIfExists is DecompilerTreeClass }
 
-    protected val primaryConstructor: DecompilerTreeConstructor?
-        get() = declarations.filterIsInstance(DecompilerTreeConstructor::class.java).find { it.element.isPrimary }
+    protected val primaryConstructor: DecompilerTreePrimaryConstructor?
+        get() = declarations.filterIsInstance(DecompilerTreePrimaryConstructor::class.java)
+            .firstOrNull()
 
-    protected val secondaryConstructors: List<DecompilerTreeConstructor>
-        get() = declarations.filterIsInstance(DecompilerTreeConstructor::class.java).filterNot { it.element.isPrimary }
+    protected open val secondaryConstructors: List<DecompilerTreeSecondaryConstructor>
+        get() = declarations.filterIsInstance(DecompilerTreeSecondaryConstructor::class.java)
 
-    protected val initSections: List<DecompilerTreeAnonymousInitializer>
+    protected open val initSections: List<DecompilerTreeAnonymousInitializer>
         get() = declarations.filterIsInstance(DecompilerTreeAnonymousInitializer::class.java)
 
-    protected val properties: List<DecompilerTreeProperty>
+    protected open val properties: List<DecompilerTreeProperty>
         get() = declarations.filterIsInstance(DecompilerTreeProperty::class.java).filterNot { it.element.isFakeOverride }
 
-    protected val methods: List<DecompilerTreeSimpleFunction>
+    protected open val methods: List<DecompilerTreeSimpleFunction>
         get() = declarations.filterIsInstance(DecompilerTreeSimpleFunction::class.java).filterNot { it.element.isFakeOverride }
 
-    protected val otherPrintableDeclarations: List<DecompilerTreeDeclaration>
-        get() = declarations.filterNot { it is DecompilerTreeConstructor }
-            .filterNot { it in initSections }
-            .filterNot { it in properties }
-            .filterNot { it in methods }
+    protected open val otherPrintableDeclarations: List<DecompilerTreeDeclaration>
+        get() = declarations.asSequence()
+            .filterNot { it is AbstractDecompilerTreeConstructor }
+            .filterNot { it is DecompilerTreeAnonymousInitializer }
+            .filterNot { it is DecompilerTreeProperty }
+            .filterNot { it is DecompilerTreeSimpleFunction }
+            .filterNot { it.element.isFakeOverride }
+            .toList()
 
-    val computeModifiersAndName: String
+    abstract val printableDeclarations: List<DecompilerTreeDeclaration>
+
+    protected val computeModifiersAndName: String
         get() = with(element) {
             return listOfNotNull(
                 visibility.name.toLowerCase().takeIf { element.visibility != Visibilities.PUBLIC },
                 "expect".takeIf { isExpect }, //actual modifier?
-                modality.name.takeIf { !isDefaultModality },
+                modality.name.toLowerCase().takeIf { !isDefaultModality },
                 "external".takeIf { isExternal },
                 "inner".takeIf { isInner },
                 "inline".takeIf { isInline },
                 "data".takeIf { isData },
+                "annotation".takeIf { isAnnotationClass },
                 keyword,
                 nameIfExists,
                 typeParametersForPrint
             ).joinToString(separator = " ")
         }
+
+    private val nameWithPrimaryCtorDecompiled: String
+        get() = listOfNotNull(computeModifiersAndName, primaryConstructor?.decompile())
+            .joinToString(primaryConstructor?.isTrivial?.let { "" } ?: " ")
+
+    private val nonTrivialSuperTypesDecompiledOrNull: String?
+        get() = nonTrivialSuperInterfaces.ifNotEmpty { joinToString { it.decompile() } }
+
+    protected val fullHeader: String
+        get() = listOfNotNull(
+            nameWithPrimaryCtorDecompiled,
+            nonTrivialSuperTypesDecompiledOrNull?.let { if (primaryConstructor?.delegatingCallDecompiledOrNull == null) ": $it" else ", $it" }
+        ).joinToString(" ")
+
+    override fun produceSources(printer: SmartPrinter) {
+        with(printer) {
+            print(fullHeader)
+            printableDeclarations.ifNotEmpty {
+                this@with.withBraces {
+                    this.forEach {
+                        it.produceSources(this@with)
+                    }
+                }
+            }
+            println()
+        }
+    }
 }
 
 
@@ -78,24 +121,15 @@ class DecompilerTreeInterface(
     superTypes: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
     override val keyword: String = "interface"
+
+    override val printableDeclarations: List<DecompilerTreeDeclaration>
+        get() = listOf(properties, methods, otherPrintableDeclarations).flatten()
+
     override val isDefaultModality: Boolean = element.modality == Modality.ABSTRACT
 
-    override fun produceSources(printer: SmartPrinter) {
-        with(printer) {
-            listOfNotNull(
-                computeModifiersAndName,
-                primaryConstructor?.decompile(),
-                superTypes.filterNot { it.irType.isAny() }.takeIf { it.isNotEmpty() }
-                    ?.joinToString(prefix = ": ") { it.decompile() }
-            ).joinToString(" ").also { print(it) }
-            if (properties.isNotEmpty() || methods.isNotEmpty() || otherPrintableDeclarations.isNotEmpty()) {
-                withBraces {
-                    listOf(properties, methods, otherPrintableDeclarations).flatten().forEach {
-                        it.produceSources(this)
-                    }
-                }
-            }
-        }
+    init {
+        properties.forEach { it.defaultModality = Modality.ABSTRACT }
+        methods.forEach { it.defaultModality = Modality.ABSTRACT }
     }
 }
 
@@ -108,32 +142,10 @@ class DecompilerTreeClass(
     superTypes: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
     override val keyword: String = "class"
-    private val isTrivialPrimaryCtorDelegate: Boolean
-        get() = primaryConstructor?.delegatingConstructorCall?.type?.irType?.isAny() ?: false
 
-    override fun produceSources(printer: SmartPrinter) {
-        val nonTrivialCall = primaryConstructor?.delegatingConstructorCall
-            ?.takeIf { !isTrivialPrimaryCtorDelegate }
-        val nonTrivialCallDecompiled = nonTrivialCall?.let { "${it.type.decompile()}${it.decompile()}" }
-        val nonTrivialSuperTypes = superTypes.filterNot { it.irType.isAny() }
-            .filterNot { it.irType == nonTrivialCall?.type?.irType }
+    override val printableDeclarations: List<DecompilerTreeDeclaration>
+        get() = listOf(properties, initSections, secondaryConstructors, methods, otherPrintableDeclarations).flatten()
 
-        with(printer) {
-            listOfNotNull(
-                computeModifiersAndName,
-                primaryConstructor?.decompile(),
-                ":".takeIf { nonTrivialCallDecompiled != null || nonTrivialSuperTypes.isNotEmpty() },
-                nonTrivialCallDecompiled,
-                nonTrivialSuperTypes.takeIf { it.isNotEmpty() }?.joinToString { it.decompile() }
-            ).joinToString(" ").also { print(it) }
-
-            withBraces {
-                listOfNotNull(properties, initSections, secondaryConstructors, methods, otherPrintableDeclarations).flatten()
-                    .forEach { it.produceSources(this) }
-            }
-
-        }
-    }
 }
 
 class DecompilerTreeEnumClass(
@@ -146,23 +158,42 @@ class DecompilerTreeEnumClass(
 ) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
     override val keyword: String = "enum class"
 
-    override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+    init {
+        primaryConstructor?.defaultVisibility = Visibilities.PRIVATE
     }
-}
 
-class DecompilerTreeAnnotationClass(
-    element: IrClass,
-    declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeConstructorCall>,
-    override var typeParameters: List<DecompilerTreeTypeParameter>,
-    override val thisReceiver: DecompilerTreeValueParameter?,
-    superTypes: List<DecompilerTreeType>
-) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
-    override val keyword: String = "annotation class"
+    private val enumEntries: List<DecompilerTreeEnumEntry>
+        get() = super.otherPrintableDeclarations.filterIsInstance(DecompilerTreeEnumEntry::class.java)
+
+    override val methods: List<DecompilerTreeSimpleFunction>
+        get() = super.methods.filterNot { it.element.origin == IrDeclarationOrigin.ENUM_CLASS_SPECIAL_MEMBER }
+
+    override val otherPrintableDeclarations: List<DecompilerTreeDeclaration>
+        get() = super.otherPrintableDeclarations.filterNot { it is DecompilerTreeEnumEntry }
+
+    override val printableDeclarations: List<DecompilerTreeDeclaration>
+        get() = listOfNotNull(properties, methods, otherPrintableDeclarations).flatten()
 
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        with(printer) {
+            print(computeModifiersAndName)
+            primaryConstructor?.valueParameters?.ifNotEmpty { print(primaryConstructor!!.valueParametersForPrint) }
+
+            (printableDeclarations + enumEntries).ifNotEmpty {
+                this@with.withBraces {
+                    val decompiledEntries = enumEntries.map { it.decompile() }
+
+                    primaryConstructor?.valueParameters?.ifNotEmpty {
+                        decompiledEntries.joinToString(",\n").lines().forEach { println(it) }
+                    } ?: decompiledEntries.joinToString(", ").also { println(it) }
+
+                    printableDeclarations.forEach {
+                        it.produceSources(this@with)
+                    }
+                }
+            }
+            println()
+        }
     }
 }
 
@@ -175,11 +206,9 @@ class DecompilerTreeObject(
     superTypes: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
     override val keyword: String = "object"
+    override val printableDeclarations: List<DecompilerTreeDeclaration>
+        get() = listOf(properties, initSections, methods, otherPrintableDeclarations).flatten()
     override val nameIfExists: String? = element.name().takeIf { it != "<no name provided>" }
-
-    override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
-    }
 }
 
 internal fun buildClass(
@@ -191,7 +220,6 @@ internal fun buildClass(
     superTypes: List<DecompilerTreeType>
 ): AbstractDecompilerTreeClass = when (element.kind) {
     INTERFACE -> DecompilerTreeInterface(element, declarations, annotations, typeParameters, thisReceiver, superTypes)
-    ANNOTATION_CLASS -> DecompilerTreeAnnotationClass(element, declarations, annotations, typeParameters, thisReceiver, superTypes)
     ENUM_CLASS -> DecompilerTreeEnumClass(element, declarations, annotations, typeParameters, thisReceiver, superTypes)
     //TODO is it enough for `object SomeObj` val x = object : Any {...}
     OBJECT -> DecompilerTreeObject(element, declarations, annotations, typeParameters, thisReceiver, superTypes)

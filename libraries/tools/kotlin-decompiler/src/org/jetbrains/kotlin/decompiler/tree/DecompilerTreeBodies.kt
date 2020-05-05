@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeEnumConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeExpression
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
@@ -25,12 +26,23 @@ class DecompilerTreeBlockBody(
     override fun produceSources(printer: SmartPrinter) = Unit
 }
 
-class DecompilerTreeExpressionBody(
+open class DecompilerTreeExpressionBody(
     override val element: IrExpressionBody,
-    val expression: DecompilerTreeExpression
+    open val expression: DecompilerTreeExpression
 ) : DecompilerTreeBody {
     override fun produceSources(printer: SmartPrinter) = Unit
 }
+
+class DecompilerTreeEnumEntryExpressionBody(
+    element: IrExpressionBody,
+    override val expression: DecompilerTreeEnumConstructorCall
+) :
+    DecompilerTreeExpressionBody(element, expression) {
+    override fun produceSources(printer: SmartPrinter) {
+        expression.produceSources(printer)
+    }
+}
+
 
 class DecompilerTreeSyntheticBody(override val element: IrSyntheticBody) : DecompilerTreeBody {
     override fun produceSources(printer: SmartPrinter) = Unit
