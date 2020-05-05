@@ -6,10 +6,10 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.printer.indented
+import org.jetbrains.kotlin.decompiler.printer.insideParentheses
+import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.util.indented
-import org.jetbrains.kotlin.decompiler.util.insideParentheses
-import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrDoWhileLoop
 import org.jetbrains.kotlin.ir.expressions.IrLoop

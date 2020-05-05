@@ -6,9 +6,9 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeBranch
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 

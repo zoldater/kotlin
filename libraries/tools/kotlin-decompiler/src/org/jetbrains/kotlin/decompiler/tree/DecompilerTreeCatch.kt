@@ -6,27 +6,27 @@
 package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.printer.insideParentheses
+import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeCatchParameterVariable
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeExpression
-import org.jetbrains.kotlin.decompiler.util.insideParentheses
-import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrCatch
 
 class DecompilerTreeCatch(
     override val element: IrCatch,
-    val dirCatchParameter: DecompilerTreeCatchParameterVariable,
-    val dirResult: DecompilerTreeExpression
+    val catchParameter: DecompilerTreeCatchParameterVariable,
+    val result: DecompilerTreeExpression
 ) : DecompilerTreeElement, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
             print("catch")
             insideParentheses {
                 // TODO could produce extra indent
-                dirCatchParameter.produceSources(printer)
+                catchParameter.produceSources(printer)
             }
             withBraces {
-                dirResult.produceSources(printer)
+                result.produceSources(printer)
             }
         }
     }

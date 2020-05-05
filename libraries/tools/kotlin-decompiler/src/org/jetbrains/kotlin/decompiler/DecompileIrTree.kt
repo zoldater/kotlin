@@ -655,11 +655,11 @@ class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
 
     override fun visitFile(declaration: IrFile, data: String) {
         with(declaration) {
-            val importResolveVisitor = ImportResolveVisitor()
-            val filePackage = fqName.asString().takeIf { declaration.fqName != FqName.ROOT } ?: EMPTY_TOKEN
-            accept(importResolveVisitor, filePackage)
-            irFileNamesToImportedDeclarationsMap[path] = importResolveVisitor.importDirectivesSet
-            printer.println(declaration.declarations.joinToString(separator = "\n", postfix = "\n") { it.decompile(filePackage) })
+//            val importResolveVisitor = ImportResolveVisitor()
+//            val filePackage = fqName.asString().takeIf { declaration.fqName != FqName.ROOT } ?: EMPTY_TOKEN
+//            accept(importResolveVisitor, filePackage)
+//            irFileNamesToImportedDeclarationsMap[path] = importResolveVisitor.importDirectivesSet
+//            printer.println(declaration.declarations.joinToString(separator = "\n", postfix = "\n") { it.decompile(filePackage) })
         }
     }
 

@@ -17,11 +17,6 @@ class DecompilerTreeThrow(
 ) : DecompilerTreeExpression, SourceProducible {
 
     override fun produceSources(printer: SmartPrinter) {
-        printer.print("$THROW ${StringBuilder().also { value.produceSources(SmartPrinter(it)) }}")
+        printer.print("throw ${StringBuilder().also { value.produceSources(SmartPrinter(it)) }}")
     }
-
-    companion object {
-        const val THROW: String = "throw"
-    }
-
 }

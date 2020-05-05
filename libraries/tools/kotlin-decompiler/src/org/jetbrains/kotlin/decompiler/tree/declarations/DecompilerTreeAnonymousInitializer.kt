@@ -6,9 +6,9 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBlockBody
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
-import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
 
@@ -21,14 +21,10 @@ class DecompilerTreeAnonymousInitializer(
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
             //TODO investigate isStatic flag effect
-            print(INIT)
+            print("init")
             withBraces {
                 body.produceSources(this)
             }
         }
-    }
-
-    companion object {
-        const val INIT = "init"
     }
 }

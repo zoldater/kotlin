@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.codegen.CodegenTestFiles
 import org.jetbrains.kotlin.codegen.ir.AbstractIrBlackBoxCodegenTest
+import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler
 import org.jetbrains.kotlin.ir.AbstractIrGeneratorTestCase
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.test.ConfigurationKind
@@ -35,7 +36,7 @@ abstract class AbstractIrDecompilerTextTestCase : AbstractIrGeneratorTestCase() 
     override fun doTest(wholeFile: File, testFiles: List<TestFile>) {
         val originalIrModule = generateIrModule()
         val originalIrString = originalIrModule.dump()
-        val decompiledSources = originalIrModule.decompile("")
+        val decompiledSources = KotlinIrDecompiler.decompileIrToString(originalIrModule)
         val decompiledFile = KotlinTestUtils.createFile(wholeFile.name, decompiledSources, myEnvironment.project)
         myFiles = CodegenTestFiles.create(listOf(decompiledFile))
         val decompiledIrModule = generateIrModule()
@@ -58,7 +59,7 @@ abstract class AbstractIrDecompilerBlackBoxTest : AbstractIrDecompilerTextTestCa
 
     override fun doTest(wholeFile: File, testFiles: List<TestFile>) {
         val originalIrModule = generateIrModule()
-        val decompiledSources = originalIrModule.decompile("")
+        val decompiledSources = KotlinIrDecompiler.decompileIrToString(originalIrModule)
         val decompiledFileSources = File(wholeFile.absolutePath.replace(".kt", ".decompiled.kt"))
         KotlinTestUtils.assertEqualsToFile(decompiledFileSources, decompiledSources)
 

@@ -45,6 +45,11 @@ public class IrDecompilerTextTestCaseGenerated extends AbstractIrDecompilerTextT
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/./classes"), Pattern.compile("^(.+)\\.kt$"), null, true);
         }
 
+        @TestMetadata("classMembers.kt")
+        public void testClassMembers() throws Exception {
+            runTest("libraries/tools/kotlin-decompiler/testData/./classes/classMembers.kt");
+        }
+
         @TestMetadata("classes.kt")
         public void testClasses() throws Exception {
             runTest("libraries/tools/kotlin-decompiler/testData/./classes/classes.kt");

@@ -14,6 +14,13 @@ import org.jetbrains.kotlin.ir.expressions.IrElseBranch
 abstract class AbstractDecompilerTreeBranch(override val element: IrBranch) : DecompilerTreeElement, SourceProducible {
     abstract val condition: DecompilerTreeExpression
     abstract val result: DecompilerTreeExpression
+    abstract val lhs: String
+    private val rhs: String
+        get() = result.decompile()
+
+    override fun produceSources(printer: SmartPrinter) {
+        printer.println("$lhs -> $rhs")
+    }
 }
 
 class DecompilerTreeBranch(
@@ -21,9 +28,7 @@ class DecompilerTreeBranch(
     override val condition: DecompilerTreeExpression,
     override val result: DecompilerTreeExpression
 ) : AbstractDecompilerTreeBranch(element) {
-    override fun produceSources(printer: SmartPrinter) {
-        printer.println("${condition.decompile()} -> ${result.decompile()}")
-    }
+    override val lhs: String = condition.decompile()
 }
 
 class DecompilerTreeElseBranch(
@@ -31,7 +36,5 @@ class DecompilerTreeElseBranch(
     override val condition: DecompilerTreeExpression,
     override val result: DecompilerTreeExpression
 ) : AbstractDecompilerTreeBranch(element) {
-    override fun produceSources(printer: SmartPrinter) {
-        printer.println("else -> ${result.decompile()}")
-    }
+    override val lhs: String = "else"
 }

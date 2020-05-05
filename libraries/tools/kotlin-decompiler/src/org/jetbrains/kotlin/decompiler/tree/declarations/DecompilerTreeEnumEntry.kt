@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeEnumEntryExpressionBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeExpressionBody
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeEnumConstructorCall
@@ -14,17 +15,14 @@ import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 class DecompilerTreeEnumEntry(
     override val element: IrEnumEntry,
     override val annotations: List<DecompilerTreeConstructorCall>,
-    private val expressionBody: DecompilerTreeExpressionBody?
+    private val expressionBody: DecompilerTreeEnumEntryExpressionBody?
 ) :
     DecompilerTreeDeclaration {
     override val annotationTarget: String? = null
 
     override fun produceSources(printer: SmartPrinter) {
 
-        val enumArgsConcatenated =
-            (expressionBody?.expression as? DecompilerTreeEnumConstructorCall)
-                ?.valueArguments?.takeIf { it.isNotEmpty() }
-                ?.joinToString(prefix = "(", postfix = ")") { it.decompile() } ?: ""
+        val enumArgsConcatenated = expressionBody?.decompile() ?: ""
         printer.print("$nameIfExists$enumArgsConcatenated")
     }
 }

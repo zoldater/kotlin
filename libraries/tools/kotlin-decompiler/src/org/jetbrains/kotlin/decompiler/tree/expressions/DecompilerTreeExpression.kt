@@ -6,13 +6,14 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatement
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatementsContainer
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeVarargElement
-import org.jetbrains.kotlin.decompiler.util.withBraces
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 interface DecompilerTreeExpression : DecompilerTreeStatement, DecompilerTreeVarargElement, SourceProducible {
     override val element: IrExpression
@@ -24,9 +25,8 @@ interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression {
     val dispatchReceiver: DecompilerTreeExpression?
     val extensionReceiver: DecompilerTreeExpression?
 
-    val valueArgumentsInsideParentheses: String
-        get() = valueArguments.joinToString(", ", "(", ")") { it.decompile() }
-            .takeIf { valueArguments.isNotEmpty() } ?: ""
+    val valueArgumentsInsideParenthesesOrNull: String?
+        get() = valueArguments.ifNotEmpty { joinToString(", ", "(", ")") { it.decompile() } }
 
 }
 
