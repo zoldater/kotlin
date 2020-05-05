@@ -5,17 +5,15 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeEnumEntryExpressionBody
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeExpressionBody
+import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeExpressionBody
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeEnumConstructorCall
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 
 class DecompilerTreeEnumEntry(
     override val element: IrEnumEntry,
     override val annotations: List<DecompilerTreeConstructorCall>,
-    private val expressionBody: DecompilerTreeEnumEntryExpressionBody?
+    private val expressionBody: AbstractDecompilerTreeExpressionBody?
 ) :
     DecompilerTreeDeclaration {
     override val annotationTarget: String? = null

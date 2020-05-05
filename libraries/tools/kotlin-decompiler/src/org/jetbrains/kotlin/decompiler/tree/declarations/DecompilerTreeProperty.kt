@@ -18,8 +18,8 @@ class DecompilerTreeProperty(
     override val element: IrProperty,
     override val annotations: List<DecompilerTreeConstructorCall>,
     private val backingField: DecompilerTreeField?,
-    private val getter: DecompilerTreeSimpleFunction?,
-    private val setter: DecompilerTreeSimpleFunction?,
+    private val getter: DecompilerTreeCustomGetter?,
+    private val setter: DecompilerTreeCustomSetter?,
 ) : DecompilerTreeDeclaration {
     override val annotationTarget: String = "property"
     var defaultModality: Modality = Modality.FINAL
@@ -27,7 +27,7 @@ class DecompilerTreeProperty(
     private val propertyFlagsOrNull: String?
         get() = with(element) {
             listOfNotNull(
-                visibility.takeIf { it in setOf(Visibilities.PUBLIC, Visibilities.LOCAL) }?.name?.toLowerCase(),
+                visibility.takeIf { it !in setOf(Visibilities.PUBLIC, Visibilities.LOCAL) }?.name?.toLowerCase(),
                 "expect".takeIf { isExpect },
                 modality.takeIf { it != defaultModality },
                 "external".takeIf { isExternal },
@@ -52,15 +52,9 @@ class DecompilerTreeProperty(
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
             println(headerWithTypeAndInitializer)
-            getter?.also {
-                indented {
-                    it.produceSources(this)
-                }
-            }
-            setter?.also {
-                indented {
-                    it.produceSources(this)
-                }
+            indented {
+                getter?.produceSources(this)
+                setter?.produceSources(this)
             }
         }
     }

@@ -106,7 +106,6 @@ abstract class AbstractDecompilerTreeClass(
                     }
                 }
             }
-            println()
         }
     }
 }
@@ -192,7 +191,6 @@ class DecompilerTreeEnumClass(
                     }
                 }
             }
-            println()
         }
     }
 }

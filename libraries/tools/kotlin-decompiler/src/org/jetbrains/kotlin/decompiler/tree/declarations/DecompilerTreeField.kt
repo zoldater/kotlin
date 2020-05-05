@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeExpressionBody
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeFieldInitializer
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -14,14 +15,11 @@ import org.jetbrains.kotlin.ir.declarations.IrField
 class DecompilerTreeField(
     override val element: IrField,
     override val annotations: List<DecompilerTreeConstructorCall>,
-    val initializer: DecompilerTreeExpressionBody?,
+    val initializer: DecompilerTreeFieldInitializer?,
     val type: DecompilerTreeType,
     override val annotationTarget: String? = "field"
 ) : DecompilerTreeDeclaration {
     override fun produceSources(printer: SmartPrinter) {
-        annotationSourcesList.forEach { printer.println(it) }
-        listOfNotNull(element.name().let { "$it:" }, type.decompile(), initializer?.let { "= ${it.decompile()}" })
-            .joinToString(" ")
-            .also { printer.println(it) }
+        TODO("Not yet implemented")
     }
 }

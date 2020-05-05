@@ -25,7 +25,6 @@ class DecompilerTreeTry(
             withBraces {
                 tryResult.produceSources(this)
             }
-            println()
             catches.forEach {
                 it.produceSources(this)
             }

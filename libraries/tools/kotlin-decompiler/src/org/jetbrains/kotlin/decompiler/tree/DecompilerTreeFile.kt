@@ -22,7 +22,9 @@ class DecompilerTreeFile(
             annotationSourcesList.forEach { println(it) }
             println()
             element.fqName.takeIf { it != FqName.ROOT }?.also { println("package $it", "\n") }
-            declarations.forEach { it.produceSources(this) }
+            declarations.joinToString("\n") { it.decompile() }.also {
+                println(it)
+            }
         }
     }
 
