@@ -29,6 +29,7 @@ class KotlinIrDecompiler private constructor() {
     }
 
     internal enum class ExtensionKind {
+        FIELD_INIT,
         CUSTOM_GETTER,
         CUSTOM_SETTER,
         ENUM_ENTRY_INIT
@@ -75,7 +76,7 @@ class KotlinIrDecompiler private constructor() {
             )
         }
 
-        override fun visitSimpleFunction(declaration: IrSimpleFunction, data: ExtensionKind?): DecompilerTreeSimpleFunction =
+        override fun visitSimpleFunction(declaration: IrSimpleFunction, data: ExtensionKind?): AbstractDecompilerTreeSimpleFunction =
             with(declaration) {
                 when (data) {
                     ExtensionKind.CUSTOM_GETTER -> DecompilerTreeCustomGetter(
@@ -139,7 +140,7 @@ class KotlinIrDecompiler private constructor() {
         }
 
         override fun visitField(declaration: IrField, data: ExtensionKind?): DecompilerTreeField = with(declaration) {
-            DecompilerTreeField(this, decompileAnnotations(data), initializer?.buildElement(data), type.buildType())
+            DecompilerTreeField(this, decompileAnnotations(data), initializer?.buildElement(ExtensionKind.FIELD_INIT), type.buildType())
         }
 
         override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty, data: ExtensionKind?): DecompilerTreeElement {
@@ -151,9 +152,11 @@ class KotlinIrDecompiler private constructor() {
         }
 
         override fun visitEnumEntry(declaration: IrEnumEntry, data: ExtensionKind?): DecompilerTreeEnumEntry = with(declaration) {
-            val body =
-                initializerExpression?.buildElement<IrExpressionBody, DecompilerTreeEnumEntryExpressionBody>(ExtensionKind.ENUM_ENTRY_INIT)
-            DecompilerTreeEnumEntry(this, decompileAnnotations(data), body)
+            DecompilerTreeEnumEntry(
+                this,
+                decompileAnnotations(data),
+                initializerExpression?.buildElement(ExtensionKind.ENUM_ENTRY_INIT)
+            )
         }
 
         override fun visitAnonymousInitializer(
@@ -189,15 +192,21 @@ class KotlinIrDecompiler private constructor() {
             )
         }
 
-        override fun visitExpressionBody(body: IrExpressionBody, data: ExtensionKind?): DecompilerTreeExpressionBody = with(body) {
+        override fun visitExpressionBody(body: IrExpressionBody, data: ExtensionKind?): AbstractDecompilerTreeExpressionBody = with(body) {
             when (data) {
-                ExtensionKind.ENUM_ENTRY_INIT -> DecompilerTreeEnumEntryExpressionBody(this, expression.buildElement(data))
+                ExtensionKind.ENUM_ENTRY_INIT -> DecompilerTreeEnumEntryInitializer(this, expression.buildElement(data))
+                ExtensionKind.FIELD_INIT -> DecompilerTreeFieldInitializer(this, expression.buildElement(data))
                 else -> DecompilerTreeExpressionBody(this, expression.buildExpression(data))
             }
         }
 
-        override fun visitBlockBody(body: IrBlockBody, data: ExtensionKind?): DecompilerTreeBlockBody = with(body) {
-            DecompilerTreeBlockBody(this, statements.buildElements(data))
+        override fun visitBlockBody(body: IrBlockBody, data: ExtensionKind?): AbstractDecompilerTreeBlockBody = with(body) {
+            when (data) {
+                ExtensionKind.CUSTOM_GETTER -> DecompilerTreeGetterBody(this, statements.buildElements(data))
+                ExtensionKind.CUSTOM_SETTER -> DecompilerTreeSetterBody(this, statements.buildElements(data))
+                else -> DecompilerTreeBlockBody(this, statements.buildElements(data))
+            }
+
         }
 
         override fun visitSyntheticBody(body: IrSyntheticBody, data: ExtensionKind?): DecompilerTreeSyntheticBody = with(body) {
@@ -407,9 +416,11 @@ class KotlinIrDecompiler private constructor() {
         override fun visitContinue(jump: IrContinue, data: ExtensionKind?): DecompilerTreeContinue =
             DecompilerTreeContinue(jump, jump.type.buildType())
 
-        override fun visitReturn(expression: IrReturn, data: ExtensionKind?): DecompilerTreeReturn {
-            val value = expression.value.buildExpression(data)
-            return DecompilerTreeReturn(expression, value, expression.type.buildType())
+        override fun visitReturn(expression: IrReturn, data: ExtensionKind?): AbstractDecompilerTreeReturn = with(expression) {
+            when (data) {
+                ExtensionKind.CUSTOM_GETTER -> DecompilerTreeGetterReturn(this, value.buildExpression(data), type.buildType())
+                else -> DecompilerTreeReturn(this, value.buildExpression(data), type.buildType())
+            }
         }
 
         override fun visitThrow(expression: IrThrow, data: ExtensionKind?): DecompilerTreeThrow {

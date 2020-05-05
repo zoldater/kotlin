@@ -15,10 +15,8 @@ import org.jetbrains.kotlin.ir.expressions.IrSetField
 interface DecompilerTreeFieldAccess : DecompilerTreeExpression {
     override val element: IrFieldAccessExpression
     val receiver: DecompilerTreeExpression?
-
-    //TODO investigate `element.symbol.owner.name.asString()` validity
     val lhs: String
-        get() = receiver?.decompile()?.let { "$it.${element.symbol.owner.name.asString()}" } ?: element.symbol.owner.name.asString()
+        get() = "field"
 }
 
 class DecompilerTreeGetField(

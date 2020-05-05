@@ -7,14 +7,14 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.printer.withBraces
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBlockBody
+import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeBlockBody
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrAnonymousInitializer
 
 class DecompilerTreeAnonymousInitializer(
     override val element: IrAnonymousInitializer,
-    private val body: DecompilerTreeBlockBody,
+    private val body: AbstractDecompilerTreeBlockBody,
     override val annotations: List<DecompilerTreeConstructorCall> = emptyList(),
     override val annotationTarget: String? = null
 ) : DecompilerTreeDeclaration, SourceProducible {

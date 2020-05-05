@@ -12,13 +12,28 @@ import org.jetbrains.kotlin.ir.expressions.IrReturn
 
 
 //TODO extend return with returnable block
+interface AbstractDecompilerTreeReturn : DecompilerTreeExpression, SourceProducible {
+    override val element: IrReturn
+    val value: DecompilerTreeExpression
+    override val type: DecompilerTreeType
+}
+
 class DecompilerTreeReturn(
     override val element: IrReturn,
-    val value: DecompilerTreeExpression,
+    override val value: DecompilerTreeExpression,
     override val type: DecompilerTreeType
-) : DecompilerTreeExpression,
-    SourceProducible {
+) : AbstractDecompilerTreeReturn {
     override fun produceSources(printer: SmartPrinter) {
         printer.println("return ${value.decompile()}")
+    }
+}
+
+class DecompilerTreeGetterReturn(
+    override val element: IrReturn,
+    override val value: DecompilerTreeExpression,
+    override val type: DecompilerTreeType
+) : AbstractDecompilerTreeReturn {
+    override fun produceSources(printer: SmartPrinter) {
+        printer.println(value.decompile())
     }
 }

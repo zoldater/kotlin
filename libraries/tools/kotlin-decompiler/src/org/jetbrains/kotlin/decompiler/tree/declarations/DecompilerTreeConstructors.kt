@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.printer.withBraces
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBlockBody
+import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeBlockBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatement
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
@@ -42,11 +42,11 @@ abstract class AbstractDecompilerTreeConstructor(
     abstract val delegatingCallDecompiledOrNull: String?
 
     private val bodyStatementsNonTrivial: List<DecompilerTreeStatement>?
-        get() = (body as? DecompilerTreeBlockBody)?.statements
+        get() = (body as? AbstractDecompilerTreeBlockBody)?.statements
             ?.filterNot { it is DecompilerTreeDelegatingConstructorCall || it is DecompilerTreeInstanceInitializerCall }
 
     val delegatingConstructorCall: DecompilerTreeDelegatingConstructorCall?
-        get() = (body as? DecompilerTreeBlockBody)?.statements
+        get() = (body as? AbstractDecompilerTreeBlockBody)?.statements
             ?.filterIsInstance(DecompilerTreeDelegatingConstructorCall::class.java)?.firstOrNull()
 
     override fun produceSources(printer: SmartPrinter) {
