@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.name.FqName
@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.name.FqName
 class DecompilerTreeFile(
     override val element: IrFile,
     override val declarations: List<DecompilerTreeDeclaration>,
-    override val annotations: List<DecompilerTreeConstructorCall>
+    override val annotations: List<DecompilerTreeAnnotationConstructorCall>
 ) : DecompilerTreeElement, DecompilerTreeDeclarationContainer, DecompilerTreeAnnotationsContainer, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {

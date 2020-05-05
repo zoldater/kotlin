@@ -5,21 +5,16 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
-import org.jetbrains.kotlin.backend.common.onlyIf
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
-import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.*
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeDelegatingConstructorCall
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeInstanceInitializerCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
-import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.types.isAny
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
@@ -66,12 +61,12 @@ interface DecompilerTreeFunction : DecompilerTreeDeclaration, DecompilerTreeType
 
 interface AbstractDecompilerTreeSimpleFunction : DecompilerTreeFunction {
     override val element: IrSimpleFunction
-    override val annotations: List<DecompilerTreeConstructorCall>
+    override val annotations: List<DecompilerTreeAnnotationConstructorCall>
 }
 
 class DecompilerTreeSimpleFunction(
     override val element: IrSimpleFunction,
-    override val annotations: List<DecompilerTreeConstructorCall>,
+    override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     override val returnType: DecompilerTreeType,
     override val dispatchReceiverParameter: DecompilerTreeValueParameter?,
     override val extensionReceiverParameter: DecompilerTreeValueParameter?,
@@ -85,7 +80,7 @@ class DecompilerTreeSimpleFunction(
 
     //TODO implement workaround for interface open fun with default ABSTRACT
     override val modalityIfExists: String?
-        get() = element.modality.takeIf { it != defaultModality }?.name?.toLowerCase()
+        get() = element.modality.takeIf { it != defaultModality && !isOverridden }?.name?.toLowerCase()
 
     override val isOverridden: Boolean = element.overriddenSymbols.isNotEmpty()
             && element.overriddenSymbols.map { it.owner.name() }.contains(element.name())
@@ -102,13 +97,11 @@ class DecompilerTreeSimpleFunction(
             listOfNotNull(
                 listOfNotNull(functionFlags.ifNotEmpty { joinToString(" ") }, "fun", nameIfExists)
                     .ifNotEmpty { joinToString(" ") },
-                typeParametersForPrint, valueParametersForPrint
+                typeParametersForPrint, valueParametersForPrint, returnType.takeIf { !it.irType.isUnit() }?.let { ": ${it.decompile()}" }
             ).joinToString("").also { print(it) }
 
             body?.also {
-                withBraces {
-                    it.produceSources(this)
-                }
+                it.produceSources(this)
             } ?: println()
         }
     }
@@ -116,7 +109,7 @@ class DecompilerTreeSimpleFunction(
 
 class DecompilerTreeCustomGetter(
     override val element: IrSimpleFunction,
-    override val annotations: List<DecompilerTreeConstructorCall>,
+    override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     override val returnType: DecompilerTreeType,
     override val dispatchReceiverParameter: DecompilerTreeValueParameter?,
     override val extensionReceiverParameter: DecompilerTreeValueParameter?,
@@ -137,7 +130,7 @@ class DecompilerTreeCustomGetter(
 
 class DecompilerTreeCustomSetter(
     override val element: IrSimpleFunction,
-    override val annotations: List<DecompilerTreeConstructorCall>,
+    override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     override val returnType: DecompilerTreeType,
     override val dispatchReceiverParameter: DecompilerTreeValueParameter?,
     override val extensionReceiverParameter: DecompilerTreeValueParameter?,
@@ -149,9 +142,11 @@ class DecompilerTreeCustomSetter(
     override val modalityIfExists: String? = null
 
     override fun produceSources(printer: SmartPrinter) {
-        with(printer) {
-            print("set(value)")
-            body?.produceSources(this)
+        body?.takeIf { !it.isTrivial }?.also {
+            with(printer) {
+                print("set(value)")
+                it.produceSources(this)
+            }
         }
     }
 }

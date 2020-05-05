@@ -7,10 +7,7 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.printer.withBraces
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatement
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatementsContainer
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeVarargElement
+import org.jetbrains.kotlin.decompiler.tree.*
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -20,7 +17,7 @@ interface DecompilerTreeExpression : DecompilerTreeStatement, DecompilerTreeVara
     val type: DecompilerTreeType
 }
 
-interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression {
+interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression, DecompilerTreeTypeArgumentsContainer {
     val valueArguments: List<DecompilerTreeExpression>
     val dispatchReceiver: DecompilerTreeExpression?
     val extensionReceiver: DecompilerTreeExpression?

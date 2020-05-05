@@ -7,15 +7,13 @@ package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.printer.withBraces
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeEnumConstructorCall
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeExpression
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeGetField
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeGetterReturn
+import org.jetbrains.kotlin.decompiler.tree.expressions.*
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.IrSyntheticBody
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 interface DecompilerTreeBody : DecompilerTreeElement, SourceProducible {
     override val element: IrBody
@@ -26,6 +24,13 @@ abstract class AbstractDecompilerTreeBlockBody(
     override val statements: List<DecompilerTreeStatement>
 ) :
     DecompilerTreeBody, DecompilerTreeStatementsContainer {
+    protected fun decompileStatementsByLines(printer: SmartPrinter) {
+        with(printer) {
+            statements.forEach {
+                it.decompile().lines().filterNot { line -> line.isEmpty() }.forEach { line -> println(line) }
+            }
+        }
+    }
 }
 
 class DecompilerTreeBlockBody(
@@ -34,7 +39,15 @@ class DecompilerTreeBlockBody(
 ) :
     AbstractDecompilerTreeBlockBody(element, statements) {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        with(printer) {
+            when (statements.size) {
+                0 -> println(" {}")
+//                1 -> println(" = ${statements.first().decompile()}")
+                else -> withBraces {
+                    decompileStatementsByLines(this@with)
+                }
+            }
+        }
     }
 }
 
@@ -44,17 +57,15 @@ class DecompilerTreeGetterBody(
 ) :
     AbstractDecompilerTreeBlockBody(element, statements) {
     val isTrivial: Boolean
-        get() = (statements.getOrNull(0) as? DecompilerTreeGetterReturn)?.value as? DecompilerTreeGetField != null
+        get() = (statements.getOrNull(0) as? DecompilerTreeGetterReturn)?.value as? AbstractDecompilerTreeGetField != null
 
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
-            if (statements.size == 1) {
-                print(" = ${statements.first().decompile()}")
-            } else {
-                withBraces {
-                    statements.forEach {
-                        it.decompile().lines().forEach { line -> println(line) }
-                    }
+            when (statements.size) {
+                0 -> println(" {}")
+                1 -> println(" = ${statements.first().decompile()}")
+                else -> withBraces {
+                    decompileStatementsByLines(this@with)
                 }
             }
         }
@@ -66,28 +77,45 @@ class DecompilerTreeSetterBody(
     statements: List<DecompilerTreeStatement>
 ) :
     AbstractDecompilerTreeBlockBody(element, statements) {
+
+    val isTrivial: Boolean
+        get() = (statements.getOrNull(0) as? DecompilerTreeSetFieldFromGetterSetter)?.value as? DecompilerTreeGetValue != null
+
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
             withBraces {
-                statements.forEach {
-                    it.decompile().lines().forEach { line -> println(line) }
-                }
+                decompileStatementsByLines(this@with)
             }
         }
     }
 }
 
+
 abstract class AbstractDecompilerTreeExpressionBody(
     override val element: IrExpressionBody,
 ) : DecompilerTreeBody {
     abstract val expression: DecompilerTreeExpression
+    protected fun printExpressionByLines(printer: SmartPrinter) {
+        with(printer) {
+            expression.decompile()
+                .lines()
+                .filterNot { line -> line.isEmpty() }
+                .forEach { line -> println(line) }
+        }
+    }
 }
 
 class DecompilerTreeExpressionBody(
     override val element: IrExpressionBody,
     override val expression: DecompilerTreeExpression
 ) : AbstractDecompilerTreeExpressionBody(element) {
-    override fun produceSources(printer: SmartPrinter) = Unit
+    override fun produceSources(printer: SmartPrinter) {
+        with(printer) {
+            withBraces {
+                printExpressionByLines(printer)
+            }
+        }
+    }
 }
 
 class DecompilerTreeEnumEntryInitializer(
@@ -109,5 +137,7 @@ class DecompilerTreeFieldInitializer(
 }
 
 class DecompilerTreeSyntheticBody(override val element: IrSyntheticBody) : DecompilerTreeBody {
-    override fun produceSources(printer: SmartPrinter) = Unit
+    override fun produceSources(printer: SmartPrinter) {
+        TODO("Not yet implemented")
+    }
 }

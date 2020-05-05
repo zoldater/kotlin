@@ -12,16 +12,48 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrEnumConstructorCall
 
-class DecompilerTreeConstructorCall(
+interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpression, SourceProducible {
+
+    override val element: IrConstructorCall
+    override val dispatchReceiver: DecompilerTreeExpression?
+    override val extensionReceiver: DecompilerTreeExpression?
+    override val valueArguments: List<DecompilerTreeExpression>
+    override val type: DecompilerTreeType
+    override val typeArguments: List<DecompilerTreeType>
+
+    val valueArgumentsDecompiled: String
+
+    override fun produceSources(printer: SmartPrinter) {
+        listOfNotNull(
+            type.decompile(),
+            typeArgumentsForPrint,
+            valueArgumentsDecompiled
+        ).joinToString("").also {
+            printer.print(it)
+        }
+    }
+}
+
+class DecompilerTreeCommonConstructorCall(
     override val element: IrConstructorCall,
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
-    override val type: DecompilerTreeType
-) : DecompilerTreeMemberAccessExpression, SourceProducible {
-    override fun produceSources(printer: SmartPrinter) {
-        "${type.decompile()}${valueArgumentsInsideParenthesesOrNull ?: "()"}".also { printer.print(it) }
-    }
+    override val type: DecompilerTreeType,
+    override val typeArguments: List<DecompilerTreeType>
+) : AbstractDecompilerTreeConstructorCall {
+    override val valueArgumentsDecompiled: String = valueArgumentsInsideParenthesesOrNull ?: "()"
+}
+
+class DecompilerTreeAnnotationConstructorCall(
+    override val element: IrConstructorCall,
+    override val dispatchReceiver: DecompilerTreeExpression?,
+    override val extensionReceiver: DecompilerTreeExpression?,
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType,
+    override val typeArguments: List<DecompilerTreeType>
+) : AbstractDecompilerTreeConstructorCall {
+    override val valueArgumentsDecompiled: String = valueArgumentsInsideParenthesesOrNull ?: ""
 }
 
 class DecompilerTreeDelegatingConstructorCall(
@@ -29,11 +61,15 @@ class DecompilerTreeDelegatingConstructorCall(
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
-    override val type: DecompilerTreeType
-) :
-    DecompilerTreeMemberAccessExpression, SourceProducible {
+    override val type: DecompilerTreeType, override val typeArguments: List<DecompilerTreeType>
+) : DecompilerTreeMemberAccessExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-        "${type.decompile()}${valueArgumentsInsideParenthesesOrNull ?: "()"}".also { printer.print(it) }
+        listOfNotNull(
+            typeArgumentsForPrint,
+            valueArgumentsInsideParenthesesOrNull ?: "()"
+        ).joinToString("").also {
+            printer.print(it)
+        }
     }
 }
 
@@ -44,7 +80,11 @@ class DecompilerTreeEnumConstructorCall(
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression, SourceProducible {
+
+    override val typeArguments: List<DecompilerTreeType> = emptyList()
+
     override fun produceSources(printer: SmartPrinter) {
         valueArgumentsInsideParenthesesOrNull?.also { printer.print(it) }
     }
+
 }

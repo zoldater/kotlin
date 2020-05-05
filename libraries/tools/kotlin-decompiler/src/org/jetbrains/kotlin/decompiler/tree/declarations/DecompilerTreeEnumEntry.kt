@@ -6,13 +6,14 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeExpressionBody
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 
 class DecompilerTreeEnumEntry(
     override val element: IrEnumEntry,
-    override val annotations: List<DecompilerTreeConstructorCall>,
+    override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     private val expressionBody: AbstractDecompilerTreeExpressionBody?
 ) :
     DecompilerTreeDeclaration {

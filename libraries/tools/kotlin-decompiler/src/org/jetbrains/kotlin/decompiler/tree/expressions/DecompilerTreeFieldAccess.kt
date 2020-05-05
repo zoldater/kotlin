@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrFieldAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetField
@@ -15,28 +16,64 @@ import org.jetbrains.kotlin.ir.expressions.IrSetField
 interface DecompilerTreeFieldAccess : DecompilerTreeExpression {
     override val element: IrFieldAccessExpression
     val receiver: DecompilerTreeExpression?
-    val lhs: String
-        get() = "field"
 }
 
-class DecompilerTreeGetField(
-    override val element: IrGetField,
-    override val receiver: DecompilerTreeExpression?,
+interface AbstractDecompilerTreeGetField : DecompilerTreeFieldAccess {
+    override val element: IrGetField
+    override val receiver: DecompilerTreeExpression?
     override val type: DecompilerTreeType
-) : DecompilerTreeFieldAccess {
+    val lhs: String
+
     override fun produceSources(printer: SmartPrinter) {
         printer.print(lhs)
     }
 }
 
-class DecompilerTreeSetField(
-    override val element: IrSetField,
+class DecompilerTreeGetFieldCommon(
+    override val element: IrGetField,
     override val receiver: DecompilerTreeExpression?,
-    private val value: DecompilerTreeExpression,
     override val type: DecompilerTreeType
-) : DecompilerTreeFieldAccess {
+) : AbstractDecompilerTreeGetField {
+    override val lhs: String = element.symbol.owner.name()
+}
+
+class DecompilerTreeGetFieldFromGetterSetter(
+    override val element: IrGetField,
+    override val receiver: DecompilerTreeExpression?,
+    override val type: DecompilerTreeType
+) : AbstractDecompilerTreeGetField {
+    override val lhs: String = "field"
+}
+
+interface AbstractDecompilerTreeSetField : DecompilerTreeFieldAccess {
+    override val element: IrSetField
+    override val receiver: DecompilerTreeExpression?
+    val value: DecompilerTreeExpression
+    override val type: DecompilerTreeType
+
+    val lhs: String
+
     override fun produceSources(printer: SmartPrinter) {
         printer.print("$lhs = ${value.decompile()}")
     }
 }
+
+class DecompilerTreeSetFieldCommon(
+    override val element: IrSetField,
+    override val receiver: DecompilerTreeExpression?,
+    override val value: DecompilerTreeExpression,
+    override val type: DecompilerTreeType
+) : AbstractDecompilerTreeSetField {
+    override val lhs: String = element.symbol.owner.name()
+}
+
+class DecompilerTreeSetFieldFromGetterSetter(
+    override val element: IrSetField,
+    override val receiver: DecompilerTreeExpression?,
+    override val value: DecompilerTreeExpression,
+    override val type: DecompilerTreeType
+) : AbstractDecompilerTreeSetField {
+    override val lhs: String = "field"
+}
+
 

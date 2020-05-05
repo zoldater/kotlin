@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
-import org.jetbrains.kotlin.decompiler.decompile
 import org.jetbrains.kotlin.decompiler.printer.indented
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 //TODO Maybe we need different nodes for abstract val property and property without backingField
 class DecompilerTreeProperty(
     override val element: IrProperty,
-    override val annotations: List<DecompilerTreeConstructorCall>,
+    override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     private val backingField: DecompilerTreeField?,
     private val getter: DecompilerTreeCustomGetter?,
     private val setter: DecompilerTreeCustomSetter?,

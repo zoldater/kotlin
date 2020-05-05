@@ -10,7 +10,8 @@ import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeBlockBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatement
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeDelegatingConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeInstanceInitializerCall
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -24,7 +25,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 abstract class AbstractDecompilerTreeConstructor(
     override val element: IrConstructor,
-    override val annotations: List<DecompilerTreeConstructorCall>,
+    override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     override val returnType: DecompilerTreeType,
     override var dispatchReceiverParameter: DecompilerTreeValueParameter?,
     override var extensionReceiverParameter: DecompilerTreeValueParameter?,
@@ -35,7 +36,7 @@ abstract class AbstractDecompilerTreeConstructor(
 ) : DecompilerTreeFunction {
     override val modalityIfExists: String? = null
     val isTrivial: Boolean
-        get() = annotationSourcesList.isEmpty() && functionFlags.isEmpty()
+        get() = annotationSourcesList.isEmpty() && functionFlags.isEmpty() && element.visibility == defaultVisibility
 
     abstract val keyword: String?
     abstract val valueParametersOrNull: String?
@@ -67,16 +68,18 @@ abstract class AbstractDecompilerTreeConstructor(
         // generated sources will be incorrect with inheritance/delegating records
         bodyStatementsNonTrivial?.ifNotEmpty {
             printer.withBraces {
-                forEach { it.produceSources(printer) }
+                joinToString("\n") { it.decompile() }.lines().forEach {
+                    printer.println(it)
+                }
             }
-        }
+        } ?: printer.println()
 
     }
 }
 
 class DecompilerTreePrimaryConstructor(
     element: IrConstructor,
-    annotations: List<DecompilerTreeConstructorCall>,
+    annotations: List<DecompilerTreeAnnotationConstructorCall>,
     returnType: DecompilerTreeType,
     dispatchReceiverParameter: DecompilerTreeValueParameter?,
     extensionReceiverParameter: DecompilerTreeValueParameter?,
@@ -99,7 +102,7 @@ class DecompilerTreePrimaryConstructor(
 
 class DecompilerTreeSecondaryConstructor(
     element: IrConstructor,
-    annotations: List<DecompilerTreeConstructorCall>,
+    annotations: List<DecompilerTreeAnnotationConstructorCall>,
     returnType: DecompilerTreeType,
     dispatchReceiverParameter: DecompilerTreeValueParameter?,
     extensionReceiverParameter: DecompilerTreeValueParameter?,

@@ -1,6 +1,6 @@
 interface TestInterface {
-    fun foo()
-    fun bar(x: Int)
+    fun foo(): Int
+    fun bar(x: Int): Int
 }
 
 enum class Clazz {
@@ -15,7 +15,12 @@ enum class Clzz(r: Int, g: Int, b: Int) {
 
 abstract class AClass
 
-abstract class TestAClass : TestInterface
+class TestAClass : TestInterface {
+    override fun foo(): Int = 42
+    override fun bar(x: Int): Int {
+        return x + foo()
+    }
+}
 
 val withInit: Int = 5
 
