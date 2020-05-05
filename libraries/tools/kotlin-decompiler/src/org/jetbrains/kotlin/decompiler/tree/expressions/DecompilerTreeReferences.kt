@@ -29,7 +29,8 @@ class DecompilerTreeFunctionReference(
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
-    override val type: DecompilerTreeType
+    override val type: DecompilerTreeType,
+    override val typeArguments: List<DecompilerTreeType>
 ) : DecompilerTreeMemberAccessExpression {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")
@@ -41,7 +42,8 @@ class DecompilerTreePropertyReference(
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
-    override val type: DecompilerTreeType
+    override val type: DecompilerTreeType,
+    override val typeArguments: List<DecompilerTreeType>
 ) : DecompilerTreeMemberAccessExpression {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")
@@ -53,7 +55,8 @@ class DecompilerTreeLocalDelegatedPropertyReference(
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
-    override val type: DecompilerTreeType
+    override val type: DecompilerTreeType,
+    override val typeArguments: List<DecompilerTreeType>
 ) : DecompilerTreeMemberAccessExpression {
     override fun produceSources(printer: SmartPrinter) {
         TODO("Not yet implemented")

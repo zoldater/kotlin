@@ -7,17 +7,17 @@ package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeTypeParameter
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeConstructorCall
-import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
+import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 
 interface DecompilerTreeAnnotationsContainer {
-    val annotations: List<DecompilerTreeConstructorCall>
+    val annotations: List<DecompilerTreeAnnotationConstructorCall>
     val annotationTarget: String?
     val annotationSourcesList: List<String>
         get() = annotations
-            .map { StringBuilder().also { sb -> it.produceSources(SmartPrinter(sb)) } }
-            .map { sb -> annotationTarget?.let { "@$it:$sb" } ?: sb.toString() }
+            .map { it.decompile() }
+            .map { sb -> annotationTarget?.let { "@$it:$sb" } ?: sb }
 }
 
 interface DecompilerTreeDeclarationContainer {
@@ -32,5 +32,12 @@ interface DecompilerTreeTypeParametersContainer {
     val typeParameters: List<DecompilerTreeTypeParameter>
 
     val typeParametersForPrint: String?
-        get() = typeParameters.joinToString(", ", "<", ">") { it.decompile() }.takeIf { typeParameters.isNotEmpty() }
+        get() = typeParameters.ifNotEmpty { joinToString(", ", "<", ">") { it.decompile() } }
+}
+
+interface DecompilerTreeTypeArgumentsContainer {
+    val typeArguments: List<DecompilerTreeType>
+
+    val typeArgumentsForPrint: String?
+        get() = typeArguments.ifNotEmpty { joinToString(", ", "<", ">") { it.decompile() } }
 }
