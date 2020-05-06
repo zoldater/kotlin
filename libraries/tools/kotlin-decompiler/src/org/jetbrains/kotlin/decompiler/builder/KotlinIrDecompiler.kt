@@ -230,9 +230,25 @@ class KotlinIrDecompiler private constructor() {
             DecompilerTreeSpread(this, decompilerIrExpression)
         }
 
-        override fun visitContainerExpression(expression: IrContainerExpression, data: ExtensionKind?): DecompilerTreeContainerExpression =
+        override fun visitContainerExpression(
+            expression: IrContainerExpression,
+            data: ExtensionKind?
+        ): AbstractDecompilerTreeContainerExpression =
             with(expression) {
-                return DecompilerTreeContainerExpression(this, statements.buildElements(data), type.buildType())
+                when (origin) {
+                    IrStatementOrigin.WHEN -> DecompilerTreeWhenContainer(this, statements.buildElements(data), type.buildType())
+                    IrStatementOrigin.FOR_LOOP_INNER_WHILE -> DecompilerTreeForLoopInnerContainer(
+                        this,
+                        statements.buildElements(data),
+                        type.buildType()
+                    )
+                    IrStatementOrigin.FOR_LOOP -> DecompilerTreeForLoopOuterContainer(
+                        this,
+                        statements.buildElements(data),
+                        type.buildType()
+                    )
+                    else -> DecompilerTreeContainerExpression(this, statements.buildElements(data), type.buildType())
+                }
             }
 
         override fun visitStringConcatenation(expression: IrStringConcatenation, data: ExtensionKind?): DecompilerTreeStringConcatenation {
@@ -260,7 +276,11 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitGetField(expression: IrGetField, data: ExtensionKind?): AbstractDecompilerTreeGetField = with(expression) {
             when (data) {
-                ExtensionKind.CUSTOM_GETTER -> DecompilerTreeGetFieldFromGetterSetter(this, receiver?.buildExpression(data), type.buildType())
+                ExtensionKind.CUSTOM_GETTER -> DecompilerTreeGetFieldFromGetterSetter(
+                    this,
+                    receiver?.buildExpression(data),
+                    type.buildType()
+                )
                 else -> DecompilerTreeGetFieldCommon(this, receiver?.buildExpression(data), type.buildType())
             }
         }
@@ -320,7 +340,8 @@ class KotlinIrDecompiler private constructor() {
                 buildExtensionReceiver(data),
                 buildValueArguments(data),
                 type.buildType(),
-                buildTypeArguments()
+                buildTypeArguments(),
+                symbol.owner.returnType.buildType()
             )
         }
 
@@ -542,10 +563,12 @@ class KotlinIrDecompiler private constructor() {
     companion object {
         private val INSTANCE: KotlinIrDecompiler = KotlinIrDecompiler()
 
-        fun decompileIrToString(irModuleFragment: IrModuleFragment): String = INSTANCE.decompileIrModule(irModuleFragment).let {
-            return FileSourcesWriter(it.decompilerIrFiles).filesToContentMap
+        fun decompileIrToString(irModuleFragment: IrModuleFragment): String {
+            val decompilerTree = INSTANCE.decompileIrModule(irModuleFragment)
+            return FileSourcesWriter(decompilerTree.decompilerIrFiles).filesToContentMap
                 .map { (k, v) -> "// FILE: ${k.element.path}\n$v" }
                 .joinToString("\n")
+
         }
 
         fun decompileToFileHierarchy(irModuleFragment: IrModuleFragment, path: String): File {

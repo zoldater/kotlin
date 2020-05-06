@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrEnumConstructorCall
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpression, SourceProducible {
 
@@ -21,11 +22,13 @@ interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpr
     override val type: DecompilerTreeType
     override val typeArguments: List<DecompilerTreeType>
 
-    val valueArgumentsDecompiled: String
+    val valueArgumentsDecompiled: String?
 
     override fun produceSources(printer: SmartPrinter) {
         listOfNotNull(
-            type.decompile(),
+            dispatchReceiver?.decompile()?.let { "$it.${type.decompile()}" }
+                ?: extensionReceiver?.decompile()?.let { "$it.${type.decompile()}" }
+                ?: type.decompile(),
             typeArgumentsForPrint,
             valueArgumentsDecompiled
         ).joinToString("").also {
@@ -53,7 +56,7 @@ class DecompilerTreeAnnotationConstructorCall(
     override val type: DecompilerTreeType,
     override val typeArguments: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeConstructorCall {
-    override val valueArgumentsDecompiled: String = valueArgumentsInsideParenthesesOrNull ?: ""
+    override val valueArgumentsDecompiled: String? = valueArgumentsInsideParenthesesOrNull
 }
 
 class DecompilerTreeDelegatingConstructorCall(
@@ -61,14 +64,19 @@ class DecompilerTreeDelegatingConstructorCall(
     override val dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
-    override val type: DecompilerTreeType, override val typeArguments: List<DecompilerTreeType>
+    override val type: DecompilerTreeType,
+    override val typeArguments: List<DecompilerTreeType>,
+    internal var returnType: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression, SourceProducible {
+
     override fun produceSources(printer: SmartPrinter) {
         listOfNotNull(
             typeArgumentsForPrint,
             valueArgumentsInsideParenthesesOrNull ?: "()"
-        ).joinToString("").also {
-            printer.print(it)
+        ).ifNotEmpty {
+            joinToString("").also {
+                printer.print(it)
+            }
         }
     }
 }

@@ -5,12 +5,18 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
+import org.jetbrains.kotlin.decompiler.decompile
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeBranch
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeVariable
+import org.jetbrains.kotlin.decompiler.util.OPERATOR_TOKENS
+import org.jetbrains.kotlin.decompiler.util.concatenateNonEmptyWithSpace
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrWhen
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 abstract class AbstractDecompilerTreeWhen(
     override val element: IrWhen,
@@ -22,11 +28,16 @@ abstract class AbstractDecompilerTreeWhen(
 class DecompilerTreeWhen(
     element: IrWhen,
     branches: List<AbstractDecompilerTreeBranch>,
-    type: DecompilerTreeType
+    type: DecompilerTreeType,
 ) : AbstractDecompilerTreeWhen(element, branches, type) {
+    val valueParameters: MutableList<DecompilerTreeVariable> = mutableListOf()
+
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
-            print("when")
+            listOfNotNull("when",
+                          valueParameters.ifNotEmpty { joinToString("; ", "(", ")") { it.decompile().trimEnd() } }
+            ).joinToString("").also { print(it) }
+
             withBraces {
                 branches.forEach { it.produceSources(this) }
             }
@@ -35,10 +46,32 @@ class DecompilerTreeWhen(
 }
 
 class DecompilerTreeIfThenElse(
-    element: IrWhen, branches: List<AbstractDecompilerTreeBranch>,
+    element: IrWhen,
+    branches: List<AbstractDecompilerTreeBranch>,
     type: DecompilerTreeType
 ) : AbstractDecompilerTreeWhen(element, branches, type) {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        when (element.origin) {
+            IrStatementOrigin.OROR -> printer.print(
+                listOfNotNull(branches[0].condition.decompile(), "||", branches[1].result.decompile())
+                    .joinToString(" ")
+            )
+            IrStatementOrigin.ANDAND -> printer.print(
+                listOfNotNull(branches[0].condition.decompile(), "&&", branches[0].result.decompile())
+                    .joinToString(" ")
+            )
+            else -> {
+                branches[0].condition.decompile().let { "if ($it)" }.also { printer.print(it) }
+                printer.withBraces {
+                    branches[0].result.decompileByLines(printer)
+                }
+                branches.getOrNull(1)?.result?.also {
+                    printer.print("else")
+                    printer.withBraces {
+                        it.decompileByLines(printer)
+                    }
+                }
+            }
+        }
     }
 }

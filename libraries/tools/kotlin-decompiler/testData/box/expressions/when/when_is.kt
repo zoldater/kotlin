@@ -2,9 +2,9 @@ fun bar() = 666
 
 fun box(): String {
     val f = bar()
-    when (f) {
-        !is Int -> return "FAIL"
-        is Int -> return "OK"
+    when {
+        (f >= 800 && f <= 1000) -> return "FAIL"
+        f is Int -> return "OK"
         else -> return "FAIL"
     }
 }

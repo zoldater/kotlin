@@ -21,7 +21,11 @@ class DecompilerTreeGetEnumValue(
     override fun produceSources(printer: SmartPrinter) {
         //TODO replace fqName with short name
         //TODO try to find out NPE cases
-        parentDeclaration.nameIfExists?.also { printer.print(it) }
+        parentDeclaration.nameIfExists?.also { ownName ->
+            parentDeclaration.enumClasName?.also {
+                printer.print("$it.$ownName")
+            }
+        }
     }
 }
 

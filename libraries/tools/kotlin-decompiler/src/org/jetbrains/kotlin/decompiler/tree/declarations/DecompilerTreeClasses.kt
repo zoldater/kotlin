@@ -52,7 +52,9 @@ abstract class AbstractDecompilerTreeClass(
         get() = declarations.filterIsInstance(DecompilerTreeProperty::class.java).filterNot { it.element.isFakeOverride }
 
     protected open val methods: List<DecompilerTreeSimpleFunction>
-        get() = declarations.filterIsInstance(DecompilerTreeSimpleFunction::class.java).filterNot { it.element.isFakeOverride }
+        get() = declarations.filterIsInstance(DecompilerTreeSimpleFunction::class.java).filterNot {
+            it.element.isFakeOverride || it.element.origin == IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER
+        }
 
     protected open val otherPrintableDeclarations: List<DecompilerTreeDeclaration>
         get() = declarations.asSequence()
@@ -81,9 +83,8 @@ abstract class AbstractDecompilerTreeClass(
             ).joinToString(separator = " ")
         }
 
-    protected open val nameWithPrimaryCtorDecompiled: String
-        get() = listOfNotNull(computeModifiersAndName, primaryConstructor?.takeIf { !it.isTrivial }?.decompile())
-            .joinToString(" ")
+    protected open val nameWithPrimaryCtorDecompiled: String?
+        get() = listOfNotNull(computeModifiersAndName, primaryConstructor?.decompile()).ifNotEmpty { joinToString("") }
 
     private val nonTrivialSuperTypesDecompiledOrNull: String?
         get() = nonTrivialSuperInterfaces.ifNotEmpty { joinToString { it.decompile() } }
@@ -91,8 +92,10 @@ abstract class AbstractDecompilerTreeClass(
     protected val fullHeader: String
         get() = listOfNotNull(
             nameWithPrimaryCtorDecompiled,
-            nonTrivialSuperTypesDecompiledOrNull?.let { if (primaryConstructor?.delegatingCallDecompiledOrNull == null) ": $it" else ", $it" }
-        ).joinToString(" ")
+            nonTrivialSuperTypesDecompiledOrNull?.let {
+                primaryConstructor?.delegatingCallDecompiledOrNull?.let { _ -> ", $it" } ?: ": $it"
+            }
+        ).joinToString(" ").trimEnd()
 
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
@@ -103,8 +106,7 @@ abstract class AbstractDecompilerTreeClass(
                         it.produceSources(this@with)
                     }
                 }
-            }
-            println()
+            } ?: println()
         }
     }
 }
@@ -190,21 +192,22 @@ class DecompilerTreeEnumClass(
         with(printer) {
             print(computeModifiersAndName)
             primaryConstructor?.valueParameters?.ifNotEmpty { print(primaryConstructor!!.valueParametersForPrint) }
+            enumEntries.forEach { it.enumClasName = nameIfExists }
 
             (printableDeclarations + enumEntries).ifNotEmpty {
                 this@with.withBraces {
                     val decompiledEntries = enumEntries.map { it.decompile() }
 
                     primaryConstructor?.valueParameters?.ifNotEmpty {
-                        decompiledEntries.joinToString(",\n").lines().forEach { println(it) }
-                    } ?: decompiledEntries.joinToString(", ").also { println(it) }
+                        decompiledEntries.joinToString(",\n", postfix = ";").lines().forEach { println(it) }
+                    } ?: decompiledEntries.joinToString(", ", postfix = ";").also { println(it) }
 
                     printableDeclarations.forEach {
                         it.produceSources(this@with)
                     }
                 }
-            }
-            println()
+            } ?: println()
+
         }
     }
 }
@@ -221,13 +224,14 @@ class DecompilerTreeObject(
     override val keyword: String = "object"
 
     //    override val nameWithPrimaryCtorDecompiled: String = "$computeModifiersAndName ${element.name()}"
+
     override val printableDeclarations: List<DecompilerTreeDeclaration>
         get() = listOf(properties, initSections, methods, otherPrintableDeclarations).flatten()
+
     override val nameIfExists: String? = element.name().takeIf { it != "<no name provided>" }
-    override fun produceSources(printer: SmartPrinter) {
-        primaryConstructor?.defaultVisibility = Visibilities.PRIVATE
-        super.produceSources(printer)
-    }
+
+    override val nameWithPrimaryCtorDecompiled: String?
+        get() = computeModifiersAndName
 }
 
 internal fun buildClass(

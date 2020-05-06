@@ -99,6 +99,7 @@ class DecompilerTreeSimpleFunction(
                     .ifNotEmpty { joinToString(" ") },
                 typeParametersForPrint, valueParametersForPrint, returnType.takeIf { !it.irType.isUnit() }?.let { ": ${it.decompile()}" }
             ).joinToString("").also { print(it) }
+            element.origin
 
             body?.also {
                 it.produceSources(this)
