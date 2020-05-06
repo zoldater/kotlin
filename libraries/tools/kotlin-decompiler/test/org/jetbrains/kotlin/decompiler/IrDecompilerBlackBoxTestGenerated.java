@@ -372,6 +372,11 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             runTest("libraries/tools/kotlin-decompiler/testData/box/classes/enum_test.kt");
         }
 
+        @TestMetadata("MyClass.kt")
+        public void testMyClass() throws Exception {
+            runTest("libraries/tools/kotlin-decompiler/testData/box/classes/MyClass.kt");
+        }
+
         @TestMetadata("libraries/tools/kotlin-decompiler/testData/box/classes/ctor")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)

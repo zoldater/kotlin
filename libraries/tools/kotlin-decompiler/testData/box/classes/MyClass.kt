@@ -36,3 +36,5 @@ var withSet: Int = 5
     set(value) {
         field = value + 5
     }
+
+fun box() = "OK"

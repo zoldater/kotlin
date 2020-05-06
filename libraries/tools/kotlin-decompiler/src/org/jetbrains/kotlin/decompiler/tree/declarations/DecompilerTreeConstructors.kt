@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeBlockBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatement
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeDelegatingConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeInstanceInitializerCall
@@ -20,7 +19,6 @@ import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.types.isAny
 import org.jetbrains.kotlin.ir.types.isUnit
-import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 
@@ -28,9 +26,9 @@ abstract class AbstractDecompilerTreeConstructor(
     override val element: IrConstructor,
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     override val returnType: DecompilerTreeType,
-    override var dispatchReceiverParameter: DecompilerTreeValueParameter?,
-    override var extensionReceiverParameter: DecompilerTreeValueParameter?,
-    override var valueParameters: List<DecompilerTreeValueParameter>,
+    override var dispatchReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    override var extensionReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    override var valueParameters: List<AbstractDecompilerTreeValueParameter>,
     override var body: DecompilerTreeBody?,
     override var typeParameters: List<DecompilerTreeTypeParameter>,
     override var defaultVisibility: Visibility = Visibilities.PUBLIC
@@ -82,9 +80,9 @@ class DecompilerTreePrimaryConstructor(
     element: IrConstructor,
     annotations: List<DecompilerTreeAnnotationConstructorCall>,
     returnType: DecompilerTreeType,
-    dispatchReceiverParameter: DecompilerTreeValueParameter?,
-    extensionReceiverParameter: DecompilerTreeValueParameter?,
-    valueParameters: List<DecompilerTreeValueParameter>,
+    dispatchReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    extensionReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    valueParameters: List<AbstractDecompilerTreeValueParameter>,
     body: DecompilerTreeBody?,
     typeParameters: List<DecompilerTreeTypeParameter>
 //TODO Place for map superType to delegate
@@ -95,19 +93,46 @@ class DecompilerTreePrimaryConstructor(
         get() = returnType.irType.isAny() || returnType.irType.isUnit()
 
     override val keyword: String? = "constructor".takeIf { !isTrivial }
-    override val valueParametersOrNull: String? = valueParametersForPrint
+    override val valueParametersOrNull: String?
+        get() = valueParametersForPrint
     override val delegatingCallDecompiledOrNull: String?
         get() = delegatingConstructorCall?.takeIf { !it.isTrivial }
             ?.let { "${it.returnType.decompile()}${it.decompile()}" }
+}
+
+class DecompilerTreeDataClassPrimaryConstructor(
+    element: IrConstructor,
+    annotations: List<DecompilerTreeAnnotationConstructorCall>,
+    returnType: DecompilerTreeType,
+    dispatchReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    extensionReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    override var valueParameters: List<AbstractDecompilerTreeValueParameter>,
+    body: DecompilerTreeBody?,
+    typeParameters: List<DecompilerTreeTypeParameter>
+//TODO Place for map superType to delegate
+) : AbstractDecompilerTreeConstructor(
+    element, annotations, returnType, dispatchReceiverParameter, extensionReceiverParameter, valueParameters, body, typeParameters,
+) {
+    private val DecompilerTreeDelegatingConstructorCall.isTrivial: Boolean
+        get() = returnType.irType.isAny() || returnType.irType.isUnit()
+
+    override val keyword: String? = null
+    override val valueParametersOrNull: String?
+        get() = valueParametersForPrint
+    override val delegatingCallDecompiledOrNull: String? = null
+
+    override fun produceSources(printer: SmartPrinter) {
+        super.produceSources(printer)
+    }
 }
 
 class DecompilerTreeSecondaryConstructor(
     element: IrConstructor,
     annotations: List<DecompilerTreeAnnotationConstructorCall>,
     returnType: DecompilerTreeType,
-    dispatchReceiverParameter: DecompilerTreeValueParameter?,
-    extensionReceiverParameter: DecompilerTreeValueParameter?,
-    valueParameters: List<DecompilerTreeValueParameter>,
+    dispatchReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    extensionReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    valueParameters: List<AbstractDecompilerTreeValueParameter>,
     body: DecompilerTreeBody?,
     typeParameters: List<DecompilerTreeTypeParameter>,
 ) : AbstractDecompilerTreeConstructor(

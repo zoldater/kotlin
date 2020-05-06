@@ -6,9 +6,7 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeExpressionBody
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeExpressionBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeExpression
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -19,28 +17,6 @@ import org.jetbrains.kotlin.ir.declarations.IrVariable
 interface DecompilerTreeValueDeclaration : DecompilerTreeDeclaration {
     override val element: IrValueDeclaration
     val type: DecompilerTreeType
-}
-
-class DecompilerTreeValueParameter(
-    override val element: IrValueParameter,
-    override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
-    var defaultValue: AbstractDecompilerTreeExpressionBody?,
-    override val type: DecompilerTreeType,
-    private val varargType: DecompilerTreeType?,
-    override val annotationTarget: String? = null
-) : DecompilerTreeValueDeclaration {
-    override fun produceSources(printer: SmartPrinter) {
-        with(element) {
-            listOfNotNull(
-                "vararg".takeIf { varargElementType != null },
-                "crossinline".takeIf { isCrossinline },
-                "noinline".takeIf { isNoinline },
-                nameIfExists?.let { "$it:" },
-                varargType?.decompile() ?: this@DecompilerTreeValueParameter.type.decompile(),
-                this@DecompilerTreeValueParameter.defaultValue?.let { "= ${it.decompile()}" }
-            ).joinToString(" ").also { printer.print(it) }
-        }
-    }
 }
 
 abstract class AbstractDecompilerTreeVariable(

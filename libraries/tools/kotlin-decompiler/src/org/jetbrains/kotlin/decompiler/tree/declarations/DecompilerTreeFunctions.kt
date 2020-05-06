@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.*
-import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -21,9 +20,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 interface DecompilerTreeFunction : DecompilerTreeDeclaration, DecompilerTreeTypeParametersContainer, SourceProducible {
     override val element: IrFunction
     val returnType: DecompilerTreeType
-    val dispatchReceiverParameter: DecompilerTreeValueParameter?
-    val extensionReceiverParameter: DecompilerTreeValueParameter?
-    val valueParameters: List<DecompilerTreeValueParameter>
+    val dispatchReceiverParameter: AbstractDecompilerTreeValueParameter?
+    val extensionReceiverParameter: AbstractDecompilerTreeValueParameter?
+    val valueParameters: List<AbstractDecompilerTreeValueParameter>
     val body: DecompilerTreeBody?
     override val annotationTarget: String?
         get() = null
@@ -68,9 +67,9 @@ class DecompilerTreeSimpleFunction(
     override val element: IrSimpleFunction,
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     override val returnType: DecompilerTreeType,
-    override val dispatchReceiverParameter: DecompilerTreeValueParameter?,
-    override val extensionReceiverParameter: DecompilerTreeValueParameter?,
-    override val valueParameters: List<DecompilerTreeValueParameter>,
+    override val dispatchReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    override val extensionReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    override val valueParameters: List<AbstractDecompilerTreeValueParameter>,
     override val body: DecompilerTreeBody?,
     override val typeParameters: List<DecompilerTreeTypeParameter>,
     override var defaultVisibility: Visibility = Visibilities.PUBLIC
@@ -112,9 +111,9 @@ class DecompilerTreeCustomGetter(
     override val element: IrSimpleFunction,
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     override val returnType: DecompilerTreeType,
-    override val dispatchReceiverParameter: DecompilerTreeValueParameter?,
-    override val extensionReceiverParameter: DecompilerTreeValueParameter?,
-    override val valueParameters: List<DecompilerTreeValueParameter>,
+    override val dispatchReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    override val extensionReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    override val valueParameters: List<AbstractDecompilerTreeValueParameter>,
     override val body: DecompilerTreeGetterBody?,
     override var typeParameters: List<DecompilerTreeTypeParameter>,
     override var defaultVisibility: Visibility = Visibilities.PUBLIC
@@ -133,9 +132,9 @@ class DecompilerTreeCustomSetter(
     override val element: IrSimpleFunction,
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     override val returnType: DecompilerTreeType,
-    override val dispatchReceiverParameter: DecompilerTreeValueParameter?,
-    override val extensionReceiverParameter: DecompilerTreeValueParameter?,
-    override val valueParameters: List<DecompilerTreeValueParameter>,
+    override val dispatchReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    override val extensionReceiverParameter: AbstractDecompilerTreeValueParameter?,
+    override val valueParameters: List<AbstractDecompilerTreeValueParameter>,
     override val body: DecompilerTreeSetterBody?,
     override val typeParameters: List<DecompilerTreeTypeParameter>,
     override var defaultVisibility: Visibility = Visibilities.PUBLIC
