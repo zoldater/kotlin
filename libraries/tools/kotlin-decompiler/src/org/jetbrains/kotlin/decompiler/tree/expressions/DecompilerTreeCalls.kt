@@ -47,12 +47,14 @@ internal fun IrCall.buildCall(
 
 class DecompilerTreeNamedCall(
     override val element: IrCall,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType,
     override val typeArguments: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeCall {
+    internal var separator: String = "."
+
     override fun produceSources(printer: SmartPrinter) {
         val callString = listOfNotNull(
             element.symbol.owner.name.asString(),
@@ -65,7 +67,7 @@ class DecompilerTreeNamedCall(
                 "super<${sq.owner.name()}>"
             } ?: it.decompile().removePrefix("<").removeSuffix(">")
 
-            printer.print("$lhs.$callString")
+            printer.print("$lhs$separator$callString")
         } ?: extensionReceiver?.decompile()?.also { printer.print("$it.$callString") }
         ?: printer.print(callString)
     }
@@ -73,7 +75,7 @@ class DecompilerTreeNamedCall(
 
 class DecompilerTreeGetPropertyCall(
     override val element: IrCall,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType
@@ -109,7 +111,7 @@ abstract class DecompilerTreeOperatorCall : AbstractDecompilerTreeCall {
 
 class DecompilerTreeCallUnaryOp(
     override val element: IrCall,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType
@@ -140,7 +142,7 @@ class DecompilerTreeCallUnaryOp(
 //For comparison, logical, arithmetics operators
 class DecompilerTreeCallBinaryOp(
     override val element: IrCall,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType
@@ -180,7 +182,7 @@ class DecompilerTreeCallBinaryOp(
 
 class DecompilerTreeCallAssignmentOp(
     override val element: IrCall,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType

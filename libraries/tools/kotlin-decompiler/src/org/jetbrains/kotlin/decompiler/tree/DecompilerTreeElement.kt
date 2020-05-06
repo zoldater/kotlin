@@ -10,11 +10,11 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 
 interface DecompilerTreeElement {
-    val element: IrElement
+    val element: IrElement?
 }
 
 interface DecompilerTreeVarargElement : DecompilerTreeElement, SourceProducible
 
 interface DecompilerTreeStatement : DecompilerTreeElement, SourceProducible {
-    override val element: IrStatement
+    override val element: IrStatement?
 }

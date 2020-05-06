@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpression, SourceProducible {
 
     override val element: IrConstructorCall
-    override val dispatchReceiver: DecompilerTreeExpression?
+    override var dispatchReceiver: DecompilerTreeExpression?
     override val extensionReceiver: DecompilerTreeExpression?
     override val valueArguments: List<DecompilerTreeExpression>
     override val type: DecompilerTreeType
@@ -41,7 +41,7 @@ interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpr
 
 class DecompilerTreeCommonConstructorCall(
     override val element: IrConstructorCall,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType,
@@ -52,7 +52,7 @@ class DecompilerTreeCommonConstructorCall(
 
 class DecompilerTreeAnnotationConstructorCall(
     override val element: IrConstructorCall,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType,
@@ -63,7 +63,7 @@ class DecompilerTreeAnnotationConstructorCall(
 
 class DecompilerTreeDelegatingConstructorCall(
     override val element: IrDelegatingConstructorCall,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType,
@@ -78,7 +78,7 @@ class DecompilerTreeDelegatingConstructorCall(
 
 class DecompilerTreeEnumConstructorCall(
     override val element: IrEnumConstructorCall,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType

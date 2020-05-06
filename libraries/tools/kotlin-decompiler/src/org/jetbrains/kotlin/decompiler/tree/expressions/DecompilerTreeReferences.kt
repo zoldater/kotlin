@@ -26,7 +26,7 @@ class DecompilerTreeClassReference(
 
 class DecompilerTreeFunctionReference(
     override val element: IrFunctionReference,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType,
@@ -39,7 +39,7 @@ class DecompilerTreeFunctionReference(
 
 class DecompilerTreePropertyReference(
     override val element: IrPropertyReference,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType,
@@ -52,7 +52,7 @@ class DecompilerTreePropertyReference(
 
 class DecompilerTreeLocalDelegatedPropertyReference(
     override val element: IrLocalDelegatedPropertyReference,
-    override val dispatchReceiver: DecompilerTreeExpression?,
+    override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
     override val type: DecompilerTreeType,

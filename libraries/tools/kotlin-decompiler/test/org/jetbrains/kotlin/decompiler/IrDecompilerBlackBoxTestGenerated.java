@@ -931,6 +931,16 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
                 runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/other/custom_package.kt");
             }
 
+            @TestMetadata("safe_calls_elvis.kt")
+            public void testSafe_calls_elvis() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/other/safe_calls_elvis.kt");
+            }
+
+            @TestMetadata("scope_func_lambdas.kt")
+            public void testScope_func_lambdas() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/other/scope_func_lambdas.kt");
+            }
+
             @TestMetadata("typealias.kt")
             public void testTypealias() throws Exception {
                 runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/other/typealias.kt");
