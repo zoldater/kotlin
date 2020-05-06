@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
-import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.*
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeVariable
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -14,13 +13,13 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 interface DecompilerTreeExpression : DecompilerTreeStatement, DecompilerTreeVarargElement, SourceProducible {
-    override val element: IrExpression
+    override val element: IrExpression?
     val type: DecompilerTreeType
 }
 
 interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression, DecompilerTreeTypeArgumentsContainer {
     val valueArguments: List<DecompilerTreeExpression>
-    val dispatchReceiver: DecompilerTreeExpression?
+    var dispatchReceiver: DecompilerTreeExpression?
     val extensionReceiver: DecompilerTreeExpression?
 
     val valueArgumentsInsideParenthesesOrNull: String?
@@ -29,7 +28,7 @@ interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression, Decom
 }
 
 interface AbstractDecompilerTreeContainerExpression : DecompilerTreeExpression, DecompilerTreeStatementsContainer {
-    override val element: IrContainerExpression
+    override val element: IrContainerExpression?
     override val statements: List<DecompilerTreeStatement>
     override val type: DecompilerTreeType
 
@@ -45,6 +44,28 @@ class DecompilerTreeContainerExpression(
     override val statements: List<DecompilerTreeStatement>,
     override val type: DecompilerTreeType
 ) : AbstractDecompilerTreeContainerExpression
+
+class DecompilerTreeElvisOperatorCallContainer(
+    override val type: DecompilerTreeType,
+    private val elvisOperatorExpression: DecompilerTreeElvisOperatorCallExpression,
+    override val element: IrContainerExpression? = null,
+    override val statements: List<DecompilerTreeStatement> = emptyList()
+) : AbstractDecompilerTreeContainerExpression {
+    override fun produceSources(printer: SmartPrinter) {
+        printer.print(elvisOperatorExpression.decompile())
+    }
+}
+
+class DecompilerTreeSafeCallOperatorContainer(
+    override val type: DecompilerTreeType,
+    private val safeCallOperatorExpression: DecompilerTreeSafeCallOperatorExpression,
+    override val element: IrContainerExpression? = null,
+    override val statements: List<DecompilerTreeStatement> = emptyList()
+) : AbstractDecompilerTreeContainerExpression {
+    override fun produceSources(printer: SmartPrinter) {
+        printer.print(safeCallOperatorExpression.decompile())
+    }
+}
 
 class DecompilerTreeWhenContainer(
     override val element: IrContainerExpression,

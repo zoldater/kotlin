@@ -276,9 +276,9 @@ class KotlinIrDecompiler private constructor() {
         }
 
         override fun visitBlockBody(body: IrBlockBody, data: ExtensionKind?): AbstractDecompilerTreeBlockBody = with(body) {
-            when (data) {
-                ExtensionKind.CUSTOM_GETTER -> DecompilerTreeGetterBody(this, statements.buildElements(data))
-                ExtensionKind.CUSTOM_SETTER -> DecompilerTreeSetterBody(this, statements.buildElements(data))
+            when {
+                data == ExtensionKind.CUSTOM_GETTER -> DecompilerTreeGetterBody(this, statements.buildElements(data))
+                data == ExtensionKind.CUSTOM_SETTER -> DecompilerTreeSetterBody(this, statements.buildElements(data))
                 else -> DecompilerTreeBlockBody(this, statements.buildElements(data))
             }
 
@@ -320,6 +320,22 @@ class KotlinIrDecompiler private constructor() {
                         this,
                         statements.buildElements(data),
                         type.buildType()
+                    )
+                    IrStatementOrigin.ELVIS -> DecompilerTreeElvisOperatorCallContainer(
+                        type.buildType(),
+                        DecompilerTreeElvisOperatorCallExpression(
+                            type.buildType(),
+                            statements[0].buildElement(null),
+                            statements[1].buildElement(null)
+                        )
+                    )
+                    IrStatementOrigin.SAFE_CALL -> DecompilerTreeSafeCallOperatorContainer(
+                        type.buildType(),
+                        DecompilerTreeSafeCallOperatorExpression(
+                            type.buildType(),
+                            statements[0].buildElement(null),
+                            statements[1].buildElement(null)
+                        )
                     )
                     else -> DecompilerTreeContainerExpression(this, statements.buildElements(data), type.buildType())
                 }
