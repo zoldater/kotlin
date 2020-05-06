@@ -118,6 +118,17 @@ class DecompilerTreeExpressionBody(
     }
 }
 
+class DecompilerTreeDefaultValueParameterInitializer(
+    override val element: IrExpressionBody,
+    override val expression: DecompilerTreeExpression
+) : AbstractDecompilerTreeExpressionBody(element) {
+    override fun produceSources(printer: SmartPrinter) {
+        with(printer) {
+            print(expression.decompile().trimEnd())
+        }
+    }
+}
+
 class DecompilerTreeEnumEntryInitializer(
     element: IrExpressionBody,
     override val expression: DecompilerTreeEnumConstructorCall

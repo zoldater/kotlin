@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
+import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeExpressionBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeExpressionBody
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
@@ -23,7 +24,7 @@ interface DecompilerTreeValueDeclaration : DecompilerTreeDeclaration {
 class DecompilerTreeValueParameter(
     override val element: IrValueParameter,
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
-    var defaultValue: DecompilerTreeExpressionBody?,
+    var defaultValue: AbstractDecompilerTreeExpressionBody?,
     override val type: DecompilerTreeType,
     private val varargType: DecompilerTreeType?,
     override val annotationTarget: String? = null
