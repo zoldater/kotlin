@@ -33,7 +33,8 @@ class KotlinIrDecompiler private constructor() {
         CUSTOM_GETTER,
         CUSTOM_SETTER,
         ENUM_ENTRY_INIT,
-        ANNOTATION_CALL
+        ANNOTATION_CALL,
+        DEFAULT_VALUE_ARGUMENT
     }
 
     internal class DecompilerTreeConstructionVisitor : IrElementVisitor<DecompilerTreeElement, ExtensionKind?> {
@@ -116,7 +117,7 @@ class KotlinIrDecompiler private constructor() {
                     returnType.buildType(),
                     dispatchReceiverParameter?.buildValueParameter(data),
                     extensionReceiverParameter?.buildValueParameter(data),
-                    valueParameters.buildValueParameters(data),
+                    valueParameters.buildValueParameters(ExtensionKind.DEFAULT_VALUE_ARGUMENT),
                     body?.buildElement(data),
                     buildTypeParameters(data)
                 ) else DecompilerTreeSecondaryConstructor(
@@ -125,7 +126,7 @@ class KotlinIrDecompiler private constructor() {
                     returnType.buildType(),
                     dispatchReceiverParameter?.buildValueParameter(data),
                     extensionReceiverParameter?.buildValueParameter(data),
-                    valueParameters.buildValueParameters(data),
+                    valueParameters.buildValueParameters(ExtensionKind.DEFAULT_VALUE_ARGUMENT),
                     body?.buildElement(data),
                     buildTypeParameters(data)
                 )
@@ -197,6 +198,7 @@ class KotlinIrDecompiler private constructor() {
             when (data) {
                 ExtensionKind.ENUM_ENTRY_INIT -> DecompilerTreeEnumEntryInitializer(this, expression.buildElement(data))
                 ExtensionKind.FIELD_INIT -> DecompilerTreeFieldInitializer(this, expression.buildElement(data))
+                ExtensionKind.DEFAULT_VALUE_ARGUMENT -> DecompilerTreeDefaultValueParameterInitializer(this, expression.buildElement(data))
                 else -> DecompilerTreeExpressionBody(this, expression.buildExpression(data))
             }
         }
