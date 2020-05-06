@@ -41,7 +41,7 @@ class DecompilerTreeFunctionalType(override val irType: IrType, override var typ
             printer.print(
                 "${
                     inputTypes.joinToString(prefix = "(", postfix = ")") {
-                        it.type.toString() + "?".takeIf { isNullable() }
+                        it.type.toString() + ("?".takeIf { isNullable() } ?: "")
                     }
                 } -> $returnType"
             )

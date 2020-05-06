@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.types.isAny
 import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 
@@ -72,7 +73,7 @@ abstract class AbstractDecompilerTreeConstructor(
                     printer.println(it)
                 }
             }
-        } ?: printer.println()
+        }
 
     }
 }
@@ -91,13 +92,13 @@ class DecompilerTreePrimaryConstructor(
     element, annotations, returnType, dispatchReceiverParameter, extensionReceiverParameter, valueParameters, body, typeParameters,
 ) {
     private val DecompilerTreeDelegatingConstructorCall.isTrivial: Boolean
-        get() = element.type.isAny() || element.type.isUnit()
+        get() = returnType.irType.isAny() || returnType.irType.isUnit()
 
     override val keyword: String? = "constructor".takeIf { !isTrivial }
-    override val valueParametersOrNull: String? = valueParametersForPrint.takeIf { valueParameters.isNotEmpty() }
+    override val valueParametersOrNull: String? = valueParametersForPrint
     override val delegatingCallDecompiledOrNull: String?
-        get() = delegatingConstructorCall?.let { "${it.type.decompile()}${it.decompile()}" }
-            ?.takeIf { !delegatingConstructorCall!!.isTrivial }
+        get() = delegatingConstructorCall?.takeIf { !it.isTrivial }
+            ?.let { "${it.returnType.decompile()}${it.decompile()}" }
 }
 
 class DecompilerTreeSecondaryConstructor(

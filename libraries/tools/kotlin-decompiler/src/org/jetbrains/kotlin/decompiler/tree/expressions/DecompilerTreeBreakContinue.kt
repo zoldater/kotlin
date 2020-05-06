@@ -20,7 +20,7 @@ abstract class DecompilerTreeBreakContinue(
     SourceProducible {
 
     override fun produceSources(printer: SmartPrinter) {
-        printer.print(token + element.label?.let { "@$it" })
+        printer.print(token + (element.label?.let { "@$it" } ?: ""))
     }
 }
 

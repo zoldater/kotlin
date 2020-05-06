@@ -32,4 +32,10 @@ interface SourceProducible {
 
     //TODO Maybe will need to split lines and decrease indent
     fun decompile() = StringBuilder().also { sb -> produceSources(SmartPrinter(sb)) }.toString()
+
+    fun decompileByLines(printer: SmartPrinter) {
+        decompile().lines().filterNot { it.isEmpty() }.forEach {
+            printer.println(it.trimEnd())
+        }
+    }
 }

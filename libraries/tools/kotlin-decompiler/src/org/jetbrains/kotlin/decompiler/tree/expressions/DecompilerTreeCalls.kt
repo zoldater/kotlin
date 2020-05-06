@@ -60,12 +60,14 @@ class DecompilerTreeNamedCall(
             valueArgumentsInsideParenthesesOrNull ?: "()"
         ).joinToString("")
 
-        dispatchReceiver?.decompile()
-            ?.removePrefix("<")
-            ?.removeSuffix(">")
-            ?.also { printer.print("$it.$callString") }
-            ?: extensionReceiver?.decompile()?.also { printer.print("$it.$callString") }
-            ?: printer.print(callString)
+        dispatchReceiver?.also {
+            val lhs: String = element.superQualifierSymbol?.let { sq ->
+                "super<${sq.owner.name()}>"
+            } ?: it.decompile().removePrefix("<").removeSuffix(">")
+
+            printer.print("$lhs.$callString")
+        } ?: extensionReceiver?.decompile()?.also { printer.print("$it.$callString") }
+        ?: printer.print(callString)
     }
 }
 

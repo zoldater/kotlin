@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.*
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeVariable
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -27,16 +28,70 @@ interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression, Decom
 
 }
 
+interface AbstractDecompilerTreeContainerExpression : DecompilerTreeExpression, DecompilerTreeStatementsContainer {
+    override val element: IrContainerExpression
+    override val statements: List<DecompilerTreeStatement>
+    override val type: DecompilerTreeType
+
+    override fun produceSources(printer: SmartPrinter) {
+        with(printer) {
+            statements.forEach { it.decompileByLines(this) }
+        }
+    }
+}
+
 class DecompilerTreeContainerExpression(
     override val element: IrContainerExpression,
     override val statements: List<DecompilerTreeStatement>,
     override val type: DecompilerTreeType
-) : DecompilerTreeExpression, DecompilerTreeStatementsContainer {
+) : AbstractDecompilerTreeContainerExpression
+
+class DecompilerTreeWhenContainer(
+    override val element: IrContainerExpression,
+    override val statements: List<DecompilerTreeStatement>,
+    override val type: DecompilerTreeType
+) : AbstractDecompilerTreeContainerExpression {
     override fun produceSources(printer: SmartPrinter) {
-        with(printer) {
-            withBraces {
-                statements.forEach { println(it.decompile()) }
-            }
+//        val whenStatement = statements.last() as DecompilerTreeWhen
+//        statements.filterIsInstance(DecompilerTreeVariable::class.java).also {
+//            (whenStatement).valueParameters.addAll(it)
+//        }
+//        whenStatement.produceSources(printer)
+        statements.filterIsInstance(DecompilerTreeVariable::class.java).forEach {
+            printer.println(it.decompile())
+        }
+        statements.filterIsInstance(DecompilerTreeWhen::class.java).firstOrNull()?.also {
+            printer.println(it.decompile())
+        }
+    }
+}
+
+class DecompilerTreeForLoopOuterContainer(
+    override val element: IrContainerExpression,
+    override val statements: List<DecompilerTreeStatement>,
+    override val type: DecompilerTreeType
+) : AbstractDecompilerTreeContainerExpression {
+    override fun produceSources(printer: SmartPrinter) {
+        statements.filterIsInstance(DecompilerTreeVariable::class.java).forEach {
+            printer.println(it.decompile())
+        }
+        statements.filterIsInstance(DecompilerTreeWhileLoop::class.java).firstOrNull()?.also {
+            printer.println(it.decompile())
+        }
+    }
+}
+
+class DecompilerTreeForLoopInnerContainer(
+    override val element: IrContainerExpression,
+    override val statements: List<DecompilerTreeStatement>,
+    override val type: DecompilerTreeType
+) : AbstractDecompilerTreeContainerExpression {
+    override fun produceSources(printer: SmartPrinter) {
+        statements.getOrNull(0)?.apply {
+            printer.println(decompile())
+        }
+        (statements.getOrNull(1) as? DecompilerTreeContainerExpression)?.statements?.forEach {
+            printer.println(it.decompile())
         }
     }
 }

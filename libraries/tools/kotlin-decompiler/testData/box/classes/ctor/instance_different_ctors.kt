@@ -14,13 +14,12 @@ class TestClassWithPrimaryAndSecondaryCtors() {
 
 fun box(): String {
     val testClassPrimary = TestClassWithPrimaryAndSecondaryCtors()
-    testClassPrimary.intProp = 42
     val testClassSecondaryInt = TestClassWithPrimaryAndSecondaryCtors(777)
     val testClassSecondaryString = TestClassWithPrimaryAndSecondaryCtors("13")
     when {
         testClassPrimary.intProp != 42 -> return "FAIL"
         testClassPrimary.intProp == 58 -> return "FAIL"
-        testClassPrimary.intProp <= 58 -> return "FAIL"
+        testClassPrimary.intProp <= 8 -> return "FAIL"
         testClassPrimary.intProp >= 888 -> return "FAIL"
         testClassPrimary.stringProp != "42" -> return "FAIL"
         testClassPrimary.stringProp === "888" -> return "FAIL"
@@ -30,5 +29,4 @@ fun box(): String {
         testClassSecondaryString.stringProp != "13" -> return "FAIL"
         else -> return "OK"
     }
-//    return "OK"
 }
