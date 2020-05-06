@@ -6,12 +6,9 @@
 package org.jetbrains.kotlin.decompiler.tree
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
-import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeClass
-import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeClass
-import org.jetbrains.kotlin.decompiler.tree.declarations.name
+import org.jetbrains.kotlin.decompiler.tree.declarations.classes.AbstractDecompilerTreeClass
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isNullable
 import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
@@ -27,7 +24,7 @@ class DecompilerTreeSimpleType(
 ) :
     DecompilerTreeType {
     override fun produceSources(printer: SmartPrinter) {
-        printer.print(typeClassIfExists?.element?.fqNameWhenAvailable?.asString() ?: irType.toKotlinType().toString())
+        printer.print(irType.toKotlinType().toString())
     }
 }
 

@@ -9,7 +9,9 @@ import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.decompiler.printer.FileSourcesWriter
 import org.jetbrains.kotlin.decompiler.tree.*
 import org.jetbrains.kotlin.decompiler.tree.declarations.*
+import org.jetbrains.kotlin.decompiler.tree.declarations.classes.*
 import org.jetbrains.kotlin.decompiler.tree.expressions.*
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -34,7 +36,8 @@ class KotlinIrDecompiler private constructor() {
         CUSTOM_SETTER,
         ENUM_ENTRY_INIT,
         ANNOTATION_CALL,
-        DEFAULT_VALUE_ARGUMENT
+        DEFAULT_VALUE_ARGUMENT,
+        DATA_CLASS_MEMBER
     }
 
     internal class DecompilerTreeConstructionVisitor : IrElementVisitor<DecompilerTreeElement, ExtensionKind?> {
@@ -68,14 +71,57 @@ class KotlinIrDecompiler private constructor() {
         }
 
         override fun visitClass(declaration: IrClass, data: ExtensionKind?): AbstractDecompilerTreeClass = with(declaration) {
-            buildClass(
-                this,
-                decompileDeclarations(data),
-                decompileAnnotations(),
-                buildTypeParameters(data),
-                buildThisReceiver(data),
-                buildSuperTypes()
-            )
+            when {
+                kind == ClassKind.INTERFACE -> DecompilerTreeInterface(
+                    this,
+                    decompileDeclarations(data),
+                    decompileAnnotations(),
+                    buildTypeParameters(data),
+                    buildThisReceiver(data),
+                    buildSuperTypes()
+                )
+                kind == ClassKind.ENUM_CLASS -> DecompilerTreeEnumClass(
+                    this,
+                    decompileDeclarations(data),
+                    decompileAnnotations(),
+                    buildTypeParameters(data),
+                    buildThisReceiver(data),
+                    buildSuperTypes()
+                )
+                kind == ClassKind.ANNOTATION_CLASS -> DecompilerTreeAnnotationClass(
+                    this,
+                    decompileDeclarations(data),
+                    decompileAnnotations(),
+                    buildTypeParameters(data),
+                    buildThisReceiver(data),
+                    buildSuperTypes()
+                )
+                //TODO is it enough for `object SomeObj` val x = object : Any {...}
+                kind == ClassKind.OBJECT -> DecompilerTreeObject(
+                    this,
+                    decompileDeclarations(data),
+                    decompileAnnotations(),
+                    buildTypeParameters(data),
+                    buildThisReceiver(data),
+                    buildSuperTypes()
+                )
+                isData -> DecompilerTreeDataClass(
+                    this,
+                    decompileDeclarations(ExtensionKind.DATA_CLASS_MEMBER),
+                    decompileAnnotations(),
+                    buildTypeParameters(data),
+                    buildThisReceiver(data),
+                    buildSuperTypes()
+                )
+                else -> DecompilerTreeClass(
+                    this,
+                    decompileDeclarations(data),
+                    decompileAnnotations(),
+                    buildTypeParameters(data),
+                    buildThisReceiver(data),
+                    buildSuperTypes()
+                )
+            }
         }
 
         override fun visitSimpleFunction(declaration: IrSimpleFunction, data: ExtensionKind?): AbstractDecompilerTreeSimpleFunction =
@@ -109,15 +155,26 @@ class KotlinIrDecompiler private constructor() {
                 }
             }
 
-        override fun visitConstructor(declaration: IrConstructor, data: ExtensionKind?): AbstractDecompilerTreeConstructor =
-            with(declaration) {
-                if (isPrimary) DecompilerTreePrimaryConstructor(
+        override fun visitConstructor(declaration: IrConstructor, data: ExtensionKind?): AbstractDecompilerTreeConstructor {
+            val replacementKind = if (data == ExtensionKind.DATA_CLASS_MEMBER) data else ExtensionKind.DEFAULT_VALUE_ARGUMENT
+            return with(declaration) {
+                if (isPrimary && data == ExtensionKind.DATA_CLASS_MEMBER) DecompilerTreeDataClassPrimaryConstructor(
                     this,
                     decompileAnnotations(),
                     returnType.buildType(),
                     dispatchReceiverParameter?.buildValueParameter(data),
                     extensionReceiverParameter?.buildValueParameter(data),
-                    valueParameters.buildValueParameters(ExtensionKind.DEFAULT_VALUE_ARGUMENT),
+                    valueParameters.buildValueParameters(replacementKind),
+                    body?.buildElement(data),
+                    buildTypeParameters(data)
+                )
+                else if (isPrimary) DecompilerTreePrimaryConstructor(
+                    this,
+                    decompileAnnotations(),
+                    returnType.buildType(),
+                    dispatchReceiverParameter?.buildValueParameter(data),
+                    extensionReceiverParameter?.buildValueParameter(data),
+                    valueParameters.buildValueParameters(replacementKind),
                     body?.buildElement(data),
                     buildTypeParameters(data)
                 ) else DecompilerTreeSecondaryConstructor(
@@ -126,11 +183,13 @@ class KotlinIrDecompiler private constructor() {
                     returnType.buildType(),
                     dispatchReceiverParameter?.buildValueParameter(data),
                     extensionReceiverParameter?.buildValueParameter(data),
-                    valueParameters.buildValueParameters(ExtensionKind.DEFAULT_VALUE_ARGUMENT),
+                    valueParameters.buildValueParameters(replacementKind),
                     body?.buildElement(data),
                     buildTypeParameters(data)
                 )
             }
+        }
+
 
         override fun visitProperty(declaration: IrProperty, data: ExtensionKind?): DecompilerTreeProperty = with(declaration) {
             DecompilerTreeProperty(
@@ -174,16 +233,26 @@ class KotlinIrDecompiler private constructor() {
                 DecompilerTreeTypeParameter(this, decompileAnnotations())
             }
 
-        override fun visitValueParameter(declaration: IrValueParameter, data: ExtensionKind?): DecompilerTreeValueParameter =
+        override fun visitValueParameter(declaration: IrValueParameter, data: ExtensionKind?): AbstractDecompilerTreeValueParameter =
             with(declaration) {
-                DecompilerTreeValueParameter(
-                    this,
-                    decompileAnnotations(),
-                    //TODO calculate annotation target
-                    defaultValue?.buildElement(data),
-                    type.buildType(),
-                    varargElementType?.buildType()
-                )
+                when (data) {
+                    ExtensionKind.DATA_CLASS_MEMBER -> DecompilerTreePropertyValueParameter(
+                        this,
+                        decompileAnnotations(),
+                        //TODO calculate annotation target
+                        defaultValue?.buildElement(data),
+                        type.buildType(),
+                        varargElementType?.buildType()
+                    )
+                    else -> DecompilerTreeValueParameter(
+                        this,
+                        decompileAnnotations(),
+                        //TODO calculate annotation target
+                        defaultValue?.buildElement(data),
+                        type.buildType(),
+                        varargElementType?.buildType()
+                    )
+                }
             }
 
         override fun visitTypeAlias(declaration: IrTypeAlias, data: ExtensionKind?): DecompilerTreeTypeAlias = with(declaration) {
@@ -198,7 +267,10 @@ class KotlinIrDecompiler private constructor() {
             when (data) {
                 ExtensionKind.ENUM_ENTRY_INIT -> DecompilerTreeEnumEntryInitializer(this, expression.buildElement(data))
                 ExtensionKind.FIELD_INIT -> DecompilerTreeFieldInitializer(this, expression.buildElement(data))
-                ExtensionKind.DEFAULT_VALUE_ARGUMENT -> DecompilerTreeDefaultValueParameterInitializer(this, expression.buildElement(data))
+                ExtensionKind.DEFAULT_VALUE_ARGUMENT, ExtensionKind.DATA_CLASS_MEMBER -> DecompilerTreeDefaultValueParameterInitializer(
+                    this,
+                    expression.buildElement(data)
+                )
                 else -> DecompilerTreeExpressionBody(this, expression.buildExpression(data))
             }
         }
@@ -522,7 +594,7 @@ class KotlinIrDecompiler private constructor() {
             map { it.buildDeclaration(kind) }
 
         private fun IrValueParameter.buildValueParameter(kind: ExtensionKind?) =
-            buildElement<IrValueParameter, DecompilerTreeValueParameter>(kind)
+            buildElement<IrValueParameter, AbstractDecompilerTreeValueParameter>(kind)
 
         private fun Iterable<IrValueParameter>.buildValueParameters(kind: ExtensionKind?) =
             map { it.buildValueParameter(kind) }
@@ -556,7 +628,8 @@ class KotlinIrDecompiler private constructor() {
         private fun IrTypeParametersContainer.buildTypeParameters(kind: ExtensionKind?): List<DecompilerTreeTypeParameter> =
             typeParameters.buildElements(kind)
 
-        private fun IrClass.buildThisReceiver(kind: ExtensionKind?): DecompilerTreeValueParameter? = thisReceiver?.buildValueParameter(kind)
+        private fun IrClass.buildThisReceiver(kind: ExtensionKind?): AbstractDecompilerTreeValueParameter? =
+            thisReceiver?.buildValueParameter(kind)
 
         private fun IrClass.buildSuperTypes(): List<DecompilerTreeType> = superTypes.map { it.buildType() }
 

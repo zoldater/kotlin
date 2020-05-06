@@ -24,7 +24,7 @@ class DecompilerTreeProperty(
     override val annotationTarget: String = "property"
     var defaultModality: Modality = Modality.FINAL
 
-    private val propertyFlagsOrNull: String?
+    internal val propertyFlagsOrNull: String?
         get() = with(element) {
             listOfNotNull(
                 visibility.takeIf { it !in setOf(Visibilities.PUBLIC, Visibilities.LOCAL) }?.name?.toLowerCase(),
@@ -36,7 +36,7 @@ class DecompilerTreeProperty(
                 "var".takeIf { isVar } ?: "val"
             ).joinToString(" ")
         }
-    private val propertyTypeStringOrNull: String?
+    internal val propertyTypeStringOrNull: String?
         get() = backingField?.type?.decompile() ?: getter?.returnType?.decompile()
 
     private val initializerStringOrNull: String?

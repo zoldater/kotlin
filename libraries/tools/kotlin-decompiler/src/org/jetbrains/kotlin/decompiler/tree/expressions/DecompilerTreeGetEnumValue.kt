@@ -7,14 +7,12 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeClass
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeEnumEntry
-import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeObject
+import org.jetbrains.kotlin.decompiler.tree.declarations.classes.DecompilerTreeObject
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetObjectValue
 import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
-import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 
 class DecompilerTreeGetEnumValue(
     override val element: IrGetEnumValue,
