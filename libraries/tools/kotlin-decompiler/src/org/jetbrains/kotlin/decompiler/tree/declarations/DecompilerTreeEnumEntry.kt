@@ -16,7 +16,7 @@ class DecompilerTreeEnumEntry(
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     private val expressionBody: AbstractDecompilerTreeExpressionBody?
 ) : DecompilerTreeDeclaration {
-    var enumClasName: String? = null
+    var enumClassName: String? = null
     override val annotationTarget: String? = null
 
     override fun produceSources(printer: SmartPrinter) {

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.types.isAny
 import org.jetbrains.kotlin.ir.types.isNullableAny
+import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 class DecompilerTreeTypeParameter(
@@ -18,10 +19,10 @@ class DecompilerTreeTypeParameter(
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     override val annotationTarget: String? = null
 ) : DecompilerTreeDeclaration {
-    private fun IrTypeParameter.variance() = variance.label
+    private fun IrTypeParameter.variance() = variance.label.takeIf { it.isNotEmpty() }
     private fun IrTypeParameter.bound() = superTypes
         .filterNot { it.isNullableAny() || it.isAny() }
-        .map { decompile() }
+        .map { it.toKotlinType().toString() }
         .ifNotEmpty { joinToString(", ", prefix = ": ") }
 
     override fun produceSources(printer: SmartPrinter) {

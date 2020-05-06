@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.isNullable
 import org.jetbrains.kotlin.ir.types.toKotlinType
+import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 
 interface DecompilerTreeType : SourceProducible {
     val irType: IrType
@@ -26,7 +27,7 @@ class DecompilerTreeSimpleType(
 ) :
     DecompilerTreeType {
     override fun produceSources(printer: SmartPrinter) {
-        printer.print(typeClassIfExists?.nameIfExists ?: irType.toKotlinType().toString())
+        printer.print(typeClassIfExists?.element?.fqNameWhenAvailable?.asString() ?: irType.toKotlinType().toString())
     }
 }
 

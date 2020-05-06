@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
+import org.jetbrains.kotlin.decompiler.decompile
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -33,10 +34,7 @@ class DecompilerTreeSetVariable(
     override val type: DecompilerTreeType
 ) : DecompilerTreeValueAccess, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
-        with(element) {
-            printer.print("$ownerName ${originDescriptionsMap[origin]} ${StringBuilder()}")
-        }
-        value.produceSources(printer)
+        printer.print("${element.ownerName} ${originDescriptionsMap[element.origin]} ${(value as? DecompilerTreeMemberAccessExpression)?.valueArgumentsInsideParenthesesOrNull ?: value.decompile()}")
     }
 
     companion object {
