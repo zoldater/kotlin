@@ -260,7 +260,7 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitGetObjectValue(expression: IrGetObjectValue, data: ExtensionKind?): DecompilerTreeGetObjectValue =
             with(expression) {
-                val parent = symbol.owner.buildElement<IrClass, DecompilerTreeClass>(data)
+                val parent = symbol.owner.buildElement<IrClass, DecompilerTreeObject>(data)
                 return DecompilerTreeGetObjectValue(this, parent, type.buildType())
             }
 

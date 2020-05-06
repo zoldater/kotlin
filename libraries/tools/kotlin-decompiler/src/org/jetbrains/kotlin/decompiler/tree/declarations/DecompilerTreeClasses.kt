@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeDeclarationContainer
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeTypeParametersContainer
-import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.descriptors.ClassKind.*
 import org.jetbrains.kotlin.descriptors.Modality
@@ -19,7 +18,7 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.types.isAny
 import org.jetbrains.kotlin.ir.types.isUnit
-import org.jetbrains.kotlin.ir.util.isAnnotationClass
+import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.isFakeOverride
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
@@ -77,14 +76,18 @@ abstract class AbstractDecompilerTreeClass(
                 "inner".takeIf { isInner },
                 "inline".takeIf { isInline },
                 "data".takeIf { isData },
+                "companion".takeIf { isCompanion },
                 keyword,
-                nameIfExists,
-                typeParametersForPrint
+                nameIfExists
             ).joinToString(separator = " ")
         }
 
     protected open val nameWithPrimaryCtorDecompiled: String?
-        get() = listOfNotNull(computeModifiersAndName, primaryConstructor?.decompile()).ifNotEmpty { joinToString("") }
+        get() = listOfNotNull(
+            computeModifiersAndName,
+            typeParametersForPrint,
+            primaryConstructor?.decompile()
+        ).ifNotEmpty { joinToString("") }
 
     private val nonTrivialSuperTypesDecompiledOrNull: String?
         get() = nonTrivialSuperInterfaces.ifNotEmpty { joinToString { it.decompile() } }
@@ -192,7 +195,7 @@ class DecompilerTreeEnumClass(
         with(printer) {
             print(computeModifiersAndName)
             primaryConstructor?.valueParameters?.ifNotEmpty { print(primaryConstructor!!.valueParametersForPrint) }
-            enumEntries.forEach { it.enumClasName = nameIfExists }
+            enumEntries.forEach { it.enumClassName = element.fqNameWhenAvailable?.asString() }
 
             (printableDeclarations + enumEntries).ifNotEmpty {
                 this@with.withBraces {
@@ -223,15 +226,13 @@ class DecompilerTreeObject(
 
     override val keyword: String = "object"
 
-    //    override val nameWithPrimaryCtorDecompiled: String = "$computeModifiersAndName ${element.name()}"
-
     override val printableDeclarations: List<DecompilerTreeDeclaration>
         get() = listOf(properties, initSections, methods, otherPrintableDeclarations).flatten()
 
-    override val nameIfExists: String? = element.name().takeIf { it != "<no name provided>" }
+    override val nameIfExists: String? = element.name().takeIf { it != "<no name provided>" || it != "Companion" }
 
     override val nameWithPrimaryCtorDecompiled: String?
-        get() = computeModifiersAndName
+        get() = listOfNotNull(computeModifiersAndName, typeParametersForPrint).ifNotEmpty { joinToString("") }
 }
 
 internal fun buildClass(

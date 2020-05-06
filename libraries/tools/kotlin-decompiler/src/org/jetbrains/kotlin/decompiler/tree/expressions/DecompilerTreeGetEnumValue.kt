@@ -9,9 +9,12 @@ import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeClass
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeEnumEntry
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeObject
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetObjectValue
+import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
+import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 
 class DecompilerTreeGetEnumValue(
     override val element: IrGetEnumValue,
@@ -22,21 +25,21 @@ class DecompilerTreeGetEnumValue(
         //TODO replace fqName with short name
         //TODO try to find out NPE cases
         parentDeclaration.nameIfExists?.also { ownName ->
-            parentDeclaration.enumClasName?.also {
+            parentDeclaration.enumClassName?.also {
                 printer.print("$it.$ownName")
-            }
+            } ?: printer.print(ownName)
         }
     }
 }
 
 class DecompilerTreeGetObjectValue(
     override val element: IrGetObjectValue,
-    val parentDeclaration: AbstractDecompilerTreeClass,
+    val parentDeclaration: DecompilerTreeObject,
     override val type: DecompilerTreeType
 ) : DecompilerTreeExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         //TODO replace fqName with short name
         //TODO try to find out NPE cases
-        parentDeclaration.nameIfExists?.also { printer.print(it) }
+        parentDeclaration.element.fqNameForIrSerialization.also { printer.print(it) }
     }
 }

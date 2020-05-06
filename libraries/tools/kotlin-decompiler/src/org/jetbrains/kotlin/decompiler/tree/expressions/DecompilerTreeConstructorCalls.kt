@@ -11,7 +11,9 @@ import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrEnumConstructorCall
+import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+
 
 interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpression, SourceProducible {
 
@@ -25,11 +27,11 @@ interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpr
     val valueArgumentsDecompiled: String?
 
     override fun produceSources(printer: SmartPrinter) {
+        //TODO investigate workaround for this way to determine type name
         listOfNotNull(
-            dispatchReceiver?.decompile()?.let { "$it.${type.decompile()}" }
-                ?: extensionReceiver?.decompile()?.let { "$it.${type.decompile()}" }
+            dispatchReceiver?.decompile()?.let { "$it.${element.symbol.owner.returnType.toKotlinType()}" }
+                ?: extensionReceiver?.decompile()?.let { "$it.${element.symbol.owner.returnType.toKotlinType()}" }
                 ?: type.decompile(),
-            typeArgumentsForPrint,
             valueArgumentsDecompiled
         ).joinToString("").also {
             printer.print(it)
@@ -70,14 +72,7 @@ class DecompilerTreeDelegatingConstructorCall(
 ) : DecompilerTreeMemberAccessExpression, SourceProducible {
 
     override fun produceSources(printer: SmartPrinter) {
-        listOfNotNull(
-            typeArgumentsForPrint,
-            valueArgumentsInsideParenthesesOrNull ?: "()"
-        ).ifNotEmpty {
-            joinToString("").also {
-                printer.print(it)
-            }
-        }
+        printer.print(valueArgumentsInsideParenthesesOrNull ?: "()")
     }
 }
 
