@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithVisibility
 fun IrDeclaration.name(): String = descriptor.name.asString()
 
 interface DecompilerTreeDeclaration : DecompilerTreeStatement, DecompilerTreeAnnotationsContainer, SourceProducible {
-    override val element: IrDeclaration
+    override val element: IrDeclaration?
 
     val nameIfExists: String?
         get() = (element as? IrDeclarationWithName)?.name?.asString()

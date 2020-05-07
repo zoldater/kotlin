@@ -5,13 +5,12 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
-import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeExpressionBody
+import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeFunctionalType
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeExpression
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 
 interface DecompilerTreeValueDeclaration : DecompilerTreeDeclaration {
@@ -37,7 +36,8 @@ class DecompilerTreeVariable(
             listOfNotNull("const".takeIf { isConst },
                           "lateinit".takeIf { isLateinit },
                           "var".takeIf { isVar } ?: "val",
-                          nameIfExists, //TODO now we do not print types for variables
+                          nameIfExists, //TODO now we print only functional types for variables
+                          (this@DecompilerTreeVariable.type as? DecompilerTreeFunctionalType)?.decompile()?.let { ": $it" },
                           this@DecompilerTreeVariable.initializer?.let { "= ${it.decompile()}" }
                 //TODO maybe paste run {...} for some initializers like = when(val t = smth()) {...}
             ).joinToString(" ").also { printer.println(it) }
