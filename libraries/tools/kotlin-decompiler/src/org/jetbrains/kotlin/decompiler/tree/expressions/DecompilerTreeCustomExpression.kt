@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeElement
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeVariable
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -44,7 +43,5 @@ class DecompilerTreeSafeCallOperatorExpression(
                 printer.print(it.decompile())
             }
         }
-
     }
 }
-

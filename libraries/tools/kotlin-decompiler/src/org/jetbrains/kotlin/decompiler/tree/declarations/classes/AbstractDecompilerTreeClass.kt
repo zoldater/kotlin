@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeTypeParametersContainer
 import org.jetbrains.kotlin.decompiler.tree.declarations.*
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
-import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -62,7 +61,7 @@ abstract class AbstractDecompilerTreeClass(
             .filterNot { it is DecompilerTreeAnonymousInitializer }
             .filterNot { it is DecompilerTreeProperty }
             .filterNot { it is DecompilerTreeSimpleFunction }
-            .filterNot { it.element.isFakeOverride }
+            .filterNot { it.element?.isFakeOverride ?: false }
             .toList()
 
     open val printableDeclarations: List<DecompilerTreeDeclaration> = emptyList()

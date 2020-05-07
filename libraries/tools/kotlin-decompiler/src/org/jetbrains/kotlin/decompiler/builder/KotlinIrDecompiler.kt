@@ -37,7 +37,8 @@ class KotlinIrDecompiler private constructor() {
         ENUM_ENTRY_INIT,
         ANNOTATION_CALL,
         DEFAULT_VALUE_ARGUMENT,
-        DATA_CLASS_MEMBER
+        DATA_CLASS_MEMBER,
+        LAMBDA_CONTENT
     }
 
     internal class DecompilerTreeConstructionVisitor : IrElementVisitor<DecompilerTreeElement, ExtensionKind?> {
@@ -127,6 +128,12 @@ class KotlinIrDecompiler private constructor() {
         override fun visitSimpleFunction(declaration: IrSimpleFunction, data: ExtensionKind?): AbstractDecompilerTreeSimpleFunction =
             with(declaration) {
                 when (data) {
+                    ExtensionKind.LAMBDA_CONTENT -> DecompilerTreeLambdaFunction(
+                        this, returnType.buildType(), dispatchReceiverParameter?.buildValueParameter(data),
+                        extensionReceiverParameter?.buildValueParameter(data),
+                        valueParameters.buildValueParameters(data),
+                        body?.buildElement(data)
+                    )
                     ExtensionKind.CUSTOM_GETTER -> DecompilerTreeCustomGetter(
                         this, decompileAnnotations(), returnType.buildType(),
                         dispatchReceiverParameter?.buildValueParameter(data),
@@ -143,7 +150,6 @@ class KotlinIrDecompiler private constructor() {
                         body?.buildElement(data), //TODO is it necessary to implicitly declare <IrBody, DecompilerTreeBody>?
                         buildTypeParameters(data)
                     )
-//                    ExtensionKind.CLASS_INIT_SECTION ->
                     else -> DecompilerTreeSimpleFunction(
                         this, decompileAnnotations(), returnType.buildType(),
                         dispatchReceiverParameter?.buildValueParameter(data),
@@ -491,7 +497,7 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitFunctionExpression(expression: IrFunctionExpression, data: ExtensionKind?): DecompilerTreeFunctionExpression =
             with(expression) {
-                DecompilerTreeFunctionExpression(this, function.buildElement(data), type.buildType())
+                DecompilerTreeFunctionExpression(this, function.buildElement(ExtensionKind.LAMBDA_CONTENT), type.buildType())
             }
 
 
