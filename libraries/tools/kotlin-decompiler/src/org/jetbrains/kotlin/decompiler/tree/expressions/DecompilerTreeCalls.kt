@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.util.name
-import org.jetbrains.kotlin.decompiler.util.obtainNameWithArgs
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -151,7 +150,11 @@ class DecompilerTreeCallBinaryOp(
         check(element.origin in originMap.keys) { "Origin ${element.origin?.toString()} is not binary operation!" }
 
         //TODO looks bad, investigate for more robust way
-        if (element.origin == IrStatementOrigin.EXCLEQ && valueArguments.isEmpty()) leftOperand?.produceSources(printer)
+        if (element.origin in listOf(
+                IrStatementOrigin.EXCLEQ,
+                IrStatementOrigin.EXCLEQEQ
+            ) && valueArguments.isEmpty()
+        ) leftOperand?.produceSources(printer)
         else leftOperand?.also { l ->
             rightOperand?.also { r ->
                 printer.print("${l.decompile()} ${originMap[element.origin]} ${r.decompile()}")
@@ -189,7 +192,7 @@ class DecompilerTreeCallAssignmentOp(
 ) : DecompilerTreeOperatorCall() {
     override fun produceSources(printer: SmartPrinter) {
         check(element.symbol.owner.origin == IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR) {
-            "Unexpected arguments is assignment operator!"
+            "Unexpected arguments in assignment operator!"
         }
         // TODO investigate more robust way to process `<this>` value
         val disp = leftOperand?.decompile()?.removePrefix("<")?.removeSuffix(">")?.let { "$it." } ?: ""

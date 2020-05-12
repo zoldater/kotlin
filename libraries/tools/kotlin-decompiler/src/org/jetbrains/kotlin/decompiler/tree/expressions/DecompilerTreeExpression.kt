@@ -23,7 +23,10 @@ interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression, Decom
     val extensionReceiver: DecompilerTreeExpression?
 
     val valueArgumentsInsideParenthesesOrNull: String?
-        get() = valueArguments.ifNotEmpty { joinToString(", ", "(", ")") { it.decompile() } }
+        get() = valueArgumentsPerComma?.let { "($it)" }
+
+    val valueArgumentsPerComma: String?
+        get() = valueArguments.ifNotEmpty { joinToString(", ") { it.decompile() } }
 
 }
 
