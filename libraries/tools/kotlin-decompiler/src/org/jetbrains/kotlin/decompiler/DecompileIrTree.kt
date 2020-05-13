@@ -31,6 +31,10 @@ fun IrElement.decompile(data: String): String =
     }.toString().trimEnd()
 
 
+/*
+ * я правильно понимаю, что это старый visitor, который не используется в новой имплементации?
+ * если так, то стоит повесить на него @Deprecated
+ */
 class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
 
     internal val printer = Printer(out, "    ")

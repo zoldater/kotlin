@@ -30,6 +30,8 @@ class KotlinIrDecompiler private constructor() {
         }
     }
 
+    // private
+    // не очень удачный нейминг, не очень понятно, при чём здесь Extension
     internal enum class ExtensionKind {
         FIELD_INIT,
         CUSTOM_GETTER,
@@ -41,11 +43,19 @@ class KotlinIrDecompiler private constructor() {
         LAMBDA_CONTENT
     }
 
+    // private
     internal class DecompilerTreeConstructionVisitor : IrElementVisitor<DecompilerTreeElement, ExtensionKind?> {
         private val elementsCacheMap = mutableMapOf<IrElement, DecompilerTreeElement>()
         private val typesCacheMap = mutableMapOf<IrType, DecompilerTreeType>()
 
         override fun visitElement(element: IrElement, data: ExtensionKind?): DecompilerTreeElement {
+            /*
+             * в таких местах лучше кидать IllegalStateException
+             *
+             * семантика следующая:
+             * - TODO -- ещё не готово, но потом будет сделано
+             * - IllegalStateException -- программа написана так, что сюда мы никогда не придём
+             */
             TODO("Element $element was not properly built")
         }
 
@@ -75,6 +85,10 @@ class KotlinIrDecompiler private constructor() {
             when {
                 kind == ClassKind.INTERFACE -> DecompilerTreeInterface(
                     this,
+                    /*
+                     * этот список аргументов повторяется 6 раз. стоит вынести в локальные переменные
+                     * подобное замечание применимо и к функциям ниже
+                     */
                     decompileDeclarations(data),
                     decompileAnnotations(),
                     buildTypeParameters(data),

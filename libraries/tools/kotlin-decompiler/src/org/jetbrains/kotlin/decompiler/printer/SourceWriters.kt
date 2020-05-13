@@ -9,6 +9,8 @@ import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeFile
 import org.jetbrains.kotlin.ir.declarations.path
 import java.io.File
 
+// почему у тебя этот и другие классы, которые являются entry point'ами
+// в декомпилятор являются internal?
 internal class FileSourcesWriter(val files: List<DecompilerTreeFile>) {
     val filesToContentMap: Map<DecompilerTreeFile, String>
         get() = files.map { it to it.decompile() }.toMap()

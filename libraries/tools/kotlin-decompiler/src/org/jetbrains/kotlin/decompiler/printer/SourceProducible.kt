@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.decompiler.printer
 
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 
+// эти три функции лучше перенести в какой-нибудь util.kt
+// уже есть функция `SmartPrinter.withIndent`
 internal inline fun SmartPrinter.indented(body: () -> Unit) {
     pushIndent()
     body()
@@ -30,6 +32,8 @@ internal inline fun SmartPrinter.insideParentheses(body: () -> Unit) {
 interface SourceProducible {
     fun produceSources(printer: SmartPrinter)
 
+    // всегда указывай return тип у неприватных функций
+    // у пропертей, желательно, тоже
     //TODO Maybe will need to split lines and decrease indent
     fun decompile() = StringBuilder().also { sb -> produceSources(SmartPrinter(sb)) }.toString()
 
