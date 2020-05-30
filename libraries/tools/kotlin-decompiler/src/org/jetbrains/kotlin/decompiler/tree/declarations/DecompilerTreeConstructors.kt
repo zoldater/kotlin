@@ -120,10 +120,6 @@ class DecompilerTreeDataClassPrimaryConstructor(
     override val valueParametersOrNull: String?
         get() = valueParametersForPrint
     override val delegatingCallDecompiledOrNull: String? = null
-
-    override fun produceSources(printer: SmartPrinter) {
-        super.produceSources(printer)
-    }
 }
 
 class DecompilerTreeSecondaryConstructor(

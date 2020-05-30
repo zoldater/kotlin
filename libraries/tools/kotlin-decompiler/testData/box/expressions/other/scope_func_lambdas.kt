@@ -1,6 +1,6 @@
-fun foo(x: Int, y: Int, body: (Int, Int) -> String): String = body.invoke(x, y)
+fun foo(x: Int, y: Int, body: (Int, Int) -> String): String = body(x, y)
 
-fun bar(x: Int?, body: (Int?) -> String?) = x?.let { body.invoke(it) }
+fun bar(x: Int?, body: (Int?) -> String?) = x?.let { body(it) }
 
 fun box(): String {
     val lmb: (Int?) -> String? = { i -> i.toString() }

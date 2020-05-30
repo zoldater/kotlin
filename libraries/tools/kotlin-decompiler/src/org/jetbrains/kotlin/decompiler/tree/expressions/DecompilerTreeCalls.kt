@@ -25,22 +25,33 @@ internal fun IrCall.buildCall(
     type: DecompilerTreeType,
     typeArguments: List<DecompilerTreeType>
 ): AbstractDecompilerTreeCall =
-    when (origin) {
-        in DecompilerTreeCallUnaryOp.originMap.keys -> DecompilerTreeCallUnaryOp(
+    when {
+        origin in DecompilerTreeCallUnaryOp.originMap.keys -> DecompilerTreeCallUnaryOp(
             this,
             dispatchReceiver,
             extensionReceiver,
             valueArguments,
             type
         )
-        in DecompilerTreeCallBinaryOp.originMap.keys -> DecompilerTreeCallBinaryOp(
+        origin in DecompilerTreeCallBinaryOp.originMap.keys -> DecompilerTreeCallBinaryOp(
             this,
             dispatchReceiver,
             extensionReceiver,
             valueArguments, type
         )
-        IrStatementOrigin.EQ -> DecompilerTreeCallAssignmentOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
-        IrStatementOrigin.GET_PROPERTY -> DecompilerTreeGetPropertyCall(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        origin == IrStatementOrigin.EQ -> DecompilerTreeCallAssignmentOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        origin == IrStatementOrigin.INVOKE -> DecompilerTreeCallInvokeOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        origin == IrStatementOrigin.GET_PROPERTY -> DecompilerTreeGetPropertyCall(
+            this,
+            dispatchReceiver,
+            extensionReceiver,
+            valueArguments,
+            type
+        )
+        origin == IrStatementOrigin.RANGE -> DecompilerTreeCallRangeOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        symbol.owner.name() == "step" -> DecompilerTreeCallStepOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        symbol.owner.name() == "until" -> DecompilerTreeCallUntilOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        symbol.owner.name() == "downTo" -> DecompilerTreeCallDownToOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
         else -> DecompilerTreeNamedCall(this, dispatchReceiver, extensionReceiver, valueArguments, type, typeArguments)
     }
 
@@ -101,10 +112,12 @@ abstract class DecompilerTreeOperatorCall : AbstractDecompilerTreeCall {
         get() = emptyList()
 
     val leftOperand: DecompilerTreeExpression?
-        get() = dispatchReceiver ?: valueArguments.getOrNull(0)
+        get() = dispatchReceiver ?: extensionReceiver ?: valueArguments.getOrNull(0)
 
     val rightOperand: DecompilerTreeExpression?
-        get() = dispatchReceiver?.let { valueArguments.getOrNull(0) } ?: valueArguments.getOrNull(1)
+        get() = dispatchReceiver?.let { valueArguments.getOrNull(0) }
+            ?: extensionReceiver?.let { valueArguments.getOrNull(0) }
+            ?: valueArguments.getOrNull(1)
 }
 
 
@@ -201,3 +214,89 @@ class DecompilerTreeCallAssignmentOp(
         printer.print("$disp$lhs = ${rightOperand?.decompile()}")
     }
 }
+
+class DecompilerTreeCallInvokeOp(
+    override val element: IrCall,
+    override var dispatchReceiver: DecompilerTreeExpression?,
+    override val extensionReceiver: DecompilerTreeExpression?,
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
+) : DecompilerTreeOperatorCall() {
+
+    override fun produceSources(printer: SmartPrinter) {
+
+        dispatchReceiver?.also {
+            val lhs: String = element.superQualifierSymbol?.let { sq ->
+                "super<${sq.owner.name()}>"
+            } ?: it.decompile().removePrefix("<").removeSuffix(">")
+
+            printer.print("$lhs${valueArgumentsInsideParenthesesOrNull ?: "()"}")
+        } ?: extensionReceiver?.decompile()?.also { printer.print("$it${valueArgumentsInsideParenthesesOrNull ?: "()"}") }
+        ?: throw IllegalStateException("INVOKE operator has no dispatcher or extension receiver!")
+    }
+}
+
+class DecompilerTreeCallRangeOp(
+    override val element: IrCall,
+    override var dispatchReceiver: DecompilerTreeExpression?,
+    override val extensionReceiver: DecompilerTreeExpression?,
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
+) : DecompilerTreeOperatorCall() {
+    override fun produceSources(printer: SmartPrinter) {
+        // TODO investigate more robust way to process `<this>` value
+        val lhs = dispatchReceiver!!.decompile().removePrefix("<").removeSuffix(">")
+        // TODO investigate more robust way to obtain property name
+        val rhs = rightOperand!!.decompile().removePrefix("<").removeSuffix(">")
+        printer.print("$lhs..$rhs")
+    }
+}
+
+class DecompilerTreeCallStepOp(
+    override val element: IrCall,
+    override var dispatchReceiver: DecompilerTreeExpression?,
+    override val extensionReceiver: DecompilerTreeExpression?,
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
+) : DecompilerTreeOperatorCall() {
+    override fun produceSources(printer: SmartPrinter) {
+        // TODO investigate more robust way to process `<this>` value
+        val lhs = extensionReceiver!!.decompile().removePrefix("<").removeSuffix(">")
+        // TODO investigate more robust way to obtain property name
+        val rhs = rightOperand!!.decompile().removePrefix("<").removeSuffix(">")
+        printer.print("$lhs step $rhs")
+    }
+}
+
+class DecompilerTreeCallUntilOp(
+    override val element: IrCall,
+    override var dispatchReceiver: DecompilerTreeExpression?,
+    override val extensionReceiver: DecompilerTreeExpression?,
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
+) : DecompilerTreeOperatorCall() {
+    override fun produceSources(printer: SmartPrinter) {
+        // TODO investigate more robust way to process `<this>` value
+        val lhs = extensionReceiver!!.decompile().removePrefix("<").removeSuffix(">")
+        // TODO investigate more robust way to obtain property name
+        val rhs = rightOperand!!.decompile().removePrefix("<").removeSuffix(">")
+        printer.print("$lhs until $rhs")
+    }
+}
+
+class DecompilerTreeCallDownToOp(
+    override val element: IrCall,
+    override var dispatchReceiver: DecompilerTreeExpression?,
+    override val extensionReceiver: DecompilerTreeExpression?,
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
+) : DecompilerTreeOperatorCall() {
+    override fun produceSources(printer: SmartPrinter) {
+        // TODO investigate more robust way to process `<this>` value
+        val lhs = extensionReceiver!!.decompile().removePrefix("<").removeSuffix(">")
+        // TODO investigate more robust way to obtain property name
+        val rhs = rightOperand!!.decompile().removePrefix("<").removeSuffix(">")
+        printer.print("$lhs downTo $rhs")
+    }
+}
+
