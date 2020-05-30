@@ -31,7 +31,7 @@ interface SourceProducible {
     fun produceSources(printer: SmartPrinter)
 
     //TODO Maybe will need to split lines and decrease indent
-    fun decompile() = StringBuilder().also { sb -> produceSources(SmartPrinter(sb)) }.toString()
+    fun decompile(): String = StringBuilder().also { sb -> produceSources(SmartPrinter(sb)) }.toString()
 
     fun decompileByLines(printer: SmartPrinter) {
         decompile().lines().filterNot { it.isEmpty() }.forEach {

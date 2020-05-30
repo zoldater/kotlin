@@ -21,7 +21,7 @@ interface DecompilerTreeValueDeclaration : DecompilerTreeDeclaration {
 abstract class AbstractDecompilerTreeVariable(
     override val element: IrVariable,
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
-    val initializer: DecompilerTreeExpression?,
+    var initializer: DecompilerTreeExpression?,
     override val annotationTarget: String? = null
 ) : DecompilerTreeValueDeclaration
 
@@ -52,5 +52,16 @@ class DecompilerTreeCatchParameterVariable(
 ) : AbstractDecompilerTreeVariable(element, annotations, null) {
     override fun produceSources(printer: SmartPrinter) {
         printer.print("${element.name()}: ${type.decompile()}")
+    }
+}
+
+class DecompilerTreeForLoopVariable(
+    element: IrVariable,
+    annotations: List<DecompilerTreeAnnotationConstructorCall>,
+    initializer: DecompilerTreeExpression?,
+    override val type: DecompilerTreeType,
+) : AbstractDecompilerTreeVariable(element, annotations, initializer, null) {
+    override fun produceSources(printer: SmartPrinter) {
+        printer.print("${element.name()} in ${initializer!!.decompile()}")
     }
 }

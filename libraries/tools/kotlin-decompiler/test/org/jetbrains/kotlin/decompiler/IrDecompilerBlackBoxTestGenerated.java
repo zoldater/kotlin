@@ -900,7 +900,13 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInLoop() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/loop"), Pattern.compile("^(.+)\\.kt$"), null, true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
+                        "libraries/tools/kotlin-decompiler/testData/box/expressions/loop"), Pattern.compile("^(.+)\\.kt$"), null, true);
+            }
+
+            @TestMetadata("for_in.kt")
+            public void testFor_in() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/loop/for_in.kt");
             }
 
             @TestMetadata("loops.kt")
@@ -935,6 +941,11 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             @TestMetadata("range_op.kt")
             public void testRange_op() throws Exception {
                 runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/other/range_op.kt");
+            }
+
+            @TestMetadata("range_op.decompiled.kt")
+            public void testRange_op_decompiled() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/other/range_op.decompiled.kt");
             }
 
             @TestMetadata("safe_calls_elvis.kt")

@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.decompiler.tree.declarations.classes.*
 import org.jetbrains.kotlin.decompiler.tree.expressions.*
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
@@ -310,6 +311,39 @@ class KotlinIrDecompiler private constructor() {
             DecompilerTreeSpread(this, decompilerIrExpression)
         }
 
+        private fun IrContainerExpression.buildForLoopContainer(): DecompilerTreeForLoopContainer {
+            check(IrDeclarationOrigin.FOR_LOOP_ITERATOR == (statements.getOrNull(0) as? IrVariable)?.origin) {
+                "Unexpected For loop iterator synthetic variable!"
+            }
+            val initializer = (statements[0] as IrVariable).initializer
+            check(IrStatementOrigin.FOR_LOOP_ITERATOR == (initializer as? IrMemberAccessExpression)?.origin) {
+                "Unexpected For loop iterator initializer!"
+            }
+            val sugaredInitializer = (initializer as IrMemberAccessExpression).dispatchReceiver!!
+            check(IrStatementOrigin.FOR_LOOP_INNER_WHILE == (statements.getOrNull(1) as? IrLoop)?.origin) {
+                "Unexpected For loop structure!"
+            }
+            val innerWhileBody = (statements[1] as IrLoop).body
+            check(IrStatementOrigin.FOR_LOOP_INNER_WHILE == (innerWhileBody as? IrContainerExpression)?.origin) {
+                "Unexpected For loop inner while body structure!"
+            }
+            val innerWhileStatements = (innerWhileBody as IrContainerExpression).statements
+            check(IrDeclarationOrigin.FOR_LOOP_VARIABLE == (innerWhileStatements.getOrNull(0) as? IrVariable)?.origin) {
+                "Unexpected For loop original variable!"
+            }
+            val forLoopVariable = (innerWhileStatements[0] as IrVariable)
+            val desugaredForVariable = DecompilerTreeForLoopVariable(
+                forLoopVariable,
+                forLoopVariable.decompileAnnotations(),
+                sugaredInitializer.buildExpression(),
+                forLoopVariable.type.buildType()
+            )
+            val originalBlockStatements =
+                (innerWhileStatements[1] as IrContainerExpression).statements.buildElements<IrStatement, DecompilerTreeStatement>()
+            return DecompilerTreeForLoopContainer(this, desugaredForVariable, originalBlockStatements, this.type.buildType())
+
+        }
+
         override fun visitContainerExpression(
             expression: IrContainerExpression,
             data: ExtensionKind?
@@ -317,16 +351,7 @@ class KotlinIrDecompiler private constructor() {
             with(expression) {
                 when (origin) {
                     IrStatementOrigin.WHEN -> DecompilerTreeWhenContainer(this, statements.buildElements(data), type.buildType())
-                    IrStatementOrigin.FOR_LOOP_INNER_WHILE -> DecompilerTreeForLoopInnerContainer(
-                        this,
-                        statements.buildElements(data),
-                        type.buildType()
-                    )
-                    IrStatementOrigin.FOR_LOOP -> DecompilerTreeForLoopOuterContainer(
-                        this,
-                        statements.buildElements(data),
-                        type.buildType()
-                    )
+                    IrStatementOrigin.FOR_LOOP -> expression.buildForLoopContainer()
                     IrStatementOrigin.ELVIS -> DecompilerTreeElvisOperatorCallContainer(
                         type.buildType(),
                         DecompilerTreeElvisOperatorCallExpression(
@@ -595,7 +620,7 @@ class KotlinIrDecompiler private constructor() {
 
 
         @Suppress("UNCHECKED_CAST")
-        internal fun <T : IrElement, R : DecompilerTreeElement> T.buildElement(kind: ExtensionKind?): R =
+        internal fun <T : IrElement, R : DecompilerTreeElement> T.buildElement(kind: ExtensionKind? = null): R =
             (elementsCacheMap[this] ?: run {
                 accept(this@DecompilerTreeConstructionVisitor, kind).also {
                     elementsCacheMap += this to it
@@ -606,51 +631,51 @@ class KotlinIrDecompiler private constructor() {
                 }
             }) as R
 
-        private fun <T : IrElement, R : DecompilerTreeElement> Iterable<T>.buildElements(kind: ExtensionKind?): List<R> =
+        private fun <T : IrElement, R : DecompilerTreeElement> Iterable<T>.buildElements(kind: ExtensionKind? = null): List<R> =
             map { it.buildElement(kind) }
 
-        private fun IrDeclaration.buildDeclaration(kind: ExtensionKind?) =
+        private fun IrDeclaration.buildDeclaration(kind: ExtensionKind? = null) =
             buildElement<IrDeclaration, DecompilerTreeDeclaration>(kind)
 
-        private fun Iterable<IrDeclaration>.buildDeclarations(kind: ExtensionKind?) =
+        private fun Iterable<IrDeclaration>.buildDeclarations(kind: ExtensionKind? = null) =
             map { it.buildDeclaration(kind) }
 
-        private fun IrValueParameter.buildValueParameter(kind: ExtensionKind?) =
+        private fun IrValueParameter.buildValueParameter(kind: ExtensionKind? = null) =
             buildElement<IrValueParameter, AbstractDecompilerTreeValueParameter>(kind)
 
-        private fun Iterable<IrValueParameter>.buildValueParameters(kind: ExtensionKind?) =
+        private fun Iterable<IrValueParameter>.buildValueParameters(kind: ExtensionKind? = null) =
             map { it.buildValueParameter(kind) }
 
 
-        private fun IrExpression.buildExpression(kind: ExtensionKind?) =
+        private fun IrExpression.buildExpression(kind: ExtensionKind? = null) =
             buildElement<IrExpression, DecompilerTreeExpression>(kind)
 
-        private fun Iterable<IrExpression>.buildExpressions(kind: ExtensionKind?) =
+        private fun Iterable<IrExpression>.buildExpressions(kind: ExtensionKind? = null) =
             map { it.buildExpression(kind) }
 
         //TODO check inferred type correctness
         private fun IrAnnotationContainer.decompileAnnotations(): List<DecompilerTreeAnnotationConstructorCall> =
             annotations.buildElements(ExtensionKind.ANNOTATION_CALL)
 
-        private fun IrDeclarationContainer.decompileDeclarations(kind: ExtensionKind?): List<DecompilerTreeDeclaration> =
+        private fun IrDeclarationContainer.decompileDeclarations(kind: ExtensionKind? = null): List<DecompilerTreeDeclaration> =
             declarations.buildDeclarations(kind)
 
-        private fun IrMemberAccessExpression.buildValueArguments(kind: ExtensionKind?) =
+        private fun IrMemberAccessExpression.buildValueArguments(kind: ExtensionKind? = null) =
             (0 until valueArgumentsCount).mapNotNull { getValueArgument(it) }.buildExpressions(kind)
 
         private fun IrMemberAccessExpression.buildTypeArguments() =
             (0 until typeArgumentsCount).mapNotNull { getTypeArgument(it)?.buildType() }
 
-        private fun IrMemberAccessExpression.buildDispatchReceiver(kind: ExtensionKind?): DecompilerTreeExpression? =
+        private fun IrMemberAccessExpression.buildDispatchReceiver(kind: ExtensionKind? = null): DecompilerTreeExpression? =
             dispatchReceiver?.buildExpression(kind)
 
-        private fun IrMemberAccessExpression.buildExtensionReceiver(kind: ExtensionKind?): DecompilerTreeExpression? =
+        private fun IrMemberAccessExpression.buildExtensionReceiver(kind: ExtensionKind? = null): DecompilerTreeExpression? =
             extensionReceiver?.buildExpression(kind)
 
-        private fun IrTypeParametersContainer.buildTypeParameters(kind: ExtensionKind?): List<DecompilerTreeTypeParameter> =
+        private fun IrTypeParametersContainer.buildTypeParameters(kind: ExtensionKind? = null): List<DecompilerTreeTypeParameter> =
             typeParameters.buildElements(kind)
 
-        private fun IrClass.buildThisReceiver(kind: ExtensionKind?): AbstractDecompilerTreeValueParameter? =
+        private fun IrClass.buildThisReceiver(kind: ExtensionKind? = null): AbstractDecompilerTreeValueParameter? =
             thisReceiver?.buildValueParameter(kind)
 
         private fun IrClass.buildSuperTypes(): List<DecompilerTreeType> = superTypes.map { it.buildType() }

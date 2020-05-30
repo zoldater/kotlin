@@ -6,7 +6,9 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
+import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.*
+import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeVariable
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeVariable
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.*
@@ -90,33 +92,24 @@ class DecompilerTreeWhenContainer(
     }
 }
 
-class DecompilerTreeForLoopOuterContainer(
-    override val element: IrContainerExpression,
-    override val statements: List<DecompilerTreeStatement>,
-    override val type: DecompilerTreeType
-) : AbstractDecompilerTreeContainerExpression {
-    override fun produceSources(printer: SmartPrinter) {
-        statements.filterIsInstance(DecompilerTreeVariable::class.java).forEach {
-            printer.println(it.decompile())
-        }
-        statements.filterIsInstance(DecompilerTreeWhileLoop::class.java).firstOrNull()?.also {
-            printer.println(it.decompile())
-        }
-    }
-}
 
-class DecompilerTreeForLoopInnerContainer(
+class DecompilerTreeForLoopContainer(
     override val element: IrContainerExpression,
+    val iteratorVariable: AbstractDecompilerTreeVariable,
     override val statements: List<DecompilerTreeStatement>,
-    override val type: DecompilerTreeType
+    override val type: DecompilerTreeType,
 ) : AbstractDecompilerTreeContainerExpression {
     override fun produceSources(printer: SmartPrinter) {
-        statements.getOrNull(0)?.apply {
-            printer.println(decompile())
+        with(printer) {
+            print("for (${iteratorVariable.decompile()})")
+            withBraces {
+                statements.forEach {
+                    it.decompileByLines(this)
+                }
+            }
         }
-        (statements.getOrNull(1) as? DecompilerTreeContainerExpression)?.statements?.forEach {
-            printer.println(it.decompile())
-        }
+
+
     }
 }
 
