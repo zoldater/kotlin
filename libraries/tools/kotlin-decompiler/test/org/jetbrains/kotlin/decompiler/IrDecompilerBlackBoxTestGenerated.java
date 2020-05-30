@@ -1001,12 +1001,28 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInWhen() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/when"), Pattern.compile("^(.+)\\.kt$"), null, true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
+                        "libraries/tools/kotlin-decompiler/testData/box/expressions/when"), Pattern.compile("^(.+)\\.kt$"), null, true);
             }
 
-            @TestMetadata("when_is.kt")
-            public void testWhen_is() throws Exception {
-                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/when/when_is.kt");
+            @TestMetadata("when_closure.kt")
+            public void testWhen_closure() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/when/when_closure.kt");
+            }
+
+            @TestMetadata("when_multiple_condition.kt")
+            public void testWhen_multiple_condition() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/when/when_multiple_condition.kt");
+            }
+
+            @TestMetadata("when_regular.kt")
+            public void testWhen_regular() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/when/when_regular.kt");
+            }
+
+            @TestMetadata("when_val.kt")
+            public void testWhen_val() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/when/when_val.kt");
             }
         }
     }

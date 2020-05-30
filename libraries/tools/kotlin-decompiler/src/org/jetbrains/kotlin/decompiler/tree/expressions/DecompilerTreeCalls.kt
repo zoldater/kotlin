@@ -39,6 +39,14 @@ internal fun IrCall.buildCall(
             extensionReceiver,
             valueArguments, type
         )
+        origin == IrStatementOrigin.IN -> DecompilerTreeInOperatorCall(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        origin == IrStatementOrigin.NOT_IN -> DecompilerTreeNotInOperatorCall(
+            this,
+            dispatchReceiver,
+            extensionReceiver,
+            valueArguments,
+            type
+        )
         origin == IrStatementOrigin.EQ -> DecompilerTreeCallAssignmentOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
         origin == IrStatementOrigin.INVOKE -> DecompilerTreeCallInvokeOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
         origin == IrStatementOrigin.GET_PROPERTY -> DecompilerTreeGetPropertyCall(
@@ -212,6 +220,43 @@ class DecompilerTreeCallAssignmentOp(
         // TODO investigate more robust way to obtain property name
         val lhs = element.symbol.owner.name().removePrefix("<set-").removeSuffix(">")
         printer.print("$disp$lhs = ${rightOperand?.decompile()}")
+    }
+}
+
+class DecompilerTreeInOperatorCall(
+    override val element: IrCall,
+    override var dispatchReceiver: DecompilerTreeExpression?,
+    override val extensionReceiver: DecompilerTreeExpression?,
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
+) : DecompilerTreeOperatorCall() {
+    override fun produceSources(printer: SmartPrinter) {
+        // TODO investigate more robust way to process `<this>` value
+        val rhs = leftOperand!!.decompile().removePrefix("<").removeSuffix(">")
+        // TODO investigate more robust way to obtain property name
+        val lhs = rightOperand!!.decompile().removePrefix("<set-").removeSuffix(">")
+        printer.print("$lhs in $rhs")
+    }
+}
+
+class DecompilerTreeNotInOperatorCall(
+    override val element: IrCall,
+    override var dispatchReceiver: DecompilerTreeExpression?,
+    override val extensionReceiver: DecompilerTreeExpression?,
+    override val valueArguments: List<DecompilerTreeExpression>,
+    override val type: DecompilerTreeType
+) : DecompilerTreeOperatorCall() {
+    override fun produceSources(printer: SmartPrinter) {
+        //TODO Improve this part in
+        if (valueArguments.isEmpty()) {
+            dispatchReceiver!!.produceSources(printer)
+        } else {
+            // TODO investigate more robust way to process `<this>` value
+            val rhs = leftOperand!!.decompile().removePrefix("<").removeSuffix(">")
+            // TODO investigate more robust way to obtain property name
+            val lhs = rightOperand!!.decompile().removePrefix("<set-").removeSuffix(">")
+            printer.print("$lhs !in $rhs")
+        }
     }
 }
 
