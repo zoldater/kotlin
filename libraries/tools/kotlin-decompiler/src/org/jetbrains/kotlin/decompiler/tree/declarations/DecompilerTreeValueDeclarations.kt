@@ -40,7 +40,7 @@ class DecompilerTreeVariable(
                           (this@DecompilerTreeVariable.type as? DecompilerTreeFunctionalType)?.decompile()?.let { ": $it" },
                           this@DecompilerTreeVariable.initializer?.let { "= ${it.decompile()}" }
                 //TODO maybe paste run {...} for some initializers like = when(val t = smth()) {...}
-            ).joinToString(" ").also { printer.println(it) }
+            ).joinToString(" ").also { printer.print(it) }
         }
     }
 }

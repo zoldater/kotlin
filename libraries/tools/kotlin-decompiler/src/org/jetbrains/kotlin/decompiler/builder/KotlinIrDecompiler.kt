@@ -344,13 +344,42 @@ class KotlinIrDecompiler private constructor() {
 
         }
 
+        private fun IrContainerExpression.buildWhenContainer(): DecompilerTreeWhenContainer {
+            val variable = statements.getOrNull(0) as? IrVariable
+            val irWhen = statements[1] as IrWhen
+            val builtBranches = irWhen.branches.map { it.buildElement<IrBranch, AbstractDecompilerTreeBranch>() }
+            builtBranches.mapNotNull { it.condition as? DecompilerTreeOperatorCall }.forEach { it.isShortenInCondition = true }
+            builtBranches.mapNotNull { it.condition as? DecompilerTreeTypeOperatorCall }.forEach { it.isShortenInCondition = true }
+
+            when (variable?.origin) {
+                IrDeclarationOrigin.DEFINED -> {
+                    return DecompilerTreeWhenContainer(
+                        this, type.buildType(),
+                        DecompilerTreeWhenWithSubjectVariable(irWhen, variable.buildElement(), builtBranches, type.buildType())
+                    )
+                }
+                IrDeclarationOrigin.IR_TEMPORARY_VARIABLE -> {
+                    return DecompilerTreeWhenContainer(
+                        this, type.buildType(),
+                        DecompilerTreeWhenWithSubjectValue(
+                            irWhen,
+                            (variable.initializer as IrGetValue).buildElement(),
+                            builtBranches,
+                            type.buildType()
+                        )
+                    )
+                }
+                else -> throw IllegalStateException("Bad When Container structure!")
+            }
+        }
+
         override fun visitContainerExpression(
             expression: IrContainerExpression,
             data: ExtensionKind?
         ): AbstractDecompilerTreeContainerExpression =
             with(expression) {
                 when (origin) {
-                    IrStatementOrigin.WHEN -> DecompilerTreeWhenContainer(this, statements.buildElements(data), type.buildType())
+                    IrStatementOrigin.WHEN -> expression.buildWhenContainer()
                     IrStatementOrigin.FOR_LOOP -> expression.buildForLoopContainer()
                     IrStatementOrigin.ELVIS -> DecompilerTreeElvisOperatorCallContainer(
                         type.buildType(),

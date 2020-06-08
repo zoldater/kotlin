@@ -28,7 +28,8 @@ class DecompilerTreeBranch(
     override val condition: DecompilerTreeExpression,
     override val result: DecompilerTreeExpression
 ) : AbstractDecompilerTreeBranch(element) {
-    override val lhs: String = condition.decompile()
+    override val lhs: String
+        get() = condition.decompile()
 }
 
 class DecompilerTreeElseBranch(

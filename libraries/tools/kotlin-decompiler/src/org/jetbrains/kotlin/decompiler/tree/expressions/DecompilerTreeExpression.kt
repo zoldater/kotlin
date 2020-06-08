@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.*
 import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeVariable
-import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeVariable
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -74,22 +73,11 @@ class DecompilerTreeSafeCallOperatorContainer(
 
 class DecompilerTreeWhenContainer(
     override val element: IrContainerExpression,
-    override val statements: List<DecompilerTreeStatement>,
-    override val type: DecompilerTreeType
+    override val type: DecompilerTreeType,
+    val decompilerTreeWhenNode: AbstractDecompilerTreeWhen,
+    override val statements: List<DecompilerTreeStatement> = emptyList()
 ) : AbstractDecompilerTreeContainerExpression {
-    override fun produceSources(printer: SmartPrinter) {
-//        val whenStatement = statements.last() as DecompilerTreeWhen
-//        statements.filterIsInstance(DecompilerTreeVariable::class.java).also {
-//            (whenStatement).valueParameters.addAll(it)
-//        }
-//        whenStatement.produceSources(printer)
-        statements.filterIsInstance(DecompilerTreeVariable::class.java).forEach {
-            printer.println(it.decompile())
-        }
-        statements.filterIsInstance(DecompilerTreeWhen::class.java).firstOrNull()?.also {
-            printer.println(it.decompile())
-        }
-    }
+    override fun produceSources(printer: SmartPrinter) = decompilerTreeWhenNode.produceSources(printer)
 }
 
 
@@ -138,12 +126,16 @@ class DecompilerTreeTypeOperatorCall(
     private val typeOperand: DecompilerTreeType
 ) : DecompilerTreeExpression {
 
+    var isShortenInCondition: Boolean = false
+
     override fun produceSources(printer: SmartPrinter) {
-        listOfNotNull(
-            argument.decompile(),
-            operatorsMap[element.operator]?.let { "$it ${typeOperand.decompile()}" }
-        ).joinToString(" ")
-            .also { printer.print(it) }
+        if (isShortenInCondition && element.operator in hashSetOf(IrTypeOperator.INSTANCEOF, IrTypeOperator.NOT_INSTANCEOF)) {
+            operatorsMap[element.operator]?.let { "$it ${typeOperand.decompile()}" }?.also { printer.print(it) }
+        } else {
+            listOfNotNull(argument.decompile(), operatorsMap[element.operator]?.let { "$it ${typeOperand.decompile()}" })
+                .joinToString(" ")
+                .also { printer.print(it) }
+        }
     }
 
     companion object {

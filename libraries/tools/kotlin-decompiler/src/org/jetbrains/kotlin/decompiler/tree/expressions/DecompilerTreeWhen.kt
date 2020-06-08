@@ -5,39 +5,27 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
-import org.jetbrains.kotlin.decompiler.decompile
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.printer.withBraces
 import org.jetbrains.kotlin.decompiler.tree.AbstractDecompilerTreeBranch
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeVariable
-import org.jetbrains.kotlin.decompiler.util.OPERATOR_TOKENS
-import org.jetbrains.kotlin.decompiler.util.concatenateNonEmptyWithSpace
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrWhen
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 abstract class AbstractDecompilerTreeWhen(
     override val element: IrWhen,
     val branches: List<AbstractDecompilerTreeBranch>,
     override val type: DecompilerTreeType
-) : DecompilerTreeExpression, SourceProducible
-
-//TODO extend WhenWithReceiver, WhenWithDeclaringReceiver
-class DecompilerTreeWhen(
-    element: IrWhen,
-    branches: List<AbstractDecompilerTreeBranch>,
-    type: DecompilerTreeType,
-) : AbstractDecompilerTreeWhen(element, branches, type) {
-    val valueParameters: MutableList<DecompilerTreeVariable> = mutableListOf()
+) : DecompilerTreeExpression, SourceProducible {
+    abstract val subjectStr: String?
 
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
-            listOfNotNull("when",
-                          valueParameters.ifNotEmpty { joinToString("; ", "(", ")") { it.decompile().trimEnd() } }
-            ).joinToString("").also { print(it) }
-
+            listOfNotNull("when", subjectStr)
+                .joinToString(separator = " ")
+                .also { print(it) }
             withBraces {
                 branches.forEach { it.produceSources(this) }
             }
@@ -45,11 +33,39 @@ class DecompilerTreeWhen(
     }
 }
 
+class DecompilerTreeWhenWithSubjectValue(
+    element: IrWhen,
+    subjectValue: DecompilerTreeGetValue,
+    branches: List<AbstractDecompilerTreeBranch>,
+    type: DecompilerTreeType
+) : AbstractDecompilerTreeWhen(element, branches, type) {
+    override val subjectStr: String = subjectValue.decompile().let { "($it)" }
+}
+
+class DecompilerTreeWhenWithSubjectVariable(
+    element: IrWhen,
+    subjectVariable: DecompilerTreeVariable,
+    branches: List<AbstractDecompilerTreeBranch>,
+    type: DecompilerTreeType
+) : AbstractDecompilerTreeWhen(element, branches, type) {
+    override val subjectStr: String = subjectVariable.decompile().let { "($it)" }
+}
+
+class DecompilerTreeWhen(
+    element: IrWhen,
+    branches: List<AbstractDecompilerTreeBranch>,
+    type: DecompilerTreeType,
+) : AbstractDecompilerTreeWhen(element, branches, type) {
+    override val subjectStr: String? = null
+}
+
 class DecompilerTreeIfThenElse(
     element: IrWhen,
     branches: List<AbstractDecompilerTreeBranch>,
     type: DecompilerTreeType
 ) : AbstractDecompilerTreeWhen(element, branches, type) {
+    override val subjectStr: String? = null
+
     override fun produceSources(printer: SmartPrinter) {
         when (element.origin) {
             IrStatementOrigin.OROR -> printer.print(
