@@ -57,7 +57,7 @@ internal fun IrCall.buildCall(
             type
         )
         origin == IrStatementOrigin.RANGE -> DecompilerTreeCallRangeOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
-        symbol.owner.name() in hashSetOf("step", "until", "downTo") -> DecompilerTreeInfixFunCall(
+        symbol.owner.descriptor.isInfix -> DecompilerTreeInfixFunCall(
             this,
             dispatchReceiver,
             extensionReceiver,

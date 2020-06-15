@@ -30,7 +30,7 @@ fun IrElement.decompile(data: String): String =
         accept(DecompileIrTreeVisitor(sb), data)
     }.toString().trimEnd()
 
-
+@Deprecated("Use KotlinIrDecompiler instead")
 class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
 
     internal val printer = Printer(out, "    ")

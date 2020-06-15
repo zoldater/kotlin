@@ -47,7 +47,8 @@ abstract class AbstractDecompilerTreeConstructor(
 
     val delegatingConstructorCall: DecompilerTreeDelegatingConstructorCall?
         get() = (body as? AbstractDecompilerTreeBlockBody)?.statements
-            ?.filterIsInstance(DecompilerTreeDelegatingConstructorCall::class.java)?.firstOrNull()
+            ?.filterIsInstance<DecompilerTreeDelegatingConstructorCall>()
+            ?.firstOrNull()
 
     override fun produceSources(printer: SmartPrinter) {
         val header = listOfNotNull(

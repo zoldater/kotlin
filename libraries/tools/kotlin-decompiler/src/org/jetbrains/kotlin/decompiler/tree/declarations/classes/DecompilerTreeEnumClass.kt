@@ -26,7 +26,7 @@ class DecompilerTreeEnumClass(
     override val keyword: String = "enum class"
 
     private val enumEntries: List<DecompilerTreeEnumEntry>
-        get() = super.otherPrintableDeclarations.filterIsInstance(DecompilerTreeEnumEntry::class.java)
+        get() = super.otherPrintableDeclarations.filterIsInstance<DecompilerTreeEnumEntry>()
 
     override val methods: List<DecompilerTreeSimpleFunction>
         get() = super.methods.filterNot { it.element.origin == IrDeclarationOrigin.ENUM_CLASS_SPECIAL_MEMBER }

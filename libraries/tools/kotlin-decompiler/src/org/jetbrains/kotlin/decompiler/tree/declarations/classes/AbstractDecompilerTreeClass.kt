@@ -34,26 +34,22 @@ abstract class AbstractDecompilerTreeClass(
     abstract val thisReceiver: AbstractDecompilerTreeValueParameter?
 
     protected open val nonTrivialSuperInterfaces: List<DecompilerTreeType>
-        get() = superTypes.filterNot { it.irType.isAny() || it.irType.isUnit() }
-            .filterNot { it.typeClassIfExists is DecompilerTreeClass }
+        get() = superTypes.filterNot { it.irType.isAny() || it.irType.isUnit() || it.typeClassIfExists is DecompilerTreeClass }
 
     protected open val primaryConstructor: AbstractDecompilerTreeConstructor?
-        get() = declarations.filterIsInstance(DecompilerTreePrimaryConstructor::class.java)
-            .firstOrNull()
+        get() = declarations.filterIsInstance<DecompilerTreePrimaryConstructor>().firstOrNull()
 
     protected open val secondaryConstructors: List<DecompilerTreeSecondaryConstructor>
-        get() = declarations.filterIsInstance(DecompilerTreeSecondaryConstructor::class.java)
+        get() = declarations.filterIsInstance<DecompilerTreeSecondaryConstructor>()
 
     protected open val initSections: List<DecompilerTreeAnonymousInitializer>
-        get() = declarations.filterIsInstance(DecompilerTreeAnonymousInitializer::class.java)
+        get() = declarations.filterIsInstance<DecompilerTreeAnonymousInitializer>()
 
     protected open val properties: List<DecompilerTreeProperty>
-        get() = declarations.filterIsInstance(DecompilerTreeProperty::class.java).filterNot { it.element.isFakeOverride }
+        get() = declarations.filterIsInstance<DecompilerTreeProperty>().filterNot { it.element.isFakeOverride }
 
     protected open val methods: List<DecompilerTreeSimpleFunction>
-        get() = declarations.filterIsInstance(DecompilerTreeSimpleFunction::class.java).filterNot {
-            it.element.isFakeOverride
-        }
+        get() = declarations.filterIsInstance<DecompilerTreeSimpleFunction>().filterNot { it.element.isFakeOverride }
 
     protected open val otherPrintableDeclarations: List<DecompilerTreeDeclaration>
         get() = declarations.asSequence()

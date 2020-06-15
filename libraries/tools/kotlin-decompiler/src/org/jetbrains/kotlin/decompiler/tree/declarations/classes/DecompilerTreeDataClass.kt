@@ -24,7 +24,7 @@ class DecompilerTreeDataClass(
     override val keyword: String = "data class"
 
     override val primaryConstructor: DecompilerTreeDataClassPrimaryConstructor?
-        get() = declarations.filterIsInstance(DecompilerTreeDataClassPrimaryConstructor::class.java).firstOrNull()
+        get() = declarations.filterIsInstance<DecompilerTreeDataClassPrimaryConstructor>().firstOrNull()
 
     private val primaryConstructorPropertiesOrNull
         get() = primaryConstructor?.valueParameters?.mapNotNull { it as? DecompilerTreePropertyValueParameter }
