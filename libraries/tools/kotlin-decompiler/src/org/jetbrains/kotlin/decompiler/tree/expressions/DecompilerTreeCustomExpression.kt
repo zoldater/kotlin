@@ -45,3 +45,22 @@ class DecompilerTreeSafeCallOperatorExpression(
         }
     }
 }
+
+class DecompilerTreeIncDecOperatorCall(
+    override val type: DecompilerTreeType,
+    private val expressionToIncrement: DecompilerTreeExpression,
+    private val isPostfix: Boolean,
+    private val isInc: Boolean,
+    override val element: IrExpression? = null
+) : DecompilerTreeCustomExpression {
+
+    private val operatorStr = if (isInc) "++" else "--"
+
+    override fun produceSources(printer: SmartPrinter) {
+        if (isPostfix) {
+            printer.print("${expressionToIncrement.asOperatorCallArgument}$operatorStr")
+        } else {
+            printer.print("$operatorStr${expressionToIncrement.asOperatorCallArgument}")
+        }
+    }
+}

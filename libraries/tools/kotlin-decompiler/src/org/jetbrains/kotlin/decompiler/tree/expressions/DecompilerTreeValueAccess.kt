@@ -34,7 +34,7 @@ class DecompilerTreeSetVariable(
 ) : DecompilerTreeValueAccess, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {
         //TODO how to replace cast
-        printer.print("${element.ownerName} ${originDescriptionsMap[element.origin]} ${(value as? DecompilerTreeMemberAccessExpression)?.valueArgumentsPerComma ?: value.decompile()}")
+        printer.print("${element.ownerName} ${originDescriptionsMap[element.origin]} ${value.decompile()}")
     }
 
     companion object {

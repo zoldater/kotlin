@@ -25,10 +25,7 @@ public class IrDecompilerTextTestCaseGenerated extends AbstractIrDecompilerTextT
     }
 
     public void testAllFilesPresentIn_() throws Exception {
-        KotlinTestUtils
-                .assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/."),
-                                                             Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"),
-                                                             true, "box");
+        KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/."), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true, "box");
     }
 
     @TestMetadata("simpleOperators.kt")
@@ -45,10 +42,7 @@ public class IrDecompilerTextTestCaseGenerated extends AbstractIrDecompilerTextT
         }
 
         public void testAllFilesPresentInClasses() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(),
-                                                                        new File("libraries/tools/kotlin-decompiler/testData/./classes"),
-                                                                        Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/./classes"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("classes.kt")

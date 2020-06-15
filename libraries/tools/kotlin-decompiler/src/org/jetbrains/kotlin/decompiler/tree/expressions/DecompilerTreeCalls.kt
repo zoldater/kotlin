@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin.*
 
 interface AbstractDecompilerTreeCall : DecompilerTreeMemberAccessExpression, SourceProducible {
     override val element: IrCall
@@ -123,8 +124,6 @@ abstract class DecompilerTreeOperatorCall : AbstractDecompilerTreeCall {
     override val typeArguments: List<DecompilerTreeType>
         get() = emptyList()
 
-    var isShortenInCondition: Boolean = false
-
     val leftOperand: DecompilerTreeExpression?
         get() = dispatchReceiver ?: extensionReceiver ?: valueArguments.getOrNull(0)
 
@@ -176,19 +175,17 @@ class DecompilerTreeCallBinaryOp(
     override fun produceSources(printer: SmartPrinter) {
         check(element.origin in originMap.keys) { "Origin ${element.origin?.toString()} is not binary operation!" }
 
+        if (element.origin in listOf(PLUSEQ, MINUSEQ, DIVEQ, MULTEQ, PERCEQ)) {
+            valueArguments.firstOrNull()?.produceSources(printer)
+            return
+        }
+
         //TODO looks bad, investigate for more robust way
-        if (element.origin in listOf(
-                IrStatementOrigin.EXCLEQ,
-                IrStatementOrigin.EXCLEQEQ
-            ) && valueArguments.isEmpty()
-        ) leftOperand?.produceSources(printer)
+        if (element.origin in listOf(EXCLEQ, EXCLEQEQ) && valueArguments.isEmpty())
+            leftOperand?.produceSources(printer)
         else leftOperand?.also { l ->
             rightOperand?.also { r ->
-                if (isShortenInCondition && element.origin == IrStatementOrigin.EQEQ) {
-                    printer.print(r.decompile())
-                } else {
-                    printer.print("${l.decompile()} ${originMap[element.origin]} ${r.decompile()}")
-                }
+                printer.print("${l.decompile()} ${originMap[element.origin]} ${r.decompile()}")
             }
         }
     }
@@ -196,10 +193,15 @@ class DecompilerTreeCallBinaryOp(
     companion object {
         val originMap = mapOf(
             IrStatementOrigin.PLUS to "+",
+            PLUSEQ to "+",
             IrStatementOrigin.MINUS to "-",
+            MINUSEQ to "-",
             IrStatementOrigin.MUL to "*",
+            IrStatementOrigin.MULTEQ to "*",
             IrStatementOrigin.DIV to "/",
+            DIVEQ to "/",
             IrStatementOrigin.PERC to "%",
+            IrStatementOrigin.PERCEQ to "%",
             IrStatementOrigin.ANDAND to "&&",
             IrStatementOrigin.OROR to "||",
             IrStatementOrigin.EQEQ to "==",
@@ -245,11 +247,7 @@ class DecompilerTreeInOperatorCall(
         val rhs = leftOperand!!.decompile().removePrefix("<").removeSuffix(">")
         // TODO investigate more robust way to obtain property name
         val lhs = rightOperand!!.decompile().removePrefix("<set-").removeSuffix(">")
-        if (isShortenInCondition) {
-            printer.print("in $rhs")
-        } else {
-            printer.print("$lhs in $rhs")
-        }
+        printer.print("$lhs in $rhs")
     }
 }
 
@@ -269,11 +267,7 @@ class DecompilerTreeNotInOperatorCall(
             val rhs = leftOperand!!.decompile().removePrefix("<").removeSuffix(">")
             // TODO investigate more robust way to obtain property name
             val lhs = rightOperand!!.decompile().removePrefix("<set-").removeSuffix(">")
-            if (isShortenInCondition) {
-                printer.print("!in $rhs")
-            } else {
-                printer.print("$lhs !in $rhs")
-            }
+            printer.print("$lhs !in $rhs")
         }
     }
 }

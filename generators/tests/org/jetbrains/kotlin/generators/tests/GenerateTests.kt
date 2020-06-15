@@ -23,6 +23,8 @@ import org.jetbrains.kotlin.asJava.classes.AbstractUltraLightFacadeClassTest
 import org.jetbrains.kotlin.asJava.classes.AbstractUltraLightScriptLoadingTest
 import org.jetbrains.kotlin.checkers.*
 import org.jetbrains.kotlin.copyright.AbstractUpdateKotlinCopyrightTest
+import org.jetbrains.kotlin.decompiler.AbstractIrDecompilerBlackBoxTest
+import org.jetbrains.kotlin.decompiler.AbstractIrDecompilerTextTestCase
 import org.jetbrains.kotlin.findUsages.AbstractFindUsagesTest
 import org.jetbrains.kotlin.findUsages.AbstractFindUsagesWithDisableComponentSearchTest
 import org.jetbrains.kotlin.findUsages.AbstractKotlinFindUsagesWithLibraryTest
@@ -1195,6 +1197,19 @@ fun main(args: Array<String>) {
 
             testClass<AbstractMultiPlatformCompletionTest> {
                 model("multiPlatform", recursive = false, extension = null)
+            }
+        }
+
+        testGroup(
+            "libraries/tools/kotlin-decompiler/test",
+            "libraries/tools/kotlin-decompiler/testData"
+        ) {
+            testClass<AbstractIrDecompilerTextTestCase> {
+                model(".", excludeDirs = listOf("box"), excludedPattern = "^(.+)\\.decompiled\\.kt?\$")
+            }
+
+            testClass<AbstractIrDecompilerBlackBoxTest> {
+                model("box", excludedPattern = "^(.+)\\.decompiled\\.kt?\$")
             }
         }
 

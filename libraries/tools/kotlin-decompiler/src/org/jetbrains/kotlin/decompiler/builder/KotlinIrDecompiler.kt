@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.decompiler.builder
 
 import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
+import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler.ExtraData.ANNOTATION_CALL
 import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler.ExtraData.DATA_CLASS_MEMBER
 import org.jetbrains.kotlin.decompiler.printer.FileSourcesWriter
 import org.jetbrains.kotlin.decompiler.tree.*
@@ -17,6 +18,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.toKotlinType
@@ -326,8 +328,8 @@ class KotlinIrDecompiler private constructor() {
             val variable = statements.getOrNull(0) as? IrVariable
             val irWhen = statements[1] as IrWhen
             val builtBranches = irWhen.branches.map { it.buildElement<IrBranch, AbstractDecompilerTreeBranch>() }
-            builtBranches.mapNotNull { it.condition as? DecompilerTreeOperatorCall }.forEach { it.isShortenInCondition = true }
-            builtBranches.mapNotNull { it.condition as? DecompilerTreeTypeOperatorCall }.forEach { it.isShortenInCondition = true }
+            builtBranches.mapNotNull { it.condition as? DecompilerTreeOperatorCall }//.forEach { it.isShortenInCondition = true }
+            builtBranches.mapNotNull { it.condition as? DecompilerTreeTypeOperatorCall }
 
             when (variable?.origin) {
                 IrDeclarationOrigin.DEFINED -> {
@@ -351,15 +353,59 @@ class KotlinIrDecompiler private constructor() {
             }
         }
 
+        private fun IrContainerExpression.buildPostfixIncDecOperatorCallContainer(): DecompilerTreeIncDecOperatorsContainer {
+            val tempVariable = statements[0]
+            val tmpVarOrigin = (tempVariable as? IrVariable)?.origin
+            check(IrDeclarationOrigin.IR_TEMPORARY_VARIABLE == tmpVarOrigin) {
+                "Unexpected origin in increment/decrement container temporary variable: $tmpVarOrigin"
+            }
+            val expressionToIncrement = tempVariable.initializer
+            val incrementedExprOrigin = (expressionToIncrement as? IrValueAccessExpression)?.origin
+
+            val isInc = when (incrementedExprOrigin) {
+                POSTFIX_INCR -> true
+                POSTFIX_DECR -> false
+                else -> throw IllegalStateException("Bad origin of incremented expression: $incrementedExprOrigin")
+            }
+            val operatorCall = DecompilerTreeIncDecOperatorCall(
+                expressionToIncrement.type.buildType(),
+                expressionToIncrement.buildExpression(),
+                true,
+                isInc
+            )
+            return DecompilerTreeIncDecOperatorsContainer(type.buildType(), operatorCall)
+        }
+
+        private fun IrContainerExpression.buildPrefixIncDecOperatorCallContainer(): DecompilerTreeIncDecOperatorsContainer {
+            val setVariable = statements[0]
+            val setVarOrigin = (setVariable as? IrSetVariable)?.origin
+
+            val isInc = when (setVarOrigin) {
+                PREFIX_INCR -> true
+                PREFIX_DECR -> false
+                else -> throw IllegalStateException("Bad origin of incremented expression: $setVarOrigin")
+            }
+
+            val getValue = statements[1] as IrGetValue
+
+            val operatorCall = DecompilerTreeIncDecOperatorCall(
+                getValue.type.buildType(),
+                getValue.buildExpression(),
+                false,
+                isInc
+            )
+            return DecompilerTreeIncDecOperatorsContainer(type.buildType(), operatorCall)
+        }
+
         override fun visitContainerExpression(
             expression: IrContainerExpression,
             data: ExtraData?
         ): AbstractDecompilerTreeContainerExpression =
             with(expression) {
                 when (origin) {
-                    IrStatementOrigin.WHEN -> expression.buildWhenContainer()
-                    IrStatementOrigin.FOR_LOOP -> expression.buildForLoopContainer()
-                    IrStatementOrigin.ELVIS -> DecompilerTreeElvisOperatorCallContainer(
+                    WHEN -> buildWhenContainer()
+                    FOR_LOOP -> buildForLoopContainer()
+                    ELVIS -> DecompilerTreeElvisOperatorCallContainer(
                         type.buildType(),
                         DecompilerTreeElvisOperatorCallExpression(
                             type.buildType(),
@@ -367,7 +413,7 @@ class KotlinIrDecompiler private constructor() {
                             statements[1].buildElement(null)
                         )
                     )
-                    IrStatementOrigin.SAFE_CALL -> DecompilerTreeSafeCallOperatorContainer(
+                    SAFE_CALL -> DecompilerTreeSafeCallOperatorContainer(
                         type.buildType(),
                         DecompilerTreeSafeCallOperatorExpression(
                             type.buildType(),
@@ -375,6 +421,8 @@ class KotlinIrDecompiler private constructor() {
                             statements[1].buildElement(null)
                         )
                     )
+                    POSTFIX_DECR, POSTFIX_INCR -> buildPostfixIncDecOperatorCallContainer()
+                    PREFIX_DECR, PREFIX_INCR -> buildPrefixIncDecOperatorCallContainer()
                     else -> DecompilerTreeContainerExpression(this, statements.buildElements(data), type.buildType())
                 }
             }
@@ -437,22 +485,26 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitConstructorCall(expression: IrConstructorCall, data: ExtraData?): AbstractDecompilerTreeConstructorCall =
             with(expression) {
+                val builtDispatchReceiver = buildDispatchReceiver(data)
+                val builtExtensionReceiver = buildExtensionReceiver(data)
+                val builtValueArguments = buildValueArguments(data)
+                val builtTypeArguments = buildTypeArguments()
                 when (data) {
-                    ExtraData.ANNOTATION_CALL -> DecompilerTreeAnnotationConstructorCall(
+                    ANNOTATION_CALL -> DecompilerTreeAnnotationConstructorCall(
                         this,
-                        buildDispatchReceiver(data),
-                        buildExtensionReceiver(data),
-                        buildValueArguments(data),
+                        builtDispatchReceiver,
+                        builtExtensionReceiver,
+                        builtValueArguments,
                         type.buildType(),
-                        buildTypeArguments()
+                        builtTypeArguments
                     )
                     else -> DecompilerTreeCommonConstructorCall(
                         this,
-                        buildDispatchReceiver(data),
-                        buildExtensionReceiver(data),
-                        buildValueArguments(data),
+                        builtDispatchReceiver,
+                        builtExtensionReceiver,
+                        builtValueArguments,
                         type.buildType(),
-                        buildTypeArguments()
+                        builtTypeArguments
                     )
 
                 }
@@ -462,24 +514,33 @@ class KotlinIrDecompiler private constructor() {
             expression: IrDelegatingConstructorCall,
             data: ExtraData?
         ): DecompilerTreeDelegatingConstructorCall = with(expression) {
-            DecompilerTreeDelegatingConstructorCall(
+            val builtDispatchReceiver = buildDispatchReceiver(data)
+            val builtExtensionReceiver = buildExtensionReceiver(data)
+            val builtValueArguments = buildValueArguments(data)
+            val builtTypeArguments = buildTypeArguments()
+
+            return DecompilerTreeDelegatingConstructorCall(
                 this,
-                buildDispatchReceiver(data),
-                buildExtensionReceiver(data),
-                buildValueArguments(data),
+                builtDispatchReceiver,
+                builtExtensionReceiver,
+                builtValueArguments,
                 type.buildType(),
-                buildTypeArguments(),
+                builtTypeArguments,
                 symbol.owner.returnType.buildType()
             )
         }
 
         override fun visitEnumConstructorCall(expression: IrEnumConstructorCall, data: ExtraData?): DecompilerTreeEnumConstructorCall =
             with(expression) {
+                val builtDispatchReceiver = buildDispatchReceiver(data)
+                val builtExtensionReceiver = buildExtensionReceiver(data)
+                val builtValueArguments = buildValueArguments(data)
+
                 DecompilerTreeEnumConstructorCall(
                     this,
-                    buildDispatchReceiver(data),
-                    buildExtensionReceiver(data),
-                    buildValueArguments(data),
+                    builtDispatchReceiver,
+                    builtExtensionReceiver,
+                    builtValueArguments,
                     type.buildType()
                 )
             }
@@ -662,7 +723,7 @@ class KotlinIrDecompiler private constructor() {
 
         //TODO check inferred type correctness
         private fun IrAnnotationContainer.buildAnnotations(): List<DecompilerTreeAnnotationConstructorCall> =
-            annotations.buildElements(ExtraData.ANNOTATION_CALL)
+            annotations.buildElements(ANNOTATION_CALL)
 
         private fun IrDeclarationContainer.buildDeclarations(kind: ExtraData? = null): List<DecompilerTreeDeclaration> =
             declarations.buildDeclarations(kind)

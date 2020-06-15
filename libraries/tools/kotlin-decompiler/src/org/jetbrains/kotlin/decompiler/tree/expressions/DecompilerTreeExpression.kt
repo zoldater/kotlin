@@ -16,6 +16,15 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 interface DecompilerTreeExpression : DecompilerTreeStatement, DecompilerTreeVarargElement, SourceProducible {
     override val element: IrExpression?
     val type: DecompilerTreeType
+
+    val asOperatorCallArgument: String
+        get() = decompile().let {
+            if (this is DecompilerTreeGetValue || this is DecompilerTreeConst) {
+                it
+            } else {
+                "($it)"
+            }
+        }
 }
 
 interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression, DecompilerTreeTypeArgumentsContainer {
@@ -71,6 +80,15 @@ class DecompilerTreeSafeCallOperatorContainer(
     }
 }
 
+class DecompilerTreeIncDecOperatorsContainer(
+    override val type: DecompilerTreeType,
+    private val incDecOperatorCall: DecompilerTreeIncDecOperatorCall,
+    override val element: IrContainerExpression? = null,
+    override val statements: List<DecompilerTreeStatement> = emptyList()
+) : AbstractDecompilerTreeContainerExpression {
+    override fun produceSources(printer: SmartPrinter) = incDecOperatorCall.produceSources(printer)
+}
+
 class DecompilerTreeWhenContainer(
     override val element: IrContainerExpression,
     override val type: DecompilerTreeType,
@@ -96,8 +114,6 @@ class DecompilerTreeForLoopContainer(
                 }
             }
         }
-
-
     }
 }
 
@@ -126,16 +142,10 @@ class DecompilerTreeTypeOperatorCall(
     private val typeOperand: DecompilerTreeType
 ) : DecompilerTreeExpression {
 
-    var isShortenInCondition: Boolean = false
-
     override fun produceSources(printer: SmartPrinter) {
-        if (isShortenInCondition && element.operator in hashSetOf(IrTypeOperator.INSTANCEOF, IrTypeOperator.NOT_INSTANCEOF)) {
-            operatorsMap[element.operator]?.let { "$it ${typeOperand.decompile()}" }?.also { printer.print(it) }
-        } else {
-            listOfNotNull(argument.decompile(), operatorsMap[element.operator]?.let { "$it ${typeOperand.decompile()}" })
-                .joinToString(" ")
-                .also { printer.print(it) }
-        }
+        listOfNotNull(argument.decompile(), operatorsMap[element.operator]?.let { "$it ${typeOperand.decompile()}" })
+            .joinToString(" ")
+            .also { printer.print(it) }
     }
 
     companion object {
