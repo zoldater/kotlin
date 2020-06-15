@@ -25,10 +25,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
     }
 
     public void testAllFilesPresentInBox() throws Exception {
-        KotlinTestUtils
-                .assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box"),
-                                                             Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"),
-                                                             true);
+        KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
     }
 
     @TestMetadata("dummy.kt")
@@ -55,10 +52,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInCasts() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(),
-                                                                        new File("libraries/tools/kotlin-decompiler/testData/box/casts"),
-                                                                        Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/casts"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("as.kt")
@@ -185,9 +179,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInFunctions() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/casts/functions"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/casts/functions"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("asFunKBig.kt")
@@ -265,10 +257,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInLiteralExpressionAsGenericArgument() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/casts/literalExpressionAsGenericArgument"),
-                                                                            Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/casts/literalExpressionAsGenericArgument"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("binaryExpressionCast.kt")
@@ -316,9 +305,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInMutableCollections() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/casts/mutableCollections"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/casts/mutableCollections"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("asWithMutable.kt")
@@ -372,10 +359,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInClasses() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(),
-                                                                        new File("libraries/tools/kotlin-decompiler/testData/box/classes"),
-                                                                        Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("classes_simple.kt")
@@ -402,9 +386,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInCtor() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/classes/ctor"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes/ctor"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("default_param_ctor.kt")
@@ -437,9 +419,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInData_class() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/classes/data_class"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes/data_class"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("data_class.kt")
@@ -457,9 +437,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInDelegating_calls() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/classes/delegating_calls"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes/delegating_calls"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("super_this_calls.kt")
@@ -477,9 +455,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInExtension() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/classes/extension"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes/extension"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("custom_type_extension.kt")
@@ -502,9 +478,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInInheritance() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/classes/inheritance"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes/inheritance"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("inherit_and_implement.kt")
@@ -537,9 +511,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInInit_get_set() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/classes/init_get_set"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes/init_get_set"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("init_section.kt")
@@ -557,9 +529,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInInnerNested() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/classes/innerNested"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes/innerNested"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("createNestedClass.kt")
@@ -666,10 +636,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
                 }
 
                 public void testAllFilesPresentInSuperConstructorCall() throws Exception {
-                    KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                        "libraries/tools/kotlin-decompiler/testData/box/classes/innerNested/superConstructorCall"),
-                                                                                Pattern.compile("^(.+)\\.kt$"),
-                                                                                Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                    KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes/innerNested/superConstructorCall"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
                 }
 
                 @TestMetadata("deepInnerHierarchy.kt")
@@ -783,9 +750,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInInterface_implement() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/classes/interface_implement"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/classes/interface_implement"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("multiple_implement.kt")
@@ -809,9 +774,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInDelegatedProperty() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                "libraries/tools/kotlin-decompiler/testData/box/delegatedProperty"), Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/delegatedProperty"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("getAsExtensionFun.kt")
@@ -844,9 +807,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInDelegation() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                "libraries/tools/kotlin-decompiler/testData/box/delegation"), Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/delegation"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("byMiddleInterface.kt")
@@ -884,9 +845,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInExpressions() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                "libraries/tools/kotlin-decompiler/testData/box/expressions"), Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("libraries/tools/kotlin-decompiler/testData/box/expressions/if")
@@ -898,9 +857,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInIf() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/expressions/if"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/if"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("if_else_if.kt")
@@ -943,9 +900,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInLoop() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/expressions/loop"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/loop"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("for_in.kt")
@@ -973,9 +928,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInOther() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/expressions/other"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/other"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("custom_package.kt")
@@ -1018,9 +971,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInTry_catch() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/expressions/try_catch"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/try_catch"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("return_try_catch.kt")
@@ -1043,9 +994,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInWhen() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/expressions/when"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/when"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("when_multiple_condition.kt")
@@ -1074,9 +1023,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInFunctions() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                "libraries/tools/kotlin-decompiler/testData/box/functions"), Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/functions"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("default_named_args.kt")
@@ -1093,9 +1040,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInHigher_order() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/functions/higher_order"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/functions/higher_order"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("apply_usage.kt")
@@ -1123,9 +1068,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInSimple() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
-                                                                                    "libraries/tools/kotlin-decompiler/testData/box/functions/simple"), Pattern.compile("^(.+)\\.kt$"),
-                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/functions/simple"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
             @TestMetadata("fibonacci.kt")
@@ -1159,10 +1102,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInGenerics() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(),
-                                                                        new File("libraries/tools/kotlin-decompiler/testData/box/generics"),
-                                                                        Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/generics"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("custom_gen_class.kt")
@@ -1200,10 +1140,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInImports() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(),
-                                                                        new File("libraries/tools/kotlin-decompiler/testData/box/imports"),
-                                                                        Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/imports"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("anon_and_local.kt")
@@ -1236,10 +1173,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInObjects() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(),
-                                                                        new File("libraries/tools/kotlin-decompiler/testData/box/objects"),
-                                                                        Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/objects"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("classCallsProtectedInheritedByCompanion.kt")
@@ -1317,10 +1251,7 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInVarargs() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(),
-                                                                        new File("libraries/tools/kotlin-decompiler/testData/box/varargs"),
-                                                                        Pattern.compile("^(.+)\\.kt$"),
-                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/varargs"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
         }
 
         @TestMetadata("different_varargs.kt")
