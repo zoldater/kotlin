@@ -78,12 +78,12 @@ class DecompilerTreeIfThenElse(
             )
             else -> {
                 branches[0].condition.decompile().let { "if ($it)" }.also { printer.print(it) }
-                printer.withBraces {
+                printer.withBraces(false) {
                     branches[0].result.decompileByLines(printer)
                 }
                 branches.getOrNull(1)?.result?.also {
                     printer.print("else")
-                    printer.withBraces {
+                    printer.withBraces(false) {
                         it.decompileByLines(printer)
                     }
                 }

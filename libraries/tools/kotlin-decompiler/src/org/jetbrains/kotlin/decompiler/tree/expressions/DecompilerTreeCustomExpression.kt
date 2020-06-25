@@ -6,11 +6,29 @@
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeValueParameter
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeVariable
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 
 interface DecompilerTreeCustomExpression : DecompilerTreeExpression
+
+class DecompilerTreeValueArgument(
+    override val type: DecompilerTreeType,
+    private val valueParameter: AbstractDecompilerTreeValueParameter,
+    private val argumentValue: DecompilerTreeExpression?,
+    private val toPrintWithParameterName: Boolean,
+    override val element: IrExpression? = null
+) : DecompilerTreeCustomExpression {
+    override fun produceSources(printer: SmartPrinter) {
+        argumentValue?.also {
+            printer.print(
+                if (toPrintWithParameterName) "${valueParameter.nameIfExists!!} = ${it.decompile()}"
+                else it.decompile()
+            )
+        }
+    }
+}
 
 class DecompilerTreeElvisOperatorCallExpression(
     override val type: DecompilerTreeType,

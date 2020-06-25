@@ -36,7 +36,7 @@ interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression, Decom
         get() = valueArgumentsPerComma?.let { "($it)" }
 
     val valueArgumentsPerComma: String?
-        get() = valueArguments.ifNotEmpty { joinToString(", ") { it.decompile() } }
+        get() = valueArguments.map { it.decompile() }.filter { it.isNotBlank() }.ifNotEmpty { joinToString(", ") { it } }
 
 }
 

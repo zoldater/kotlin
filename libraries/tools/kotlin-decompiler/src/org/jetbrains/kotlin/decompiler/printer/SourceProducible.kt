@@ -13,10 +13,14 @@ internal inline fun SmartPrinter.indented(body: () -> Unit) {
     popIndent()
 }
 
-internal inline fun SmartPrinter.withBraces(body: () -> Unit) {
+internal inline fun SmartPrinter.withBraces(withNewLine: Boolean = true, body: () -> Unit) {
     println(" {")
     indented(body)
-    println("} ")
+    if (withNewLine) {
+        println("} ")
+    } else {
+        print("} ")
+    }
 }
 
 internal inline fun SmartPrinter.insideParentheses(body: () -> Unit) {
@@ -24,7 +28,6 @@ internal inline fun SmartPrinter.insideParentheses(body: () -> Unit) {
     body()
     print(")")
 }
-
 
 
 interface SourceProducible {

@@ -6,8 +6,7 @@
 package org.jetbrains.kotlin.decompiler.builder
 
 import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
-import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler.ExtraData.ANNOTATION_CALL
-import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler.ExtraData.DATA_CLASS_MEMBER
+import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler.ExtraData.*
 import org.jetbrains.kotlin.decompiler.printer.FileSourcesWriter
 import org.jetbrains.kotlin.decompiler.tree.*
 import org.jetbrains.kotlin.decompiler.tree.declarations.*
@@ -40,7 +39,7 @@ class KotlinIrDecompiler private constructor() {
         CUSTOM_SETTER,
         ENUM_ENTRY_INIT,
         ANNOTATION_CALL,
-        DEFAULT_VALUE_ARGUMENT,
+        PARAMETER_DEFAULT_VALUE,
         DATA_CLASS_MEMBER,
         LAMBDA_CONTENT
     }
@@ -117,11 +116,11 @@ class KotlinIrDecompiler private constructor() {
                     ExtraData.LAMBDA_CONTENT -> DecompilerTreeLambdaFunction(
                         this, builtReturnType, builtDispatchReceiver, builtExtensionReceiver, builtValueParameters, body?.buildElement(data)
                     )
-                    ExtraData.CUSTOM_GETTER -> DecompilerTreeCustomGetter(
+                    CUSTOM_GETTER -> DecompilerTreeCustomGetter(
                         this, builtAnnotations, builtReturnType, builtDispatchReceiver, builtExtensionReceiver, builtValueParameters,
                         body?.buildElement(data), builtTypeParameters
                     )
-                    ExtraData.CUSTOM_SETTER -> DecompilerTreeCustomSetter(
+                    CUSTOM_SETTER -> DecompilerTreeCustomSetter(
                         this, builtAnnotations, builtReturnType, builtDispatchReceiver, builtExtensionReceiver, builtValueParameters,
                         body?.buildElement(data), builtTypeParameters
                     )
@@ -133,7 +132,7 @@ class KotlinIrDecompiler private constructor() {
             }
 
         override fun visitConstructor(declaration: IrConstructor, data: ExtraData?): AbstractDecompilerTreeConstructor {
-            val replacementKind = if (data == DATA_CLASS_MEMBER) data else ExtraData.DEFAULT_VALUE_ARGUMENT
+            val replacementKind = if (data == DATA_CLASS_MEMBER) data else PARAMETER_DEFAULT_VALUE
             with(declaration) {
                 val annotations = buildAnnotations()
                 val returnType = returnType.buildType<IrType, DecompilerTreeType>()
@@ -183,13 +182,13 @@ class KotlinIrDecompiler private constructor() {
                 this,
                 buildAnnotations(),
                 backingField?.buildElement(data),
-                getter?.buildElement(ExtraData.CUSTOM_GETTER),
-                setter?.buildElement(ExtraData.CUSTOM_SETTER)
+                getter?.buildElement(CUSTOM_GETTER),
+                setter?.buildElement(CUSTOM_SETTER)
             )
         }
 
         override fun visitField(declaration: IrField, data: ExtraData?): DecompilerTreeField = with(declaration) {
-            DecompilerTreeField(this, buildAnnotations(), initializer?.buildElement(ExtraData.FIELD_INIT), type.buildType())
+            DecompilerTreeField(this, buildAnnotations(), initializer?.buildElement(FIELD_INIT), type.buildType())
         }
 
         override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty, data: ExtraData?): DecompilerTreeElement {
@@ -204,7 +203,7 @@ class KotlinIrDecompiler private constructor() {
             DecompilerTreeEnumEntry(
                 this,
                 buildAnnotations(),
-                initializerExpression?.buildElement(ExtraData.ENUM_ENTRY_INIT)
+                initializerExpression?.buildElement(ENUM_ENTRY_INIT)
             )
         }
 
@@ -227,7 +226,7 @@ class KotlinIrDecompiler private constructor() {
                         this,
                         buildAnnotations(),
                         //TODO calculate annotation target
-                        defaultValue?.buildElement(data),
+                        defaultValue?.buildElement(PARAMETER_DEFAULT_VALUE),
                         type.buildType(),
                         varargElementType?.buildType()
                     )
@@ -235,7 +234,7 @@ class KotlinIrDecompiler private constructor() {
                         this,
                         buildAnnotations(),
                         //TODO calculate annotation target
-                        defaultValue?.buildElement(data),
+                        defaultValue?.buildElement(PARAMETER_DEFAULT_VALUE),
                         type.buildType(),
                         varargElementType?.buildType()
                     )
@@ -252,9 +251,9 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitExpressionBody(body: IrExpressionBody, data: ExtraData?): AbstractDecompilerTreeExpressionBody = with(body) {
             when (data) {
-                ExtraData.ENUM_ENTRY_INIT -> DecompilerTreeEnumEntryInitializer(this, expression.buildElement(data))
-                ExtraData.FIELD_INIT -> DecompilerTreeFieldInitializer(this, expression.buildElement(data))
-                ExtraData.DEFAULT_VALUE_ARGUMENT, DATA_CLASS_MEMBER -> DecompilerTreeDefaultValueParameterInitializer(
+                ENUM_ENTRY_INIT -> DecompilerTreeEnumEntryInitializer(this, expression.buildElement(data))
+                FIELD_INIT -> DecompilerTreeFieldInitializer(this, expression.buildElement(data))
+                PARAMETER_DEFAULT_VALUE -> DecompilerTreeDefaultValueParameterInitializer(
                     this,
                     expression.buildElement(data)
                 )
@@ -264,8 +263,8 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitBlockBody(body: IrBlockBody, data: ExtraData?): AbstractDecompilerTreeBlockBody = with(body) {
             when {
-                data == ExtraData.CUSTOM_GETTER -> DecompilerTreeGetterBody(this, statements.buildElements(data))
-                data == ExtraData.CUSTOM_SETTER -> DecompilerTreeSetterBody(this, statements.buildElements(data))
+                data == CUSTOM_GETTER -> DecompilerTreeGetterBody(this, statements.buildElements(data))
+                data == CUSTOM_SETTER -> DecompilerTreeSetterBody(this, statements.buildElements(data))
                 else -> DecompilerTreeBlockBody(this, statements.buildElements(data))
             }
 
@@ -452,7 +451,7 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitGetField(expression: IrGetField, data: ExtraData?): AbstractDecompilerTreeGetField = with(expression) {
             when (data) {
-                ExtraData.CUSTOM_GETTER -> DecompilerTreeGetFieldFromGetterSetter(
+                CUSTOM_GETTER -> DecompilerTreeGetFieldFromGetterSetter(
                     this,
                     receiver?.buildExpression(data),
                     type.buildType()
@@ -463,7 +462,7 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitSetField(expression: IrSetField, data: ExtraData?): AbstractDecompilerTreeSetField = with(expression) {
             when (data) {
-                ExtraData.CUSTOM_SETTER -> DecompilerTreeSetFieldFromGetterSetter(
+                CUSTOM_SETTER -> DecompilerTreeSetFieldFromGetterSetter(
                     this,
                     receiver?.buildExpression(data),
                     value.buildExpression(data),
@@ -662,7 +661,7 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitReturn(expression: IrReturn, data: ExtraData?): AbstractDecompilerTreeReturn = with(expression) {
             when (data) {
-                ExtraData.CUSTOM_GETTER -> DecompilerTreeGetterReturn(this, value.buildExpression(data), type.buildType())
+                CUSTOM_GETTER -> DecompilerTreeGetterReturn(this, value.buildExpression(data), type.buildType())
                 else -> DecompilerTreeReturn(this, value.buildExpression(data), type.buildType())
             }
         }
@@ -673,7 +672,7 @@ class KotlinIrDecompiler private constructor() {
         }
 
         @Suppress("UNCHECKED_CAST")
-        internal fun <T : IrType, R : DecompilerTreeType> T.buildType(): R =
+        fun <T : IrType, R : DecompilerTreeType> T.buildType(): R =
             (typesCacheMap[this] ?: run {
                 val existingClass = elementsCacheMap.values
                     .filterIsInstance<AbstractDecompilerTreeClass>()
@@ -688,7 +687,7 @@ class KotlinIrDecompiler private constructor() {
 
 
         @Suppress("UNCHECKED_CAST")
-        internal fun <T : IrElement, R : DecompilerTreeElement> T.buildElement(kind: ExtraData? = null): R =
+        fun <T : IrElement, R : DecompilerTreeElement> T.buildElement(kind: ExtraData? = null): R =
             (elementsCacheMap[this] ?: run {
                 accept(this@DecompilerTreeConstructionVisitor, kind).also {
                     elementsCacheMap += this to it
@@ -728,8 +727,19 @@ class KotlinIrDecompiler private constructor() {
         private fun IrDeclarationContainer.buildDeclarations(kind: ExtraData? = null): List<DecompilerTreeDeclaration> =
             declarations.buildDeclarations(kind)
 
-        private fun IrMemberAccessExpression.buildValueArguments(kind: ExtraData? = null) =
-            (0 until valueArgumentsCount).mapNotNull { getValueArgument(it) }.buildExpressions(kind)
+        private fun IrMemberAccessExpression.buildValueArguments(kind: ExtraData? = null): List<DecompilerTreeValueArgument> {
+            val valueParameters = (symbol.owner as IrFunction).valueParameters
+            val valueArguments = (0 until valueArgumentsCount).map { getValueArgument(it) }
+            check(valueParameters.size == valueArgumentsCount) { "Number of parameters & arguments are not the same!" }
+            return valueParameters.zip(valueArguments).map {
+                DecompilerTreeValueArgument(
+                    type.buildType(),
+                    it.first.buildValueParameter(kind),
+                    it.second?.buildExpression(kind),
+                    null in valueArguments
+                )
+            }
+        }
 
         private fun IrMemberAccessExpression.buildTypeArguments() =
             (0 until typeArgumentsCount).mapNotNull { getTypeArgument(it)?.buildType() }

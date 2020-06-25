@@ -1,0 +1,16 @@
+// FILE: /named_params_ctor.kt
+
+class TestClass(namedString: String, namedInt: Int) {
+    val namedString: String = namedString
+    val namedInt: Int = namedInt
+}
+
+fun box(): String {
+    val testClassOrderedWoutNames = TestClass("String", 4)
+    val testClassReorderedWNames = TestClass("String", 4)
+    if (testClassReorderedWNames.namedInt == testClassOrderedWoutNames.namedInt) {
+        return "OK"
+    } else {
+        return "FAIL"
+    }
+}

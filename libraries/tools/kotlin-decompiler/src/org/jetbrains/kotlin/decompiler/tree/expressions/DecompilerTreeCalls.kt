@@ -40,17 +40,17 @@ internal fun IrCall.buildCall(
             extensionReceiver,
             valueArguments, type
         )
-        origin == IrStatementOrigin.IN -> DecompilerTreeInOperatorCall(this, dispatchReceiver, extensionReceiver, valueArguments, type)
-        origin == IrStatementOrigin.NOT_IN -> DecompilerTreeNotInOperatorCall(
+        origin == IN -> DecompilerTreeInOperatorCall(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        origin == NOT_IN -> DecompilerTreeNotInOperatorCall(
             this,
             dispatchReceiver,
             extensionReceiver,
             valueArguments,
             type
         )
-        origin == IrStatementOrigin.EQ -> DecompilerTreeCallAssignmentOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
-        origin == IrStatementOrigin.INVOKE -> DecompilerTreeCallInvokeOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
-        origin == IrStatementOrigin.GET_PROPERTY -> DecompilerTreeGetPropertyCall(
+        origin == EQ -> DecompilerTreeCallAssignmentOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        origin == INVOKE -> DecompilerTreeCallInvokeOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        origin == GET_PROPERTY -> DecompilerTreeGetPropertyCall(
             this,
             dispatchReceiver,
             extensionReceiver,
