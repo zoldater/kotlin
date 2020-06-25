@@ -42,6 +42,8 @@ class KotlinIrDecompiler private constructor() {
         ANNOTATION_CALL,
         PARAMETER_DEFAULT_VALUE,
         PROPERTY_PARAMETER,
+        PRIMARY_CTOR_MEMBER,
+        SECONDARY_CTOR_MEMBER,
         LAMBDA_CONTENT
     }
 
@@ -168,7 +170,7 @@ class KotlinIrDecompiler private constructor() {
                         dispatchReceiver,
                         extensionReceiver,
                         valueParameters,
-                        body?.buildElement(data),
+                        body?.buildElement(PRIMARY_CTOR_MEMBER),
                         typeParameters
                     )
                     else -> DecompilerTreeSecondaryConstructor(
@@ -178,7 +180,7 @@ class KotlinIrDecompiler private constructor() {
                         dispatchReceiver,
                         extensionReceiver,
                         valueParameters,
-                        body?.buildElement(data),
+                        body?.buildElement(SECONDARY_CTOR_MEMBER),
                         typeParameters
                     )
                 }

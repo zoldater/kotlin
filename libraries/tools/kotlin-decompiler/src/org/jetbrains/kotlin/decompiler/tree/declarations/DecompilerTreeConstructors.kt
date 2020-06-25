@@ -68,8 +68,8 @@ abstract class AbstractDecompilerTreeConstructor(
         // generated sources will be incorrect with inheritance/delegating records
         bodyStatementsNonTrivial?.ifNotEmpty {
             printer.withBraces {
-                joinToString("\n") { it.decompile() }.lines().forEach {
-                    printer.println(it)
+                forEach {
+                    it.produceSources(printer)
                 }
             }
         }
@@ -116,6 +116,5 @@ class DecompilerTreeSecondaryConstructor(
     override val keyword: String = "constructor"
     override val valueParametersOrNull: String = valueParametersForPrint
     override val delegatingCallDecompiledOrNull: String?
-        get() = delegatingConstructorCall?.let { "this${it.decompile()}" }
-
+        get() = delegatingConstructorCall?.let { "${if (returnType == it.returnType) "this" else "super"}${it.decompile()}" }
 }

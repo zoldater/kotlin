@@ -34,7 +34,8 @@ abstract class AbstractDecompilerTreeClass(
     abstract val thisReceiver: AbstractDecompilerTreeValueParameter?
 
     protected open val nonTrivialSuperInterfaces: List<DecompilerTreeType>
-        get() = superTypes.filterNot { it.irType.isAny() || it.irType.isUnit() || it.typeClassIfExists is DecompilerTreeClass }
+        get() = superTypes.filterNot { it.irType.isAny() || it.irType.isUnit() }
+            .filterNot { (it.typeClassIfExists is DecompilerTreeClass).takeIf { primaryConstructor != null } ?: false }
 
     internal open val primaryConstructor: AbstractDecompilerTreeConstructor?
         get() = declarations.filterIsInstance<DecompilerTreePrimaryConstructor>().firstOrNull()
@@ -67,7 +68,8 @@ abstract class AbstractDecompilerTreeClass(
             return listOfNotNull(
                 visibility.name.toLowerCase().takeIf { element.visibility != Visibilities.PUBLIC },
                 "expect".takeIf { isExpect }, //actual modifier?
-                modality.name.toLowerCase().takeIf { !isDefaultModality },
+                modality.name.toLowerCase().takeIf { !isDefaultModality }
+                    ?.also { properties.forEach { p -> p.defaultModality = modality } },
                 "external".takeIf { isExternal },
                 "inner".takeIf { isInner },
                 "inline".takeIf { isInline },
@@ -101,7 +103,7 @@ abstract class AbstractDecompilerTreeClass(
             printableDeclarations.ifNotEmpty {
                 this@with.withBraces {
                     this.forEach {
-                        it.produceSources(this@with)
+                        it.decompile().lines().filter { l -> l.isNotBlank() }.forEach { l -> this@with.println(l) }
                     }
                 }
             } ?: println()

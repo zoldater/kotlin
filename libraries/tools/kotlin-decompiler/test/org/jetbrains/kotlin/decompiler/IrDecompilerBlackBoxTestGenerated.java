@@ -408,6 +408,11 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             public void testNamed_params_ctor() throws Exception {
                 runTest("libraries/tools/kotlin-decompiler/testData/box/classes/ctor/named_params_ctor.kt");
             }
+
+            @TestMetadata("no_primary_ctor.kt")
+            public void testNo_primary_ctor() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/classes/ctor/no_primary_ctor.kt");
+            }
         }
 
         @TestMetadata("libraries/tools/kotlin-decompiler/testData/box/classes/data_class")

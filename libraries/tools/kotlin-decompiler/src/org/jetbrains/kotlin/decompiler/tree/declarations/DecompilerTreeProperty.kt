@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.printer.indented
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
+import org.jetbrains.kotlin.decompiler.util.isOverriden
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -29,8 +30,9 @@ class DecompilerTreeProperty(
             listOfNotNull(
                 visibility.takeIf { it !in setOf(Visibilities.PUBLIC, Visibilities.LOCAL) }?.name?.toLowerCase(),
                 "expect".takeIf { isExpect },
-                modality.takeIf { it != defaultModality },
+                modality.takeIf { it != defaultModality }?.let { it.name.toLowerCase() },
                 "external".takeIf { isExternal },
+                "override".takeIf { getter?.isOverriden() ?: false },
                 "const".takeIf { isConst },
                 "lateinit".takeIf { isLateinit },
                 "var".takeIf { isVar } ?: "val"
