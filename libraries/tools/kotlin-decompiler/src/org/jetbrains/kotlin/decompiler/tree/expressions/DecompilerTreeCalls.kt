@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
+import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.util.name
@@ -24,7 +25,8 @@ internal fun IrCall.buildCall(
     extensionReceiver: DecompilerTreeExpression?,
     valueArguments: List<DecompilerTreeExpression>,
     type: DecompilerTreeType,
-    typeArguments: List<DecompilerTreeType>
+    typeArguments: List<DecompilerTreeType>,
+    data: KotlinIrDecompiler.ExtraData?
 ): AbstractDecompilerTreeCall =
     when {
         origin in DecompilerTreeCallUnaryOp.originMap.keys -> DecompilerTreeCallUnaryOp(
@@ -38,9 +40,17 @@ internal fun IrCall.buildCall(
             this,
             dispatchReceiver,
             extensionReceiver,
-            valueArguments, type
+            valueArguments, type,
+            KotlinIrDecompiler.ExtraData.WHEN_SUBJECT_MEMBER == data
         )
-        origin == IN -> DecompilerTreeInOperatorCall(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        origin == IN -> DecompilerTreeInOperatorCall(
+            this,
+            dispatchReceiver,
+            extensionReceiver,
+            valueArguments,
+            type,
+            KotlinIrDecompiler.ExtraData.WHEN_SUBJECT_MEMBER == data
+        )
         origin == NOT_IN -> DecompilerTreeNotInOperatorCall(
             this,
             dispatchReceiver,
@@ -170,13 +180,19 @@ class DecompilerTreeCallBinaryOp(
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
-    override val type: DecompilerTreeType
+    override val type: DecompilerTreeType,
+    private val isShorten: Boolean = false
 ) : DecompilerTreeOperatorCall() {
     override fun produceSources(printer: SmartPrinter) {
         check(element.origin in originMap.keys) { "Origin ${element.origin?.toString()} is not binary operation!" }
 
         if (element.origin in listOf(PLUSEQ, MINUSEQ, DIVEQ, MULTEQ, PERCEQ)) {
             valueArguments.firstOrNull()?.produceSources(printer)
+            return
+        }
+
+        if (isShorten && element.origin == EQEQ) {
+            rightOperand?.also { printer.print(it.decompile()) }
             return
         }
 
@@ -192,26 +208,26 @@ class DecompilerTreeCallBinaryOp(
 
     companion object {
         val originMap = mapOf(
-            IrStatementOrigin.PLUS to "+",
+            PLUS to "+",
             PLUSEQ to "+",
-            IrStatementOrigin.MINUS to "-",
+            MINUS to "-",
             MINUSEQ to "-",
-            IrStatementOrigin.MUL to "*",
-            IrStatementOrigin.MULTEQ to "*",
-            IrStatementOrigin.DIV to "/",
+            MUL to "*",
+            MULTEQ to "*",
+            DIV to "/",
             DIVEQ to "/",
-            IrStatementOrigin.PERC to "%",
-            IrStatementOrigin.PERCEQ to "%",
-            IrStatementOrigin.ANDAND to "&&",
-            IrStatementOrigin.OROR to "||",
-            IrStatementOrigin.EQEQ to "==",
-            IrStatementOrigin.GT to ">",
-            IrStatementOrigin.LT to "<",
-            IrStatementOrigin.GTEQ to ">=",
-            IrStatementOrigin.LTEQ to "<=",
-            IrStatementOrigin.EXCLEQ to "!=",
-            IrStatementOrigin.EQEQEQ to "===",
-            IrStatementOrigin.EXCLEQEQ to "!==",
+            PERC to "%",
+            PERCEQ to "%",
+            ANDAND to "&&",
+            OROR to "||",
+            EQEQ to "==",
+            GT to ">",
+            LT to "<",
+            GTEQ to ">=",
+            LTEQ to "<=",
+            EXCLEQ to "!=",
+            EQEQEQ to "===",
+            EXCLEQEQ to "!==",
         )
     }
 }
@@ -240,14 +256,15 @@ class DecompilerTreeInOperatorCall(
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
     override val valueArguments: List<DecompilerTreeExpression>,
-    override val type: DecompilerTreeType
+    override val type: DecompilerTreeType,
+    private val isShorten: Boolean = false
 ) : DecompilerTreeOperatorCall() {
     override fun produceSources(printer: SmartPrinter) {
         // TODO investigate more robust way to process `<this>` value
         val rhs = leftOperand!!.decompile().removePrefix("<").removeSuffix(">")
         // TODO investigate more robust way to obtain property name
         val lhs = rightOperand!!.decompile().removePrefix("<set-").removeSuffix(">")
-        printer.print("$lhs in $rhs")
+        printer.print("${if (!isShorten) "$lhs " else ""}in $rhs")
     }
 }
 

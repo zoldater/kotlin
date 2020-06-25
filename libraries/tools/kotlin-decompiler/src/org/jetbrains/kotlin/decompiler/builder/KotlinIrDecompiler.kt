@@ -34,7 +34,7 @@ class KotlinIrDecompiler private constructor() {
         }
     }
 
-    private enum class ExtraData {
+    internal enum class ExtraData {
         FIELD_INIT,
         CUSTOM_GETTER,
         CUSTOM_SETTER,
@@ -44,6 +44,7 @@ class KotlinIrDecompiler private constructor() {
         PROPERTY_PARAMETER,
         PRIMARY_CTOR_MEMBER,
         SECONDARY_CTOR_MEMBER,
+        WHEN_SUBJECT_MEMBER,
         LAMBDA_CONTENT
     }
 
@@ -274,9 +275,9 @@ class KotlinIrDecompiler private constructor() {
         }
 
         override fun visitBlockBody(body: IrBlockBody, data: ExtraData?): AbstractDecompilerTreeBlockBody = with(body) {
-            when {
-                data == CUSTOM_GETTER -> DecompilerTreeGetterBody(this, statements.buildElements(data))
-                data == CUSTOM_SETTER -> DecompilerTreeSetterBody(this, statements.buildElements(data))
+            when (data) {
+                CUSTOM_GETTER -> DecompilerTreeGetterBody(this, statements.buildElements(data))
+                CUSTOM_SETTER -> DecompilerTreeSetterBody(this, statements.buildElements(data))
                 else -> DecompilerTreeBlockBody(this, statements.buildElements(data))
             }
 
@@ -338,28 +339,23 @@ class KotlinIrDecompiler private constructor() {
         private fun IrContainerExpression.buildWhenContainer(): DecompilerTreeWhenContainer {
             val variable = statements.getOrNull(0) as? IrVariable
             val irWhen = statements[1] as IrWhen
-            val builtBranches = irWhen.branches.map { it.buildElement<IrBranch, AbstractDecompilerTreeBranch>() }
-            builtBranches.mapNotNull { it.condition as? DecompilerTreeOperatorCall }//.forEach { it.isShortenInCondition = true }
-            builtBranches.mapNotNull { it.condition as? DecompilerTreeTypeOperatorCall }
+            val builtBranches =
+                irWhen.branches.map { it.buildElement<IrBranch, AbstractDecompilerTreeBranch>(WHEN_SUBJECT_MEMBER) }
 
-            when (variable?.origin) {
-                IrDeclarationOrigin.DEFINED -> {
-                    return DecompilerTreeWhenContainer(
-                        this, type.buildType(),
-                        DecompilerTreeWhenWithSubjectVariable(irWhen, variable.buildElement(), builtBranches, type.buildType())
+            return when (variable?.origin) {
+                IrDeclarationOrigin.DEFINED -> DecompilerTreeWhenContainer(
+                    this, type.buildType(),
+                    DecompilerTreeWhenWithSubjectVariable(irWhen, variable.buildElement(), builtBranches, type.buildType())
+                )
+                IrDeclarationOrigin.IR_TEMPORARY_VARIABLE -> DecompilerTreeWhenContainer(
+                    this, type.buildType(),
+                    DecompilerTreeWhenWithSubjectValue(
+                        irWhen,
+                        (variable.initializer as IrGetValue).buildElement(),
+                        builtBranches,
+                        type.buildType()
                     )
-                }
-                IrDeclarationOrigin.IR_TEMPORARY_VARIABLE -> {
-                    return DecompilerTreeWhenContainer(
-                        this, type.buildType(),
-                        DecompilerTreeWhenWithSubjectValue(
-                            irWhen,
-                            (variable.initializer as IrGetValue).buildElement(),
-                            builtBranches,
-                            type.buildType()
-                        )
-                    )
-                }
+                )
                 else -> throw IllegalStateException("Bad When Container structure!")
             }
         }
@@ -490,7 +486,8 @@ class KotlinIrDecompiler private constructor() {
                 buildExtensionReceiver(data),
                 buildValueArguments(data),
                 type.buildType(),
-                buildTypeArguments()
+                buildTypeArguments(),
+                data
             )
         }
 
@@ -616,12 +613,18 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitTypeOperator(expression: IrTypeOperatorCall, data: ExtraData?): DecompilerTreeTypeOperatorCall =
             with(expression) {
-                DecompilerTreeTypeOperatorCall(this, argument.buildExpression(data), type.buildType(), typeOperand.buildType())
+                DecompilerTreeTypeOperatorCall(
+                    this,
+                    argument.buildExpression(data),
+                    type.buildType(),
+                    typeOperand.buildType(),
+                    WHEN_SUBJECT_MEMBER == data
+                )
             }
 
         override fun visitWhen(expression: IrWhen, data: ExtraData?): AbstractDecompilerTreeWhen {
             val branches =
-                expression.branches.buildElements<IrBranch, AbstractDecompilerTreeBranch>(data)
+                expression.branches.buildElements<IrBranch, DecompilerTreeBranch>(data)
             return when (expression) {
                 is IrIfThenElseImpl -> DecompilerTreeIfThenElse(expression, branches, expression.type.buildType())
                 else -> DecompilerTreeWhen(expression, branches, expression.type.buildType())
@@ -629,7 +632,10 @@ class KotlinIrDecompiler private constructor() {
         }
 
         override fun visitBranch(branch: IrBranch, data: ExtraData?): AbstractDecompilerTreeBranch = with(branch) {
-            DecompilerTreeBranch(branch, condition.buildExpression(data), result.buildExpression(data))
+            val builtCondition = condition.buildExpression(data)
+            val builtResult = result.buildExpression(data)
+
+            return DecompilerTreeBranch(this, builtCondition, builtResult)
         }
 
         override fun visitElseBranch(branch: IrElseBranch, data: ExtraData?): DecompilerTreeElseBranch = with(branch) {

@@ -92,10 +92,10 @@ class DecompilerTreeIncDecOperatorsContainer(
 class DecompilerTreeWhenContainer(
     override val element: IrContainerExpression,
     override val type: DecompilerTreeType,
-    val decompilerTreeWhenNode: AbstractDecompilerTreeWhen,
+    val decompilerTreeWhen: AbstractDecompilerTreeWhen,
     override val statements: List<DecompilerTreeStatement> = emptyList()
 ) : AbstractDecompilerTreeContainerExpression {
-    override fun produceSources(printer: SmartPrinter) = decompilerTreeWhenNode.produceSources(printer)
+    override fun produceSources(printer: SmartPrinter) = decompilerTreeWhen.produceSources(printer)
 }
 
 
@@ -139,11 +139,12 @@ class DecompilerTreeTypeOperatorCall(
     override val element: IrTypeOperatorCall,
     private val argument: DecompilerTreeExpression,
     override val type: DecompilerTreeType,
-    private val typeOperand: DecompilerTreeType
+    private val typeOperand: DecompilerTreeType,
+    private val isShorten: Boolean = false
 ) : DecompilerTreeExpression {
 
     override fun produceSources(printer: SmartPrinter) {
-        listOfNotNull(argument.decompile(), operatorsMap[element.operator]?.let { "$it ${typeOperand.decompile()}" })
+        listOfNotNull(argument.decompile().takeIf { !isShorten }, operatorsMap[element.operator]?.let { "$it ${typeOperand.decompile()}" })
             .joinToString(" ")
             .also { printer.print(it) }
     }

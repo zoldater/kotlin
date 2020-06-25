@@ -1006,12 +1006,14 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
 
             public void testAllFilesPresentInWhen() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/when"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File(
+                                                                                    "libraries/tools/kotlin-decompiler/testData/box/expressions/when"), Pattern.compile("^(.+)\\.kt$"),
+                                                                            Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
-            @TestMetadata("when_multiple_condition.kt")
-            public void testWhen_multiple_condition() throws Exception {
-                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/when/when_multiple_condition.kt");
+            @TestMetadata("when_multiple_choice.kt")
+            public void testWhen_multiple_choice() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/when/when_multiple_choice.kt");
             }
 
             @TestMetadata("when_regular.kt")

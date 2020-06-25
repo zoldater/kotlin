@@ -9,6 +9,7 @@ open class FooParent(override val x: Int) : FooInterface {
 
 class FooDerived : FooParent {
     constructor(x: Int) : super(x)
+    constructor() : super(42)
 }
 
 fun box(): String {
