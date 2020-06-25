@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.*
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
-import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 
@@ -23,8 +22,8 @@ class DecompilerTreeDataClass(
 
     override val keyword: String = "data class"
 
-    override val primaryConstructor: DecompilerTreeDataClassPrimaryConstructor?
-        get() = declarations.filterIsInstance<DecompilerTreeDataClassPrimaryConstructor>().firstOrNull()
+    override val primaryConstructor: DecompilerTreePrimaryConstructor?
+        get() = declarations.filterIsInstance<DecompilerTreePrimaryConstructor>().firstOrNull()
 
     private val primaryConstructorPropertiesOrNull
         get() = primaryConstructor?.valueParameters?.mapNotNull { it as? DecompilerTreePropertyValueParameter }
@@ -36,21 +35,7 @@ class DecompilerTreeDataClass(
     override val properties: List<DecompilerTreeProperty>
         get() = primaryConstructorPropertiesOrNull?.let { super.properties - it } ?: super.properties
 
-    private fun pinPropertiesToValueDeclarations() {
-        primaryConstructor?.valueParameters?.mapNotNull { it as? DecompilerTreePropertyValueParameter }
-            ?.forEach {
-                properties.find { p -> p.nameIfExists == it.nameIfExists }
-                    ?.also { p ->
-                        it.relatedProperty = p
-                    }
-            }
-    }
-
     override val printableDeclarations: List<DecompilerTreeDeclaration>
         get() = (properties + methods + otherPrintableDeclarations)
 
-    override fun produceSources(printer: SmartPrinter) {
-        pinPropertiesToValueDeclarations()
-        super.produceSources(printer)
-    }
 }

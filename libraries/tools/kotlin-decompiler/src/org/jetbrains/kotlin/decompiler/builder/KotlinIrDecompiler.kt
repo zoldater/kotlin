@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import java.io.File
 
@@ -40,7 +41,7 @@ class KotlinIrDecompiler private constructor() {
         ENUM_ENTRY_INIT,
         ANNOTATION_CALL,
         PARAMETER_DEFAULT_VALUE,
-        DATA_CLASS_MEMBER,
+        PROPERTY_PARAMETER,
         LAMBDA_CONTENT
     }
 
@@ -95,7 +96,7 @@ class KotlinIrDecompiler private constructor() {
                     this, buildDeclarations(data), annotations, typeParameters, thisReceiver, superTypes
                 )
                 isData -> DecompilerTreeDataClass(
-                    this, buildDeclarations(DATA_CLASS_MEMBER), annotations, typeParameters, thisReceiver, superTypes
+                    this, buildDeclarations(data), annotations, typeParameters, thisReceiver, superTypes
                 )
                 else -> DecompilerTreeClass(
                     this, buildDeclarations(data), annotations, typeParameters, thisReceiver, superTypes
@@ -132,26 +133,34 @@ class KotlinIrDecompiler private constructor() {
             }
 
         override fun visitConstructor(declaration: IrConstructor, data: ExtraData?): AbstractDecompilerTreeConstructor {
-            val replacementKind = if (data == DATA_CLASS_MEMBER) data else PARAMETER_DEFAULT_VALUE
             with(declaration) {
                 val annotations = buildAnnotations()
                 val returnType = returnType.buildType<IrType, DecompilerTreeType>()
                 val dispatchReceiver = dispatchReceiverParameter?.buildValueParameter(data)
                 val extensionReceiver = extensionReceiverParameter?.buildValueParameter(data)
-                val valueParameters = valueParameters.buildValueParameters(replacementKind)
                 val typeParameters = buildTypeParameters(data)
 
+                val parentClassProperties = parentAsClass.declarations.filterIsInstance<IrProperty>()
+                val propertyNames = parentClassProperties.map { it.name() }
+                val propertiesToGetValueNames = parentClassProperties.mapNotNull {
+                    (it.backingField?.initializer?.expression as? IrGetValue)?.symbol?.owner?.name()
+                        ?.let { getValueName -> getValueName to it }
+                }.toMap()
+
+                val valueParameters = valueParameters.map {
+                    val valueParameterName = it.name()
+
+                    if (valueParameterName in propertyNames && valueParameterName in propertiesToGetValueNames)
+                        it.buildValueParameter(PROPERTY_PARAMETER)
+                            .also { dvp ->
+                                (dvp as DecompilerTreePropertyValueParameter).relatedProperty =
+                                    propertiesToGetValueNames[valueParameterName]!!.buildElement(PROPERTY_PARAMETER)
+                            }
+                    else it.buildValueParameter(data)
+                }
+
+
                 return when {
-                    isPrimary && data == DATA_CLASS_MEMBER -> DecompilerTreeDataClassPrimaryConstructor(
-                        this,
-                        annotations,
-                        returnType,
-                        dispatchReceiver,
-                        extensionReceiver,
-                        valueParameters,
-                        body?.buildElement(data),
-                        typeParameters
-                    )
                     isPrimary -> DecompilerTreePrimaryConstructor(
                         this,
                         annotations,
@@ -183,7 +192,8 @@ class KotlinIrDecompiler private constructor() {
                 buildAnnotations(),
                 backingField?.buildElement(data),
                 getter?.buildElement(CUSTOM_GETTER),
-                setter?.buildElement(CUSTOM_SETTER)
+                setter?.buildElement(CUSTOM_SETTER),
+                data == PROPERTY_PARAMETER
             )
         }
 
@@ -222,7 +232,7 @@ class KotlinIrDecompiler private constructor() {
         override fun visitValueParameter(declaration: IrValueParameter, data: ExtraData?): AbstractDecompilerTreeValueParameter =
             with(declaration) {
                 when (data) {
-                    DATA_CLASS_MEMBER -> DecompilerTreePropertyValueParameter(
+                    PROPERTY_PARAMETER -> DecompilerTreePropertyValueParameter(
                         this,
                         buildAnnotations(),
                         //TODO calculate annotation target

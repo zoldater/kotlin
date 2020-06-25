@@ -36,19 +36,19 @@ abstract class AbstractDecompilerTreeClass(
     protected open val nonTrivialSuperInterfaces: List<DecompilerTreeType>
         get() = superTypes.filterNot { it.irType.isAny() || it.irType.isUnit() || it.typeClassIfExists is DecompilerTreeClass }
 
-    protected open val primaryConstructor: AbstractDecompilerTreeConstructor?
+    internal open val primaryConstructor: AbstractDecompilerTreeConstructor?
         get() = declarations.filterIsInstance<DecompilerTreePrimaryConstructor>().firstOrNull()
 
-    protected open val secondaryConstructors: List<DecompilerTreeSecondaryConstructor>
+    internal open val secondaryConstructors: List<DecompilerTreeSecondaryConstructor>
         get() = declarations.filterIsInstance<DecompilerTreeSecondaryConstructor>()
 
-    protected open val initSections: List<DecompilerTreeAnonymousInitializer>
+    internal open val initSections: List<DecompilerTreeAnonymousInitializer>
         get() = declarations.filterIsInstance<DecompilerTreeAnonymousInitializer>()
 
-    protected open val properties: List<DecompilerTreeProperty>
+    internal open val properties: List<DecompilerTreeProperty>
         get() = declarations.filterIsInstance<DecompilerTreeProperty>().filterNot { it.element.isFakeOverride }
 
-    protected open val methods: List<DecompilerTreeSimpleFunction>
+    internal open val methods: List<DecompilerTreeSimpleFunction>
         get() = declarations.filterIsInstance<DecompilerTreeSimpleFunction>().filterNot { it.element.isFakeOverride }
 
     protected open val otherPrintableDeclarations: List<DecompilerTreeDeclaration>

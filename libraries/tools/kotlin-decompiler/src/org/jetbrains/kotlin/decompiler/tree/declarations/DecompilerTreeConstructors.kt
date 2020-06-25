@@ -101,28 +101,6 @@ class DecompilerTreePrimaryConstructor(
             ?.let { "${it.returnType.decompile()}${it.decompile()}" }
 }
 
-class DecompilerTreeDataClassPrimaryConstructor(
-    element: IrConstructor,
-    annotations: List<DecompilerTreeAnnotationConstructorCall>,
-    returnType: DecompilerTreeType,
-    dispatchReceiverParameter: AbstractDecompilerTreeValueParameter?,
-    extensionReceiverParameter: AbstractDecompilerTreeValueParameter?,
-    override var valueParameters: List<AbstractDecompilerTreeValueParameter>,
-    body: DecompilerTreeBody?,
-    typeParameters: List<DecompilerTreeTypeParameter>
-//TODO Place for map superType to delegate
-) : AbstractDecompilerTreeConstructor(
-    element, annotations, returnType, dispatchReceiverParameter, extensionReceiverParameter, valueParameters, body, typeParameters,
-) {
-    private val DecompilerTreeDelegatingConstructorCall.isTrivial: Boolean
-        get() = returnType.irType.isAny() || returnType.irType.isUnit()
-
-    override val keyword: String? = null
-    override val valueParametersOrNull: String?
-        get() = valueParametersForPrint
-    override val delegatingCallDecompiledOrNull: String? = null
-}
-
 class DecompilerTreeSecondaryConstructor(
     element: IrConstructor,
     annotations: List<DecompilerTreeAnnotationConstructorCall>,

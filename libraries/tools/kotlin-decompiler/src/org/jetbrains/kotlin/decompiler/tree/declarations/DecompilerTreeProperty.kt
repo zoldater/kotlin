@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations
 
 import org.jetbrains.kotlin.decompiler.printer.indented
-import org.jetbrains.kotlin.decompiler.tree.expressions.AbstractDecompilerTreeConstructorCall
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -20,6 +19,7 @@ class DecompilerTreeProperty(
     private val backingField: DecompilerTreeField?,
     private val getter: DecompilerTreeCustomGetter?,
     private val setter: DecompilerTreeCustomSetter?,
+    private val isDeclaredInConstructor: Boolean = false
 ) : DecompilerTreeDeclaration {
     override val annotationTarget: String = "property"
     var defaultModality: Modality = Modality.FINAL
@@ -50,6 +50,8 @@ class DecompilerTreeProperty(
         ).joinToString(" ")
 
     override fun produceSources(printer: SmartPrinter) {
+        if (isDeclaredInConstructor) return
+
         with(printer) {
             println(headerWithTypeAndInitializer)
             indented {

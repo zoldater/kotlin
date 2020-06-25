@@ -1,8 +1,6 @@
 // FILE: /named_params_ctor.kt
 
-class TestClass(namedString: String, namedInt: Int) {
-    val namedString: String = namedString
-    val namedInt: Int = namedInt
+class TestClass(val namedString: String, val namedInt: Int) {
 }
 
 fun box(): String {
