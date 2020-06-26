@@ -6,9 +6,9 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
+import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeValueParameter
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeTypeParameter
-import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeValueParameter
 import org.jetbrains.kotlin.decompiler.tree.declarations.name
 import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -28,7 +28,10 @@ class DecompilerTreeObject(
     override val printableDeclarations: List<DecompilerTreeDeclaration>
         get() = listOf(properties, initSections, methods, otherPrintableDeclarations).flatten()
 
-    override val nameIfExists: String? = element.name().takeIf { it != "<no name provided>" || it != "Companion" }
+    override val nameIfExists: String? = element.name().takeIf {
+        !(it == "<no name provided>"
+                || (element.isCompanion && it == "Companion"))
+    }
 
     override val nameWithPrimaryCtorDecompiled: String?
         get() = listOfNotNull(computeModifiersAndName, typeParametersForPrint).ifNotEmpty { joinToString("") }

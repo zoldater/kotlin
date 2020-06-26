@@ -1,0 +1,19 @@
+// FILE: /kt9642.kt
+
+class Outer() {
+    class Nested() {
+        fun fn(): String {
+            Outer.Companion.s = "OK"
+            return Outer.Companion.s
+        }
+    }
+
+    companion object {
+        var s: String = "fail"
+            private set
+    }
+}
+
+fun box(): String {
+    return Outer.Nested().fn()
+}

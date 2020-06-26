@@ -47,7 +47,9 @@ class DecompilerTreeProperty(
     private val headerWithTypeAndInitializer: String
         get() = listOfNotNull(
             propertyFlagsOrNull,
-            propertyTypeStringOrNull?.let { "${element.name()}: $it" } ?: element.name(),
+            element.name().let {
+                propertyTypeStringOrNull?.let { type -> "$it: $type" } ?: it
+            },
             initializerStringOrNull
         ).joinToString(" ")
 

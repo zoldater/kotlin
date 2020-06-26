@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.IrSyntheticBody
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 interface DecompilerTreeBody : DecompilerTreeElement, SourceProducible {
     override val element: IrBody

@@ -3,7 +3,7 @@
 var result: String = ""
 
 class A() {
-    companion object Companion {
+    companion object {
         val prop: String = this.test()
         fun test(): String {
             result += "OK"

@@ -124,7 +124,9 @@ class DecompilerTreeCustomGetter(
         body?.takeIf { !it.isTrivial }?.also {
             printer.print("get()")
             it.produceSources(printer)
-        }
+        } ?: "${element.visibility.name.toLowerCase()} get"
+            .takeIf { element.visibility != defaultVisibility }
+            ?.also { print(it) }
     }
 }
 
@@ -142,11 +144,13 @@ class DecompilerTreeCustomSetter(
     override val modalityIfExists: String? = null
 
     override fun produceSources(printer: SmartPrinter) {
-        body?.takeIf { !it.isTrivial }?.also {
-            with(printer) {
+        with(printer) {
+            body?.takeIf { !it.isTrivial }?.also {
                 print("set(value)")
                 it.produceSources(this)
-            }
+            } ?: "${element.visibility.name.toLowerCase()} set"
+                .takeIf { element.visibility != defaultVisibility }
+                ?.also { print(it) }
         }
     }
 }
