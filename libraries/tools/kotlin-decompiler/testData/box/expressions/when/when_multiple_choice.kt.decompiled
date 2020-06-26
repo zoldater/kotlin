@@ -1,4 +1,8 @@
-fun foo() = 42
+// FILE: /when_multiple_choice.kt
+
+fun foo(): Int {
+    return 42
+}
 
 fun box(): String {
     val f = foo()

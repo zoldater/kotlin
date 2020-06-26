@@ -66,6 +66,18 @@ class DecompilerTreeIfThenElse(
 ) : AbstractDecompilerTreeWhen(element, branches, type) {
     override val subjectStr: String? = null
 
+    private fun collectConditions(): String {
+        val firstBranchCondition = branches[0].condition
+        val secondBranchResult = branches[1].result
+        val firstBranchDecompiled = when (firstBranchCondition) {
+            is DecompilerTreeCallBinaryOp -> firstBranchCondition.decompile()
+            is DecompilerTreeIfThenElse -> firstBranchCondition.collectConditions()
+            else -> throw IllegalStateException("Unexpected branch with type ${firstBranchCondition.javaClass.name}")
+        }
+        return listOf(firstBranchDecompiled, secondBranchResult.decompile()).filter { it.isNotBlank() }.joinToString()
+
+    }
+
     override fun produceSources(printer: SmartPrinter) {
         when (element.origin) {
             IrStatementOrigin.OROR -> printer.print(
@@ -76,6 +88,7 @@ class DecompilerTreeIfThenElse(
                 listOfNotNull(branches[0].condition.decompile(), "&&", branches[0].result.decompile())
                     .joinToString(" ")
             )
+            IrStatementOrigin.WHEN_COMMA -> printer.print(collectConditions())
             else -> {
                 branches[0].condition.decompile().let { "if ($it)" }.also { printer.print(it) }
                 printer.withBraces(false) {
