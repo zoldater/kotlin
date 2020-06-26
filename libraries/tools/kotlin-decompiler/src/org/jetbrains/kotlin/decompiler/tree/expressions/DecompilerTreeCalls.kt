@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin.*
@@ -187,7 +188,12 @@ class DecompilerTreeCallBinaryOp(
         check(element.origin in originMap.keys) { "Origin ${element.origin?.toString()} is not binary operation!" }
 
         if (element.origin in listOf(PLUSEQ, MINUSEQ, DIVEQ, MULTEQ, PERCEQ)) {
-            valueArguments.firstOrNull()?.produceSources(printer)
+            val rhs = valueArguments.firstOrNull()?.decompile()
+            if (element.symbol.owner.origin == IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR) {
+                (element.symbol.owner as? IrSimpleFunction)?.correspondingPropertySymbol?.owner?.name()?.also {
+                    printer.print("$it ${originMap[element.origin]} $rhs")
+                }
+            } else rhs?.also { printer.print(it) }
             return
         }
 
@@ -209,15 +215,15 @@ class DecompilerTreeCallBinaryOp(
     companion object {
         val originMap = mapOf(
             PLUS to "+",
-            PLUSEQ to "+",
+            PLUSEQ to "+=",
             MINUS to "-",
-            MINUSEQ to "-",
+            MINUSEQ to "-=",
             MUL to "*",
-            MULTEQ to "*",
+            MULTEQ to "*=",
             DIV to "/",
-            DIVEQ to "/",
+            DIVEQ to "/=",
             PERC to "%",
-            PERCEQ to "%",
+            PERCEQ to "%=",
             ANDAND to "&&",
             OROR to "||",
             EQEQ to "==",

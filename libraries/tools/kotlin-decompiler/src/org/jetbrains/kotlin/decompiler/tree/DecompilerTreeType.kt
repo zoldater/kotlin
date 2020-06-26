@@ -24,7 +24,11 @@ class DecompilerTreeSimpleType(
 ) :
     DecompilerTreeType {
     override fun produceSources(printer: SmartPrinter) {
-        printer.print(irType.toKotlinType().toString())
+        //TODO typeClassIfExists fqName replace with name calculated by algorithm
+        printer.print(
+            typeClassIfExists?.element?.fqNameWhenAvailable?.asString()
+                ?: irType.toKotlinType().toString()
+        )
     }
 }
 
