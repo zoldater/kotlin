@@ -70,7 +70,7 @@ class DecompilerTreeIfThenElse(
         val firstBranchCondition = branches[0].condition
         val secondBranchResult = branches[1].result
         val firstBranchDecompiled = when (firstBranchCondition) {
-            is DecompilerTreeCallBinaryOp -> firstBranchCondition.decompile()
+            is DecompilerTreeOperatorCall, is DecompilerTreeTypeOperatorCall -> firstBranchCondition.decompile()
             is DecompilerTreeIfThenElse -> firstBranchCondition.collectConditions()
             else -> throw IllegalStateException("Unexpected branch with type ${firstBranchCondition.javaClass.name}")
         }
