@@ -430,6 +430,14 @@ class KotlinIrDecompiler private constructor() {
                             statements[1].buildElement(ANONYMOUS_OBJECT)
                         )
                     )
+                    DESTRUCTURING_DECLARATION -> DecompilerTreeDestructingDeclarationContainer(
+                        type.buildType(),
+                        DecompilerTreeDestructingDeclaration(
+                            type.buildType(),
+                            statements[0].buildElement(data),
+                            statements.drop(1).buildElements(data)
+                        )
+                    )
                     else -> DecompilerTreeContainerExpression(this, statements.buildElements(data), type.buildType())
                 }
             }

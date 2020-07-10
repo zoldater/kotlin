@@ -40,6 +40,22 @@ class DecompilerTreeAnonymousObject(
     override fun produceSources(printer: SmartPrinter) = localClassDeclaration.produceSources(printer)
 }
 
+class DecompilerTreeDestructingDeclaration(
+    override val type: DecompilerTreeType,
+    private val temporaryVariable: DecompilerTreeVariable,
+    private val declarationVariables: List<DecompilerTreeVariable>,
+    override val element: IrExpression? = null
+) : DecompilerTreeCustomExpression {
+    override fun produceSources(printer: SmartPrinter) {
+        listOf(
+            "val",
+            declarationVariables.mapNotNull { it.nameIfExists }.joinToString(", ", "(", ")"),
+            "=",
+            temporaryVariable.initializer!!.decompile()
+        ).joinToString(" ").also { printer.print(it) }
+    }
+}
+
 class DecompilerTreeElvisOperatorCallExpression(
     override val type: DecompilerTreeType,
     private val temporaryVariable: DecompilerTreeVariable,
