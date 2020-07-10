@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.decompiler.tree.expressions.*
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin.*
@@ -36,6 +37,7 @@ class KotlinIrDecompiler private constructor() {
 
     internal enum class ExtraData {
         FIELD_INIT,
+        ANONYMOUS_OBJECT,
         CUSTOM_GETTER,
         CUSTOM_SETTER,
         ENUM_ENTRY_INIT,
@@ -83,27 +85,18 @@ class KotlinIrDecompiler private constructor() {
             val typeParameters = buildTypeParameters(data)
             val thisReceiver = buildThisReceiver(data)
             val superTypes = buildSuperTypes()
-
+            val builtDeclarations = buildDeclarations(data)
+            val configurator =
+                DecompilerTreeClassConfigurator(this, builtDeclarations, annotations, superTypes, thisReceiver, typeParameters)
             return when {
-                kind == ClassKind.INTERFACE -> DecompilerTreeInterface(
-                    this, buildDeclarations(data), annotations, typeParameters, thisReceiver, superTypes
-                )
-                kind == ClassKind.ENUM_CLASS -> DecompilerTreeEnumClass(
-                    this, buildDeclarations(data), annotations, typeParameters, thisReceiver, superTypes
-                )
-                kind == ClassKind.ANNOTATION_CLASS -> DecompilerTreeAnnotationClass(
-                    this, buildDeclarations(data), annotations, typeParameters, thisReceiver, superTypes
-                )
+                kind == ClassKind.INTERFACE -> DecompilerTreeInterface(configurator)
+                kind == ClassKind.ENUM_CLASS -> DecompilerTreeEnumClass(configurator)
+                kind == ClassKind.ANNOTATION_CLASS -> DecompilerTreeAnnotationClass(configurator)
                 //TODO is it enough for `object SomeObj` val x = object : Any {...}
-                kind == ClassKind.OBJECT -> DecompilerTreeObject(
-                    this, buildDeclarations(data), annotations, typeParameters, thisReceiver, superTypes
-                )
-                isData -> DecompilerTreeDataClass(
-                    this, buildDeclarations(data), annotations, typeParameters, thisReceiver, superTypes
-                )
-                else -> DecompilerTreeClass(
-                    this, buildDeclarations(data), annotations, typeParameters, thisReceiver, superTypes
-                )
+                kind == ClassKind.OBJECT -> DecompilerTreeObject(configurator)
+                data == ANONYMOUS_OBJECT -> DecompilerTreeAnonymousClass(configurator)
+                isData -> DecompilerTreeDataClass(configurator)
+                else -> DecompilerTreeClass(configurator)
             }
         }
 
@@ -117,7 +110,7 @@ class KotlinIrDecompiler private constructor() {
                 val builtTypeParameters = buildTypeParameters(data)
 
                 when (data) {
-                    ExtraData.LAMBDA_CONTENT -> DecompilerTreeLambdaFunction(
+                    LAMBDA_CONTENT -> DecompilerTreeLambdaFunction(
                         this, builtReturnType, builtDispatchReceiver, builtExtensionReceiver, builtValueParameters, body?.buildElement(data)
                     )
                     CUSTOM_GETTER -> DecompilerTreeCustomGetter(
@@ -308,15 +301,15 @@ class KotlinIrDecompiler private constructor() {
                 "Unexpected For loop iterator synthetic variable!"
             }
             val initializer = (statements[0] as IrVariable).initializer
-            check(IrStatementOrigin.FOR_LOOP_ITERATOR == (initializer as? IrMemberAccessExpression)?.origin) {
+            check(FOR_LOOP_ITERATOR == (initializer as? IrMemberAccessExpression<*>)?.origin) {
                 "Unexpected For loop iterator initializer!"
             }
-            val sugaredInitializer = (initializer as IrMemberAccessExpression).dispatchReceiver!!
-            check(IrStatementOrigin.FOR_LOOP_INNER_WHILE == (statements.getOrNull(1) as? IrLoop)?.origin) {
+            val sugaredInitializer = (initializer as IrMemberAccessExpression<*>).dispatchReceiver!!
+            check(FOR_LOOP_INNER_WHILE == (statements.getOrNull(1) as? IrLoop)?.origin) {
                 "Unexpected For loop structure!"
             }
             val innerWhileBody = (statements[1] as IrLoop).body
-            check(IrStatementOrigin.FOR_LOOP_INNER_WHILE == (innerWhileBody as? IrContainerExpression)?.origin) {
+            check(FOR_LOOP_INNER_WHILE == (innerWhileBody as? IrContainerExpression)?.origin) {
                 "Unexpected For loop inner while body structure!"
             }
             val innerWhileStatements = (innerWhileBody as IrContainerExpression).statements
@@ -430,6 +423,14 @@ class KotlinIrDecompiler private constructor() {
                     )
                     POSTFIX_DECR, POSTFIX_INCR -> buildPostfixIncDecOperatorCallContainer()
                     PREFIX_DECR, PREFIX_INCR -> buildPrefixIncDecOperatorCallContainer()
+                    OBJECT_LITERAL -> DecompilerTreeAnonymousObjectContainer(
+                        type.buildType(),
+                        DecompilerTreeAnonymousObject(
+                            type.buildType(),
+                            statements[0].buildElement(ANONYMOUS_OBJECT),
+                            statements[1].buildElement(ANONYMOUS_OBJECT)
+                        )
+                    )
                     else -> DecompilerTreeContainerExpression(this, statements.buildElements(data), type.buildType())
                 }
             }
@@ -441,7 +442,7 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitGetObjectValue(expression: IrGetObjectValue, data: ExtraData?): DecompilerTreeGetObjectValue =
             with(expression) {
-                val parent = symbol.owner.buildElement<IrClass, DecompilerTreeObject>(data)
+                val parent = symbol.owner.buildElement<IrClass, AbstractDecompilerTreeClass>(data)
                 return DecompilerTreeGetObjectValue(this, parent, type.buildType())
             }
 
@@ -598,7 +599,7 @@ class KotlinIrDecompiler private constructor() {
 
         override fun visitFunctionExpression(expression: IrFunctionExpression, data: ExtraData?): DecompilerTreeFunctionExpression =
             with(expression) {
-                DecompilerTreeFunctionExpression(this, function.buildElement(ExtraData.LAMBDA_CONTENT), type.buildType())
+                DecompilerTreeFunctionExpression(this, function.buildElement(LAMBDA_CONTENT), type.buildType())
             }
 
 
@@ -689,6 +690,7 @@ class KotlinIrDecompiler private constructor() {
             return DecompilerTreeThrow(expression, throwable, expression.type.buildType())
         }
 
+        @OptIn(ObsoleteDescriptorBasedAPI::class)
         @Suppress("UNCHECKED_CAST")
         fun <T : IrType, R : DecompilerTreeType> T.buildType(): R =
             (typesCacheMap[this] ?: run {
@@ -745,7 +747,7 @@ class KotlinIrDecompiler private constructor() {
         private fun IrDeclarationContainer.buildDeclarations(kind: ExtraData? = null): List<DecompilerTreeDeclaration> =
             declarations.buildDeclarations(kind)
 
-        private fun IrMemberAccessExpression.buildValueArguments(kind: ExtraData? = null): List<DecompilerTreeValueArgument> {
+        private fun IrMemberAccessExpression<*>.buildValueArguments(kind: ExtraData? = null): List<DecompilerTreeValueArgument> {
             val valueParameters = (symbol.owner as IrFunction).valueParameters
             val valueArguments = (0 until valueArgumentsCount).map { getValueArgument(it) }
             check(valueParameters.size == valueArgumentsCount) { "Number of parameters & arguments are not the same!" }
@@ -759,13 +761,13 @@ class KotlinIrDecompiler private constructor() {
             }
         }
 
-        private fun IrMemberAccessExpression.buildTypeArguments() =
+        private fun IrMemberAccessExpression<*>.buildTypeArguments() =
             (0 until typeArgumentsCount).mapNotNull { getTypeArgument(it)?.buildType() }
 
-        private fun IrMemberAccessExpression.buildDispatchReceiver(kind: ExtraData? = null): DecompilerTreeExpression? =
+        private fun IrMemberAccessExpression<*>.buildDispatchReceiver(kind: ExtraData? = null): DecompilerTreeExpression? =
             dispatchReceiver?.buildExpression(kind)
 
-        private fun IrMemberAccessExpression.buildExtensionReceiver(kind: ExtraData? = null): DecompilerTreeExpression? =
+        private fun IrMemberAccessExpression<*>.buildExtensionReceiver(kind: ExtraData? = null): DecompilerTreeExpression? =
             extensionReceiver?.buildExpression(kind)
 
         private fun IrTypeParametersContainer.buildTypeParameters(kind: ExtraData? = null): List<DecompilerTreeTypeParameter> =

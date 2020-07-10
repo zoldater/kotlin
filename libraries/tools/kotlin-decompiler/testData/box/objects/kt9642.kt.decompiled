@@ -7,7 +7,6 @@ class Outer() {
             return Outer.Companion.s
         }
     }
-
     companion object {
         var s: String = "fail"
             private set

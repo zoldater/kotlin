@@ -1187,7 +1187,15 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
         }
 
         public void testAllFilesPresentInObjects() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/objects"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(),
+                                                                        new File("libraries/tools/kotlin-decompiler/testData/box/objects"),
+                                                                        Pattern.compile("^(.+)\\.kt$"),
+                                                                        Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+        }
+
+        @TestMetadata("cases100720.kt")
+        public void testCases100720() throws Exception {
+            runTest("libraries/tools/kotlin-decompiler/testData/box/objects/cases100720.kt");
         }
 
         @TestMetadata("classCallsProtectedInheritedByCompanion.kt")

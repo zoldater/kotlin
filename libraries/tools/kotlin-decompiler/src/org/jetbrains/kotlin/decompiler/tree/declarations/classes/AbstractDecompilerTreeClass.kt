@@ -25,13 +25,24 @@ abstract class AbstractDecompilerTreeClass(
     override val declarations: List<DecompilerTreeDeclaration>,
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>,
     val superTypes: List<DecompilerTreeType>,
+    override var typeParameters: List<DecompilerTreeTypeParameter>,
+    val thisReceiver: AbstractDecompilerTreeValueParameter?,
     override val annotationTarget: String? = null,
 ) : DecompilerTreeDeclaration,
     DecompilerTreeDeclarationContainer,
     DecompilerTreeTypeParametersContainer {
+
+    constructor(configurator: DecompilerTreeClassConfigurator) : this(
+        configurator.element,
+        configurator.declarations,
+        configurator.annotations,
+        configurator.superTypes,
+        configurator.typeParameters,
+        configurator.thisReceiver
+    )
+
     open val isDefaultModality: Boolean = element.modality == Modality.FINAL
     abstract val keyword: String
-    abstract val thisReceiver: AbstractDecompilerTreeValueParameter?
 
     protected open val nonTrivialSuperInterfaces: List<DecompilerTreeType>
         get() = superTypes.filterNot { it.irType.isAny() || it.irType.isUnit() }
@@ -61,9 +72,9 @@ abstract class AbstractDecompilerTreeClass(
             .filterNot { it.element?.isFakeOverride ?: false }
             .toList()
 
-    open val printableDeclarations: List<DecompilerTreeDeclaration> = emptyList()
+    abstract val printableDeclarations: List<DecompilerTreeDeclaration>
 
-    protected val computeModifiersAndName: String
+    protected open val computeModifiersAndName: String
         get() = with(element) {
             return listOfNotNull(
                 visibility.name.toLowerCase().takeIf { element.visibility != Visibilities.PUBLIC },
@@ -111,3 +122,27 @@ abstract class AbstractDecompilerTreeClass(
     }
 }
 
+data class DecompilerTreeClassConfigurator(
+    val element: IrClass,
+    val declarations: List<DecompilerTreeDeclaration>,
+    val annotations: List<DecompilerTreeAnnotationConstructorCall>,
+    val superTypes: List<DecompilerTreeType>,
+    val thisReceiver: AbstractDecompilerTreeValueParameter?,
+    val typeParameters: List<DecompilerTreeTypeParameter>,
+    val annotationTarget: String? = null,
+)
+
+class DecompilerTreeAnonymousClass(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
+    init {
+        primaryConstructor?.isObjectConstructor = true
+    }
+
+    override val keyword: String
+        get() = throw UnsupportedOperationException("Anonymous class hasn't name and power!")
+
+    override val computeModifiersAndName: String = "object"
+
+    override val printableDeclarations: List<DecompilerTreeDeclaration>
+        get() = listOf(properties, initSections, secondaryConstructors, methods, otherPrintableDeclarations).flatten()
+
+}

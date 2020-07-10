@@ -5,20 +5,10 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.*
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
-import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 
-class DecompilerTreeDataClass(
-    element: IrClass,
-    declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeAnnotationConstructorCall>,
-    override var typeParameters: List<DecompilerTreeTypeParameter>,
-    override val thisReceiver: AbstractDecompilerTreeValueParameter?,
-    superTypes: List<DecompilerTreeType>
-) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
+class DecompilerTreeDataClass(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
 
     override val keyword: String = "data class"
 

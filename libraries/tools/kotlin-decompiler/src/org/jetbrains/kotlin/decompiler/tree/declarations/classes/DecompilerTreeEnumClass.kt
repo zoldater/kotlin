@@ -6,23 +6,15 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
 import org.jetbrains.kotlin.decompiler.printer.withBraces
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.tree.declarations.*
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeEnumEntry
+import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeSimpleFunction
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
-import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
-class DecompilerTreeEnumClass(
-    element: IrClass,
-    declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeAnnotationConstructorCall>,
-    override var typeParameters: List<DecompilerTreeTypeParameter>,
-    override val thisReceiver: AbstractDecompilerTreeValueParameter?,
-    superTypes: List<DecompilerTreeType>
-) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
+class DecompilerTreeEnumClass(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
     override val keyword: String = "enum class"
 
     private val enumEntries: List<DecompilerTreeEnumEntry>

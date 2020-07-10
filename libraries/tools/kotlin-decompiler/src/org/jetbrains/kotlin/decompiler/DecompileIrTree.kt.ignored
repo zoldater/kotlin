@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.decompiler.util.*
 import org.jetbrains.kotlin.decompiler.util.name
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin.DELEGATED_MEMBER
@@ -40,6 +41,7 @@ class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
 
         //TODO резолвить конфликты имен типов возвращаемых значений.
         // Конфликт - если более 2 записей, заканчивающихся на этот тип
+        @OptIn(ObsoleteDescriptorBasedAPI::class)
         internal fun IrType.obtainTypeDescription(): String {
             if ((this as? IrSimpleType)?.abbreviation != null) {
                 with(abbreviation!!.typeAlias.owner) {
@@ -700,7 +702,7 @@ class DecompileIrTreeVisitor(out: Appendable) : IrElementVisitor<Unit, String> {
                 if (body?.statements?.size == 1) {
                     val firstStatement = body.statements[0]
                     if (firstStatement is IrReturn) {
-                        val returnStatementCall = (firstStatement as IrReturnImpl).value as IrMemberAccessExpression
+                        val returnStatementCall = (firstStatement as IrReturnImpl).value as IrEx
                         val leftFromArrowParams = (0 until returnStatementCall.valueArgumentsCount)
                             .map { returnStatementCall.getValueArgument(it)?.decompile("") }
                             .toHashSet()

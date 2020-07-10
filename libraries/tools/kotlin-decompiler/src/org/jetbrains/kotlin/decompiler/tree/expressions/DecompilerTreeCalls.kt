@@ -8,8 +8,9 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.util.name
+import org.jetbrains.kotlin.decompiler.tree.declarations.name
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -21,6 +22,7 @@ interface AbstractDecompilerTreeCall : DecompilerTreeMemberAccessExpression, Sou
     override val type: DecompilerTreeType
 }
 
+@OptIn(ObsoleteDescriptorBasedAPI::class)
 internal fun IrCall.buildCall(
     dispatchReceiver: DecompilerTreeExpression?,
     extensionReceiver: DecompilerTreeExpression?,
@@ -68,7 +70,7 @@ internal fun IrCall.buildCall(
             valueArguments,
             type
         )
-        origin == IrStatementOrigin.RANGE -> DecompilerTreeCallRangeOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
+        origin == RANGE -> DecompilerTreeCallRangeOp(this, dispatchReceiver, extensionReceiver, valueArguments, type)
         symbol.owner.descriptor.isInfix -> DecompilerTreeInfixFunCall(
             this,
             dispatchReceiver,
@@ -189,6 +191,7 @@ class DecompilerTreeCallBinaryOp(
 
         if (element.origin in listOf(PLUSEQ, MINUSEQ, DIVEQ, MULTEQ, PERCEQ)) {
             val rhs = valueArguments.firstOrNull()?.decompile()
+            //TODO in notes
             if (element.symbol.owner.origin == IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR) {
                 (element.symbol.owner as? IrSimpleFunction)?.correspondingPropertySymbol?.owner?.name()?.also {
                     printer.print("$it ${originMap[element.origin]} $rhs")

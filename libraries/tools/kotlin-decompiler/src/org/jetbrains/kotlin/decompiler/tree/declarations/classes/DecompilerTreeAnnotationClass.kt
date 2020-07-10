@@ -7,19 +7,8 @@ package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
-import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeTypeParameter
-import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeValueParameter
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
-import org.jetbrains.kotlin.ir.declarations.IrClass
 
-class DecompilerTreeAnnotationClass(
-    element: IrClass,
-    declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeAnnotationConstructorCall>,
-    override var typeParameters: List<DecompilerTreeTypeParameter>,
-    override val thisReceiver: AbstractDecompilerTreeValueParameter?,
-    superTypes: List<DecompilerTreeType>
-) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
+class DecompilerTreeAnnotationClass(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
     override val keyword: String = "annotation class"
 
     override val nonTrivialSuperInterfaces: List<DecompilerTreeType>

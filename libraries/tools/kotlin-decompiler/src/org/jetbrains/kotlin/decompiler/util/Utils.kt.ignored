@@ -420,12 +420,12 @@ internal fun IrTypeParameter.obtain() =
     concatenateNonEmptyWithSpace(variance(), name(), bound())
 
 //TODO посмотреть где это используется (особенно с IrTypeAbbreviation)
-internal fun IrTypeArgument.obtain() =
-    when (this) {
-        is IrStarProjection -> "*"
-        is IrTypeProjection -> "${if (variance.label.isNotEmpty()) variance.label + " " else EMPTY_TOKEN}${type.obtainTypeDescription()}"
-        else -> throw AssertionError("Unexpected IrTypeArgument: $this")
-    }
+//internal fun IrTypeArgument.obtain() =
+//    when (this) {
+//        is IrStarProjection -> "*"
+//        is IrTypeProjection -> "${if (variance.label.isNotEmpty()) variance.label + " " else EMPTY_TOKEN}${type.obtainTypeDescription()}"
+//        else -> throw AssertionError("Unexpected IrTypeArgument: $this")
+//    }
 
 internal fun IrSimpleFunction.isOverriden() =
     overriddenSymbols.isNotEmpty() && overriddenSymbols.map { it.owner.name() }.contains(name())
@@ -433,7 +433,7 @@ internal fun IrSimpleFunction.isOverriden() =
 internal fun IrSimpleFunction.obtainSimpleFunctionFlags(): String =
     concatenateNonEmptyWithSpace(
         // TODO выпилить при появлении в ноде информации о модификаторе operator
-        "operator".takeIf { descriptor.isOperator },
+        "operator".takeIf { isOperator },
         "tailrec".takeIf { isTailrec },
         "inline".takeIf { isInline },
         "external".takeIf { isExternal },

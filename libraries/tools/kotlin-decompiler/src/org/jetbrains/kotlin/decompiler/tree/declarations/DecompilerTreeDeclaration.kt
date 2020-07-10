@@ -8,10 +8,12 @@ package org.jetbrains.kotlin.decompiler.tree.declarations
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeAnnotationsContainer
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeStatement
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithVisibility
 
+@OptIn(ObsoleteDescriptorBasedAPI::class)
 fun IrDeclaration.name(): String = descriptor.name.asString()
 
 interface DecompilerTreeDeclaration : DecompilerTreeStatement, DecompilerTreeAnnotationsContainer, SourceProducible {

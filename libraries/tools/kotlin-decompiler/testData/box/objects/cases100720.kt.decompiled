@@ -1,0 +1,111 @@
+// FILE: /cases100720.kt
+
+interface IBar {
+    abstract val x: Int
+    fun foo()
+}
+
+object ObjImplIface : IBar {
+    open override val x: Int = 33
+    override fun foo() {}
+}
+
+val objImplIface: IBar = object : IBar {
+    open override val x: Int
+        get() = TODO("Not yet implemented")
+
+    override fun foo() {
+        TODO("Not yet implemented")
+    }
+}
+
+
+class CompanionImplIface() {
+    companion object : IBar {
+        open override val x: Int = 42
+        override fun foo() {}
+    }
+}
+
+open class IClazz() {
+    open fun clazzFun() {}
+}
+
+object ObjExtClazz : IClazz() {
+    override fun clazzFun() {
+        super<IClazz>.clazzFun()
+    }
+}
+
+val objExtClazz: IClazz = object : IClazz() {
+    override fun clazzFun() {
+        super<IClazz>.clazzFun()
+    }
+}
+
+
+class CompanionExtClazz() {
+    companion object : IClazz() {
+        override fun clazzFun() {}
+    }
+}
+
+open class IClazzCtor(final val x: Int) {
+    open fun clazzCtorFun() {}
+}
+
+object ObjExtClazzCtor : IClazzCtor(42) {
+    override fun clazzCtorFun() {
+        super<IClazzCtor>.clazzCtorFun()
+    }
+}
+
+val objExtClazzCtor: IClazzCtor = object : IClazzCtor(42) {
+    override fun clazzCtorFun() {
+        super<IClazzCtor>.clazzCtorFun()
+    }
+}
+
+
+class CompanionExtClazzCtor() {
+    companion object : IClazzCtor(42) {
+        override fun clazzCtorFun() {
+            super<IClazzCtor>.clazzCtorFun()
+        }
+    }
+}
+
+abstract class IClazzCtorDef(final val x: Int = 42) {
+    abstract val y: Int
+    abstract fun clazzCtorDefFun()
+}
+
+object ObjExtClazzCtorDef : IClazzCtorDef() {
+    open override val y: Int
+        get() = TODO("Not yet implemented")
+
+    override fun clazzCtorDefFun() {
+        TODO("Not yet implemented")
+    }
+}
+
+val objExtClazzCtorDef: IClazzCtorDef = object : IClazzCtorDef() {
+    open override val y: Int
+        get() = TODO("Not yet implemented")
+
+    override fun clazzCtorDefFun() {
+        TODO("Not yet implemented")
+    }
+}
+
+
+class CompanionExtClazzCtorDef() {
+    companion object : IClazzCtorDef() {
+        open override val y: Int = 11
+        override fun clazzCtorDefFun() {}
+    }
+}
+
+fun box(): String {
+    return "OK"
+}

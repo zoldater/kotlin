@@ -37,6 +37,8 @@ abstract class AbstractDecompilerTreeConstructor(
     val isTrivial: Boolean
         get() = annotationSourcesList.isEmpty() && functionFlags.isEmpty() && element.visibility == defaultVisibility
 
+    var isObjectConstructor: Boolean = false
+
     abstract val keyword: String?
     abstract val valueParametersOrNull: String?
     abstract val delegatingCallDecompiledOrNull: String?
@@ -45,23 +47,26 @@ abstract class AbstractDecompilerTreeConstructor(
         get() = (body as? AbstractDecompilerTreeBlockBody)?.statements
             ?.filterNot { it is DecompilerTreeDelegatingConstructorCall || it is DecompilerTreeInstanceInitializerCall }
 
-    val delegatingConstructorCall: DecompilerTreeDelegatingConstructorCall?
+    protected val delegatingConstructorCall: DecompilerTreeDelegatingConstructorCall?
         get() = (body as? AbstractDecompilerTreeBlockBody)?.statements
             ?.filterIsInstance<DecompilerTreeDelegatingConstructorCall>()
             ?.firstOrNull()
 
-    override fun produceSources(printer: SmartPrinter) {
-        val header = listOfNotNull(
+    private val header: String?
+        get() = listOfNotNull(
             annotationSourcesList.ifNotEmpty { joinToString(" ") },
             functionFlags.ifNotEmpty { joinToString(" ") },
             keyword
         ).ifNotEmpty { joinToString(" ") }
 
-        val headerWithPrimaryCtorOrNull = listOfNotNull(header, valueParametersOrNull).ifNotEmpty { joinToString("") }
+    open val headerWithPrimaryCtorOrNull: String?
+        get() = listOfNotNull(header, valueParametersOrNull).ifNotEmpty { joinToString("") }
 
+    override fun produceSources(printer: SmartPrinter) {
 
         listOfNotNull(headerWithPrimaryCtorOrNull, delegatingCallDecompiledOrNull?.let { ": $it" })
             .ifNotEmpty { joinToString(" ") }
+            ?.let { if (headerWithPrimaryCtorOrNull == null) " $it" else it }
             ?.also { printer.print(it) }
 
         // Note. If primary constructor contains anything except DelegatingConstructorCall and InstanceInitializerCall
@@ -90,9 +95,12 @@ class DecompilerTreePrimaryConstructor(
 ) : AbstractDecompilerTreeConstructor(
     element, annotations, returnType, dispatchReceiverParameter, extensionReceiverParameter, valueParameters, body, typeParameters,
 ) {
+
     private val DecompilerTreeDelegatingConstructorCall.isTrivial: Boolean
         get() = returnType.irType.isAny() || returnType.irType.isUnit()
 
+    override val headerWithPrimaryCtorOrNull: String?
+        get() = super.headerWithPrimaryCtorOrNull?.takeIf { !isObjectConstructor }
     override val keyword: String? = "constructor".takeIf { !isTrivial }
     override val valueParametersOrNull: String?
         get() = valueParametersForPrint

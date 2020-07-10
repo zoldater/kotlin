@@ -5,22 +5,10 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
-import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeTypeParameter
-import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeValueParameter
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.ir.declarations.IrClass
 
-class DecompilerTreeInterface(
-    element: IrClass,
-    declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeAnnotationConstructorCall>,
-    override val typeParameters: List<DecompilerTreeTypeParameter>,
-    override val thisReceiver: AbstractDecompilerTreeValueParameter?,
-    superTypes: List<DecompilerTreeType>
-) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
+class DecompilerTreeInterface(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
     override val keyword: String = "interface"
 
     override val printableDeclarations: List<DecompilerTreeDeclaration>

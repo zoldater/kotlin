@@ -8,11 +8,11 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrDelegatingConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrEnumConstructorCall
 import org.jetbrains.kotlin.ir.types.toKotlinType
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 
 interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpression, SourceProducible {
@@ -26,6 +26,7 @@ interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpr
 
     val valueArgumentsDecompiled: String?
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun produceSources(printer: SmartPrinter) {
         //TODO investigate workaround for this way to determine type name
         listOfNotNull(

@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeValueParameter
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeVariable
+import org.jetbrains.kotlin.decompiler.tree.declarations.classes.AbstractDecompilerTreeClass
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 
@@ -28,6 +29,15 @@ class DecompilerTreeValueArgument(
             )
         }
     }
+}
+
+class DecompilerTreeAnonymousObject(
+    override val type: DecompilerTreeType,
+    private val localClassDeclaration: AbstractDecompilerTreeClass,
+    private val constructorCall: AbstractDecompilerTreeConstructorCall,
+    override val element: IrExpression? = null
+) : DecompilerTreeCustomExpression {
+    override fun produceSources(printer: SmartPrinter) = localClassDeclaration.produceSources(printer)
 }
 
 class DecompilerTreeElvisOperatorCallExpression(

@@ -5,34 +5,17 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
-import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.tree.declarations.AbstractDecompilerTreeValueParameter
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
-import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeTypeParameter
-import org.jetbrains.kotlin.decompiler.tree.declarations.name
-import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotationConstructorCall
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
-class DecompilerTreeObject(
-    element: IrClass,
-    declarations: List<DecompilerTreeDeclaration>,
-    annotations: List<DecompilerTreeAnnotationConstructorCall>,
-    override var typeParameters: List<DecompilerTreeTypeParameter>,
-    override val thisReceiver: AbstractDecompilerTreeValueParameter?,
-    superTypes: List<DecompilerTreeType>
-) : AbstractDecompilerTreeClass(element, declarations, annotations, superTypes) {
-
-    override val keyword: String = "object"
-
-    override val printableDeclarations: List<DecompilerTreeDeclaration>
-        get() = listOf(properties, initSections, methods, otherPrintableDeclarations).flatten()
-
-    override val nameIfExists: String? = element.name().takeIf {
-        !(it == "<no name provided>"
-                || (element.isCompanion && it == "Companion"))
+class DecompilerTreeObject(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
+    init {
+        primaryConstructor?.isObjectConstructor = true
     }
 
-    override val nameWithPrimaryCtorDecompiled: String?
-        get() = listOfNotNull(computeModifiersAndName, typeParametersForPrint).ifNotEmpty { joinToString("") }
+    override val keyword: String = "object"
+    override val nameIfExists: String?
+        get() = if (element.isCompanion) super.nameIfExists?.takeIf { !it.equals("Companion", true) } else super.nameIfExists
+
+    override val printableDeclarations: List<DecompilerTreeDeclaration>
+        get() = listOf(properties, initSections, secondaryConstructors, methods, otherPrintableDeclarations).flatten()
 }

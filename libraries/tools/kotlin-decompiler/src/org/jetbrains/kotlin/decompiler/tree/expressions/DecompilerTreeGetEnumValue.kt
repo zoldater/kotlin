@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.decompiler.tree.expressions
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeEnumEntry
-import org.jetbrains.kotlin.decompiler.tree.declarations.classes.DecompilerTreeObject
+import org.jetbrains.kotlin.decompiler.tree.declarations.classes.AbstractDecompilerTreeClass
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
 import org.jetbrains.kotlin.ir.expressions.IrGetObjectValue
@@ -32,7 +32,7 @@ class DecompilerTreeGetEnumValue(
 
 class DecompilerTreeGetObjectValue(
     override val element: IrGetObjectValue,
-    val parentDeclaration: DecompilerTreeObject,
+    val parentDeclaration: AbstractDecompilerTreeClass,
     override val type: DecompilerTreeType
 ) : DecompilerTreeExpression, SourceProducible {
     override fun produceSources(printer: SmartPrinter) {

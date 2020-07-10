@@ -6,7 +6,6 @@ open class A() {
             return "OK"
         }
     }
-
     class B() : A() {
         fun bar(): String {
             return A.Companion.foo()

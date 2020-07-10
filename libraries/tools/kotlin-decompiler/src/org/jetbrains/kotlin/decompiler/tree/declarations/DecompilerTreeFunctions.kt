@@ -61,6 +61,10 @@ interface DecompilerTreeFunction : DecompilerTreeDeclaration, DecompilerTreeType
 interface AbstractDecompilerTreeSimpleFunction : DecompilerTreeFunction {
     override val element: IrSimpleFunction
     override val annotations: List<DecompilerTreeAnnotationConstructorCall>
+
+    fun isOverriden() =
+        element.overriddenSymbols.isNotEmpty() && element.overriddenSymbols.map { it.owner.name() }.contains(element.name())
+
 }
 
 class DecompilerTreeSimpleFunction(

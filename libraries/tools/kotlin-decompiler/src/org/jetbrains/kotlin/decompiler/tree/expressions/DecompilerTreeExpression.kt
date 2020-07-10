@@ -69,6 +69,15 @@ class DecompilerTreeElvisOperatorCallContainer(
     }
 }
 
+class DecompilerTreeAnonymousObjectContainer(
+    override val type: DecompilerTreeType,
+    private val anonymousObject: DecompilerTreeAnonymousObject,
+    override val element: IrContainerExpression? = null,
+    override val statements: List<DecompilerTreeStatement> = emptyList()
+) : AbstractDecompilerTreeContainerExpression {
+    override fun produceSources(printer: SmartPrinter) = anonymousObject.produceSources(printer)
+}
+
 class DecompilerTreeSafeCallOperatorContainer(
     override val type: DecompilerTreeType,
     private val safeCallOperatorExpression: DecompilerTreeSafeCallOperatorExpression,

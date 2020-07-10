@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.decompiler.tree
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.declarations.classes.AbstractDecompilerTreeClass
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.isNullable
 import org.jetbrains.kotlin.ir.types.toKotlinType
@@ -23,6 +24,7 @@ class DecompilerTreeSimpleType(
     override var typeClassIfExists: AbstractDecompilerTreeClass?
 ) :
     DecompilerTreeType {
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun produceSources(printer: SmartPrinter) {
         //TODO typeClassIfExists fqName replace with name calculated by algorithm
         printer.print(
@@ -34,6 +36,7 @@ class DecompilerTreeSimpleType(
 
 class DecompilerTreeFunctionalType(override val irType: IrType, override var typeClassIfExists: AbstractDecompilerTreeClass? = null) :
     DecompilerTreeType {
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun produceSources(printer: SmartPrinter) {
         //TODO Looks like very bad implementation of type description collecting
         with(irType) {
