@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
 import org.jetbrains.kotlin.descriptors.Modality
 
-class DecompilerTreeInterface(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
+class DecompilerTreeInterface(configuration: DecompilerTreeClassConfiguration) : AbstractDecompilerTreeClass(configuration) {
     override val keyword: String = "interface"
 
     override val printableDeclarations: List<DecompilerTreeDeclaration>

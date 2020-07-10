@@ -1,0 +1,28 @@
+// FILE: /data_class.kt
+
+data class MyUser(final val name: String, final val age: Int) {
+}
+
+data class MyUserDefaultName(final val name: String = "John", final val age: Int = 42) {
+}
+
+fun box(): String {
+    val myUser = MyUser("John", 42)
+    val tmp0_container = myUser
+    val name = tmp0_container.component1()
+    val age = tmp0_container.component2()
+    if (name != myUser.name || age != myUser.age) {
+        return "FAIL"
+    }
+    val tmp1_container = myUser
+    val name1 = tmp1_container.component1()
+    val age1 = tmp1_container.component2()
+    if (name != name1 || age != age1) {
+        return "FAIL"
+    }
+    val myUserDefaultName = MyUserDefaultName()
+    if (myUserDefaultName.name != myUser.name || myUserDefaultName.age != myUser.age) {
+        return "FAIL"
+    }
+    return "OK"
+}

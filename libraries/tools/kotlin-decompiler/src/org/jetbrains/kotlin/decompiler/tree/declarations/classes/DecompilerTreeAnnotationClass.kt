@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
 
-class DecompilerTreeAnnotationClass(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
+class DecompilerTreeAnnotationClass(configuration: DecompilerTreeClassConfiguration) : AbstractDecompilerTreeClass(configuration) {
     override val keyword: String = "annotation class"
 
     override val nonTrivialSuperInterfaces: List<DecompilerTreeType>

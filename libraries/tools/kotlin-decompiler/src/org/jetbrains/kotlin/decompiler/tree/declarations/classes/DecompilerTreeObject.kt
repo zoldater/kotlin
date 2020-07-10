@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
 
-class DecompilerTreeObject(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
+class DecompilerTreeObject(configuration: DecompilerTreeClassConfiguration) : AbstractDecompilerTreeClass(configuration) {
     init {
         primaryConstructor?.isObjectConstructor = true
     }

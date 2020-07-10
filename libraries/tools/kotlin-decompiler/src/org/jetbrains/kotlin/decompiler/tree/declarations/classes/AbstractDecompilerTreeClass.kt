@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.types.isAny
 import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.isFakeOverride
@@ -32,13 +33,13 @@ abstract class AbstractDecompilerTreeClass(
     DecompilerTreeDeclarationContainer,
     DecompilerTreeTypeParametersContainer {
 
-    constructor(configurator: DecompilerTreeClassConfigurator) : this(
-        configurator.element,
-        configurator.declarations,
-        configurator.annotations,
-        configurator.superTypes,
-        configurator.typeParameters,
-        configurator.thisReceiver
+    constructor(configuration: DecompilerTreeClassConfiguration) : this(
+        configuration.element,
+        configuration.declarations,
+        configuration.annotations,
+        configuration.superTypes,
+        configuration.typeParameters,
+        configuration.thisReceiver
     )
 
     open val isDefaultModality: Boolean = element.modality == Modality.FINAL
@@ -61,7 +62,8 @@ abstract class AbstractDecompilerTreeClass(
         get() = declarations.filterIsInstance<DecompilerTreeProperty>().filterNot { it.element.isFakeOverride }
 
     internal open val methods: List<DecompilerTreeSimpleFunction>
-        get() = declarations.filterIsInstance<DecompilerTreeSimpleFunction>().filterNot { it.element.isFakeOverride }
+        get() = declarations.filterIsInstance<DecompilerTreeSimpleFunction>()
+            .filterNot { it.element.isFakeOverride || it.element.origin == IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER }
 
     protected open val otherPrintableDeclarations: List<DecompilerTreeDeclaration>
         get() = declarations.asSequence()
@@ -85,6 +87,7 @@ abstract class AbstractDecompilerTreeClass(
                 "inner".takeIf { isInner },
                 "inline".takeIf { isInline },
                 "companion".takeIf { isCompanion },
+                "data".takeIf { isData },
                 keyword,
                 nameIfExists
             ).joinToString(separator = " ")
@@ -122,7 +125,7 @@ abstract class AbstractDecompilerTreeClass(
     }
 }
 
-data class DecompilerTreeClassConfigurator(
+data class DecompilerTreeClassConfiguration(
     val element: IrClass,
     val declarations: List<DecompilerTreeDeclaration>,
     val annotations: List<DecompilerTreeAnnotationConstructorCall>,
@@ -132,7 +135,7 @@ data class DecompilerTreeClassConfigurator(
     val annotationTarget: String? = null,
 )
 
-class DecompilerTreeAnonymousClass(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
+class DecompilerTreeAnonymousClass(configuration: DecompilerTreeClassConfiguration) : AbstractDecompilerTreeClass(configuration) {
     init {
         primaryConstructor?.isObjectConstructor = true
     }

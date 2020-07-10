@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
-class DecompilerTreeEnumClass(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
+class DecompilerTreeEnumClass(configuration: DecompilerTreeClassConfiguration) : AbstractDecompilerTreeClass(configuration) {
     override val keyword: String = "enum class"
 
     private val enumEntries: List<DecompilerTreeEnumEntry>

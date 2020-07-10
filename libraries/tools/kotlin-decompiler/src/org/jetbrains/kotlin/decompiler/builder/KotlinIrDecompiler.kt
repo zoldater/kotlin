@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import java.io.File
+import java.util.*
 
 class KotlinIrDecompiler private constructor() {
 
@@ -51,8 +52,8 @@ class KotlinIrDecompiler private constructor() {
     }
 
     private class DecompilerTreeConstructionVisitor : IrElementVisitor<DecompilerTreeElement, ExtraData?> {
-        private val elementsCacheMap = mutableMapOf<IrElement, DecompilerTreeElement>()
-        private val typesCacheMap = mutableMapOf<IrType, DecompilerTreeType>()
+        private val elementsCacheMap = WeakHashMap<IrElement, DecompilerTreeElement>()
+        private val typesCacheMap = WeakHashMap<IrType, DecompilerTreeType>()
 
         override fun visitElement(element: IrElement, data: ExtraData?): DecompilerTreeElement {
             throw IllegalStateException("Element $element was not properly built")
@@ -87,15 +88,13 @@ class KotlinIrDecompiler private constructor() {
             val superTypes = buildSuperTypes()
             val builtDeclarations = buildDeclarations(data)
             val configurator =
-                DecompilerTreeClassConfigurator(this, builtDeclarations, annotations, superTypes, thisReceiver, typeParameters)
-            return when {
-                kind == ClassKind.INTERFACE -> DecompilerTreeInterface(configurator)
-                kind == ClassKind.ENUM_CLASS -> DecompilerTreeEnumClass(configurator)
-                kind == ClassKind.ANNOTATION_CLASS -> DecompilerTreeAnnotationClass(configurator)
-                //TODO is it enough for `object SomeObj` val x = object : Any {...}
-                kind == ClassKind.OBJECT -> DecompilerTreeObject(configurator)
-                data == ANONYMOUS_OBJECT -> DecompilerTreeAnonymousClass(configurator)
-                isData -> DecompilerTreeDataClass(configurator)
+                DecompilerTreeClassConfiguration(this, builtDeclarations, annotations, superTypes, thisReceiver, typeParameters)
+            return if (data == ANONYMOUS_OBJECT) DecompilerTreeAnonymousClass(configurator)
+            else when (kind) {
+                ClassKind.INTERFACE -> DecompilerTreeInterface(configurator)
+                ClassKind.ENUM_CLASS -> DecompilerTreeEnumClass(configurator)
+                ClassKind.ANNOTATION_CLASS -> DecompilerTreeAnnotationClass(configurator)
+                ClassKind.OBJECT -> DecompilerTreeObject(configurator)
                 else -> DecompilerTreeClass(configurator)
             }
         }

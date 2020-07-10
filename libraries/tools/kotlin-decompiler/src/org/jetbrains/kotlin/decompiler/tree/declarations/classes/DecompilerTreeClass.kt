@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
 
-class DecompilerTreeClass(configurator: DecompilerTreeClassConfigurator) : AbstractDecompilerTreeClass(configurator) {
+class DecompilerTreeClass(configuration: DecompilerTreeClassConfiguration) : AbstractDecompilerTreeClass(configuration) {
     override val keyword: String = "class"
 
     override val printableDeclarations: List<DecompilerTreeDeclaration>
