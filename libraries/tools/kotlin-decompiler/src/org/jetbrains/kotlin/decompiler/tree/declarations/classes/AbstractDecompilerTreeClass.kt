@@ -16,9 +16,8 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.types.isAny
-import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.util.isFakeOverride
+import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 abstract class AbstractDecompilerTreeClass(
@@ -43,25 +42,29 @@ abstract class AbstractDecompilerTreeClass(
     )
 
     open val isDefaultModality: Boolean = element.modality == Modality.FINAL
+
     abstract val keyword: String
 
     protected open val nonTrivialSuperInterfaces: List<DecompilerTreeType>
-        get() = superTypes.filterNot { it.irType.isAny() || it.irType.isUnit() }
-            .filterNot { (it.typeClassIfExists is DecompilerTreeClass).takeIf { primaryConstructor != null } ?: false }
+        get() = superTypes.filter { it.irType.isInterface() }
+//            .filterNot { (it.typeClassIfExists is DecompilerTreeClass).takeIf { primaryConstructor != null } ?: false }
 
-    internal open val primaryConstructor: AbstractDecompilerTreeConstructor?
+    protected open val primaryConstructor: AbstractDecompilerTreeConstructor?
         get() = declarations.filterIsInstance<DecompilerTreePrimaryConstructor>().firstOrNull()
 
-    internal open val secondaryConstructors: List<DecompilerTreeSecondaryConstructor>
+    protected open val secondaryConstructors: List<DecompilerTreeSecondaryConstructor>
         get() = declarations.filterIsInstance<DecompilerTreeSecondaryConstructor>()
 
-    internal open val initSections: List<DecompilerTreeAnonymousInitializer>
+    protected open val initSections: List<DecompilerTreeAnonymousInitializer>
         get() = declarations.filterIsInstance<DecompilerTreeAnonymousInitializer>()
 
-    internal open val properties: List<DecompilerTreeProperty>
+    protected open val properties: List<DecompilerTreeProperty>
         get() = declarations.filterIsInstance<DecompilerTreeProperty>().filterNot { it.element.isFakeOverride }
 
-    internal open val methods: List<DecompilerTreeSimpleFunction>
+    protected val implementationByDelegationFields: List<DecompilerTreeField>
+        get() = declarations.filterIsInstance<DecompilerTreeField>().filter { it.element.origin == IrDeclarationOrigin.DELEGATE }
+
+    protected open val methods: List<DecompilerTreeSimpleFunction>
         get() = declarations.filterIsInstance<DecompilerTreeSimpleFunction>()
             .filterNot { it.element.isFakeOverride || it.element.origin == IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER }
 
@@ -103,7 +106,7 @@ abstract class AbstractDecompilerTreeClass(
     private val nonTrivialSuperTypesDecompiledOrNull: String?
         get() = nonTrivialSuperInterfaces.ifNotEmpty { joinToString { it.decompile() } }
 
-    protected val fullHeader: String
+    private val fullHeader: String
         get() = listOfNotNull(
             nameWithPrimaryCtorDecompiled,
             nonTrivialSuperTypesDecompiledOrNull?.let {

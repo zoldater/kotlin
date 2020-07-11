@@ -74,7 +74,7 @@ abstract class AbstractDecompilerTreeConstructor(
         bodyStatementsNonTrivial?.ifNotEmpty {
             printer.withBraces {
                 forEach {
-                    it.produceSources(printer)
+                    it.decompileByLines(printer)
                 }
             }
         }

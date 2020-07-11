@@ -14,7 +14,7 @@ class DecompilerTreeObject(configuration: DecompilerTreeClassConfiguration) : Ab
 
     override val keyword: String = "object"
     override val nameIfExists: String?
-        get() = if (element.isCompanion) super.nameIfExists?.takeIf { !it.equals("Companion", true) } else super.nameIfExists
+        get() = super.nameIfExists?.takeIf { !(element.isCompanion && it.equals("Companion", true)) }
 
     override val printableDeclarations: List<DecompilerTreeDeclaration>
         get() = listOf(properties, initSections, secondaryConstructors, methods, otherPrintableDeclarations).flatten()
