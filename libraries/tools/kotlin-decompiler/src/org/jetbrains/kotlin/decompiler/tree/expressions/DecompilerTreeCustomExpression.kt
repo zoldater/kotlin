@@ -17,7 +17,7 @@ interface DecompilerTreeCustomExpression : DecompilerTreeExpression
 class DecompilerTreeValueArgument(
     override val type: DecompilerTreeType,
     private val valueParameter: AbstractDecompilerTreeValueParameter,
-    private val argumentValue: DecompilerTreeExpression?,
+    internal val argumentValue: DecompilerTreeExpression?,
     private val toPrintWithParameterName: Boolean,
     override val element: IrExpression? = null
 ) : DecompilerTreeCustomExpression {

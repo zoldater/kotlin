@@ -1,0 +1,14 @@
+// FILE: /lazyDelegate.kt
+
+var result: String = ""
+
+val lazyValue: String by lazy<String>{
+    result = "OK"
+    "Hello"
+}
+
+
+fun box(): String {
+    val x = lazyValue
+    return result
+}

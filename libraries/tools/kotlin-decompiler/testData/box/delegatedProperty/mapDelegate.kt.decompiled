@@ -1,0 +1,11 @@
+// FILE: /mapDelegate.kt
+
+class TestSession(final val map: Map<String, Any?>) {
+    final val number: Int by this.map
+    final val result: String by this.map
+}
+
+fun box(): String {
+    val session = TestSession(mapOf<String, Any>("number" to 42, "result" to "OK"))
+    return session.result
+}

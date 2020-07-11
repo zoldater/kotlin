@@ -26,7 +26,7 @@ interface AbstractDecompilerTreeCall : DecompilerTreeMemberAccessExpression, Sou
 internal fun IrCall.buildCall(
     dispatchReceiver: DecompilerTreeExpression?,
     extensionReceiver: DecompilerTreeExpression?,
-    valueArguments: List<DecompilerTreeExpression>,
+    valueArguments: List<DecompilerTreeValueArgument>,
     type: DecompilerTreeType,
     typeArguments: List<DecompilerTreeType>,
     data: KotlinIrDecompiler.ExtraData?
@@ -85,7 +85,7 @@ class DecompilerTreeNamedCall(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType,
     override val typeArguments: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeCall {
@@ -113,7 +113,7 @@ class DecompilerTreeGetPropertyCall(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType
 ) : AbstractDecompilerTreeCall {
     override val typeArguments: List<DecompilerTreeType>
@@ -151,7 +151,7 @@ class DecompilerTreeCallUnaryOp(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType
 ) : DecompilerTreeOperatorCall() {
     override fun produceSources(printer: SmartPrinter) {
@@ -182,7 +182,7 @@ class DecompilerTreeCallBinaryOp(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType,
     private val isShorten: Boolean = false
 ) : DecompilerTreeOperatorCall() {
@@ -245,7 +245,7 @@ class DecompilerTreeCallAssignmentOp(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType
 ) : DecompilerTreeOperatorCall() {
     override fun produceSources(printer: SmartPrinter) {
@@ -256,7 +256,9 @@ class DecompilerTreeCallAssignmentOp(
         val disp = leftOperand?.decompile()?.removePrefix("<")?.removeSuffix(">")?.let { "$it." } ?: ""
         // TODO investigate more robust way to obtain property name
         val lhs = element.symbol.owner.name().removePrefix("<set-").removeSuffix(">")
-        printer.print("$disp$lhs = ${rightOperand?.decompile()}")
+        //TODO provided by lazyDelegate.kt --> Investigate why!
+        if (rightOperand == null) printer.print("$lhs = ${disp.substringBefore('.')}")
+        else printer.print("$disp$lhs = ${rightOperand?.decompile()}")
     }
 }
 
@@ -264,7 +266,7 @@ class DecompilerTreeInOperatorCall(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType,
     private val isShorten: Boolean = false
 ) : DecompilerTreeOperatorCall() {
@@ -281,7 +283,7 @@ class DecompilerTreeNotInOperatorCall(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType
 ) : DecompilerTreeOperatorCall() {
     override fun produceSources(printer: SmartPrinter) {
@@ -302,7 +304,7 @@ class DecompilerTreeCallInvokeOp(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType
 ) : DecompilerTreeOperatorCall() {
 
@@ -323,7 +325,7 @@ class DecompilerTreeCallRangeOp(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType
 ) : DecompilerTreeOperatorCall() {
     override fun produceSources(printer: SmartPrinter) {
@@ -339,7 +341,7 @@ class DecompilerTreeInfixFunCall(
     override val element: IrCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType
 ) : DecompilerTreeOperatorCall() {
     override fun produceSources(printer: SmartPrinter) {

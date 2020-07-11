@@ -28,12 +28,17 @@ interface DecompilerTreeExpression : DecompilerTreeStatement, DecompilerTreeVara
 }
 
 interface DecompilerTreeMemberAccessExpression : DecompilerTreeExpression, DecompilerTreeTypeArgumentsContainer {
-    val valueArguments: List<DecompilerTreeExpression>
+    val valueArguments: List<DecompilerTreeValueArgument>
     var dispatchReceiver: DecompilerTreeExpression?
     val extensionReceiver: DecompilerTreeExpression?
 
+    //TODO Print last lambda argument outer parentheses
     val valueArgumentsInsideParenthesesOrNull: String?
-        get() = valueArgumentsPerComma?.let { "($it)" }
+        get() =
+            if (valueArguments.size == 1 && valueArguments[0].argumentValue is DecompilerTreeFunctionExpression)
+                valueArgumentsPerComma
+            else
+                valueArgumentsPerComma?.let { "($it)" }
 
     val valueArgumentsPerComma: String?
         get() = valueArguments.map { it.decompile() }.filter { it.isNotBlank() }.ifNotEmpty { joinToString(", ") { it } }

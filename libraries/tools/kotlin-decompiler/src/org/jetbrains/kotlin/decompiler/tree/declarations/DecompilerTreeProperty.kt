@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.decompiler.tree.expressions.DecompilerTreeAnnotation
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.util.isTopLevelDeclaration
 
@@ -25,7 +26,11 @@ class DecompilerTreeProperty(
     override val annotationTarget: String = "property"
     var defaultModality: Modality = Modality.FINAL
 
-    internal val propertyFlagsOrNull: String?
+    private val isDelegated: Boolean
+        get() = backingField?.element?.origin == IrDeclarationOrigin.PROPERTY_DELEGATE
+
+    internal
+    val propertyFlagsOrNull: String?
         get() = with(element) {
             listOfNotNull(
                 visibility.takeIf { it !in setOf(Visibilities.PUBLIC, Visibilities.LOCAL) }?.name?.toLowerCase(),
@@ -39,10 +44,13 @@ class DecompilerTreeProperty(
             ).joinToString(" ")
         }
     internal val propertyTypeStringOrNull: String?
-        get() = backingField?.type?.decompile() ?: getter?.returnType?.decompile()
+        get() = getter?.returnType?.decompile() ?: backingField?.type?.decompile()
 
     private val initializerStringOrNull: String?
-        get() = backingField?.initializer?.decompile()?.let { "= $it" }
+        get() = backingField?.decompile()
+            ?.let {
+                if (isDelegated) "by $it" else "= $it"
+            }
 
     private val headerWithTypeAndInitializer: String
         get() = listOfNotNull(
@@ -59,8 +67,8 @@ class DecompilerTreeProperty(
         with(printer) {
             println(headerWithTypeAndInitializer)
             indented {
-                getter?.produceSources(this)
-                setter?.produceSources(this)
+                getter?.takeIf { !isDelegated }?.produceSources(this)
+                setter?.takeIf { !isDelegated }?.produceSources(this)
             }
         }
     }

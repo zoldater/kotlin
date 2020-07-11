@@ -21,10 +21,13 @@ interface AbstractDecompilerTreeReturn : DecompilerTreeExpression, SourceProduci
 class DecompilerTreeReturn(
     override val element: IrReturn,
     override val value: DecompilerTreeExpression,
-    override val type: DecompilerTreeType
+    override val type: DecompilerTreeType,
+    private val hasReturnToken: Boolean = true
 ) : AbstractDecompilerTreeReturn {
     override fun produceSources(printer: SmartPrinter) {
-        printer.println("return ${value.decompile()}")
+        listOfNotNull("return".takeIf { hasReturnToken }, value.decompile()).joinToString(" ").also {
+            printer.print(it)
+        }
     }
 }
 

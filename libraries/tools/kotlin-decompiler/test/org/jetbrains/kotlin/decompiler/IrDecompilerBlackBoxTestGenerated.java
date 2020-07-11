@@ -792,6 +792,16 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             runTest("libraries/tools/kotlin-decompiler/testData/box/delegatedProperty/inClassVal.kt");
         }
 
+        @TestMetadata("lazyDelegate.kt")
+        public void testLazyDelegate() throws Exception {
+            runTest("libraries/tools/kotlin-decompiler/testData/box/delegatedProperty/lazyDelegate.kt");
+        }
+
+        @TestMetadata("mapDelegate.kt")
+        public void testMapDelegate() throws Exception {
+            runTest("libraries/tools/kotlin-decompiler/testData/box/delegatedProperty/mapDelegate.kt");
+        }
+
         @TestMetadata("topLevelVal.kt")
         public void testTopLevelVal() throws Exception {
             runTest("libraries/tools/kotlin-decompiler/testData/box/delegatedProperty/topLevelVal.kt");

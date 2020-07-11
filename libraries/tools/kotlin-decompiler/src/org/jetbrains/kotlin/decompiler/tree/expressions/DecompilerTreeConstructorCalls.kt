@@ -20,7 +20,7 @@ interface AbstractDecompilerTreeConstructorCall : DecompilerTreeMemberAccessExpr
     override val element: IrConstructorCall
     override var dispatchReceiver: DecompilerTreeExpression?
     override val extensionReceiver: DecompilerTreeExpression?
-    override val valueArguments: List<DecompilerTreeExpression>
+    override val valueArguments: List<DecompilerTreeValueArgument>
     override val type: DecompilerTreeType
     override val typeArguments: List<DecompilerTreeType>
 
@@ -44,7 +44,7 @@ class DecompilerTreeCommonConstructorCall(
     override val element: IrConstructorCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType,
     override val typeArguments: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeConstructorCall {
@@ -55,7 +55,7 @@ class DecompilerTreeAnnotationConstructorCall(
     override val element: IrConstructorCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType,
     override val typeArguments: List<DecompilerTreeType>
 ) : AbstractDecompilerTreeConstructorCall {
@@ -66,7 +66,7 @@ class DecompilerTreeDelegatingConstructorCall(
     override val element: IrDelegatingConstructorCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType,
     override val typeArguments: List<DecompilerTreeType>,
     internal var returnType: DecompilerTreeType
@@ -81,7 +81,7 @@ class DecompilerTreeEnumConstructorCall(
     override val element: IrEnumConstructorCall,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType
 ) : DecompilerTreeMemberAccessExpression, SourceProducible {
 

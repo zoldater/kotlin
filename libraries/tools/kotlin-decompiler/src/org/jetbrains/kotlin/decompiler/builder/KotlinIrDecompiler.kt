@@ -688,7 +688,7 @@ class KotlinIrDecompiler private constructor() {
         override fun visitReturn(expression: IrReturn, data: ExtraData?): AbstractDecompilerTreeReturn = with(expression) {
             when (data) {
                 CUSTOM_GETTER -> DecompilerTreeGetterReturn(this, value.buildExpression(data), type.buildType())
-                else -> DecompilerTreeReturn(this, value.buildExpression(data), type.buildType())
+                else -> DecompilerTreeReturn(this, value.buildExpression(data), type.buildType(), data != LAMBDA_CONTENT)
             }
         }
 
@@ -755,6 +755,8 @@ class KotlinIrDecompiler private constructor() {
             declarations.buildDeclarations(kind)
 
         private fun IrMemberAccessExpression<*>.buildValueArguments(kind: ExtraData? = null): List<DecompilerTreeValueArgument> {
+            if (valueArgumentsCount == 0) return emptyList()
+
             val valueParameters = (symbol.owner as IrFunction).valueParameters
             val valueArguments = (0 until valueArgumentsCount).map { getValueArgument(it) }
             check(valueParameters.size == valueArgumentsCount) { "Number of parameters & arguments are not the same!" }

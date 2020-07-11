@@ -28,7 +28,7 @@ class DecompilerTreeFunctionReference(
     override val element: IrFunctionReference,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType,
     override val typeArguments: List<DecompilerTreeType>
 ) : DecompilerTreeMemberAccessExpression {
@@ -41,12 +41,12 @@ class DecompilerTreePropertyReference(
     override val element: IrPropertyReference,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType,
     override val typeArguments: List<DecompilerTreeType>
 ) : DecompilerTreeMemberAccessExpression {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        printer.print(element.referencedName)
     }
 }
 
@@ -54,7 +54,7 @@ class DecompilerTreeLocalDelegatedPropertyReference(
     override val element: IrLocalDelegatedPropertyReference,
     override var dispatchReceiver: DecompilerTreeExpression?,
     override val extensionReceiver: DecompilerTreeExpression?,
-    override val valueArguments: List<DecompilerTreeExpression>,
+    override val valueArguments: List<DecompilerTreeValueArgument>,
     override val type: DecompilerTreeType,
     override val typeArguments: List<DecompilerTreeType>
 ) : DecompilerTreeMemberAccessExpression {
