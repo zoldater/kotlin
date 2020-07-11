@@ -343,7 +343,7 @@ class KotlinIrDecompiler private constructor() {
                     this, type.buildType(),
                     DecompilerTreeWhenWithSubjectValue(
                         irWhen,
-                        (variable.initializer as IrGetValue).buildElement(),
+                        (variable.initializer as IrExpression).buildElement(),
                         builtBranches,
                         type.buildType()
                     )

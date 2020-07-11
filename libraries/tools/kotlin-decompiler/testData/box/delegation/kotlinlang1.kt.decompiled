@@ -1,0 +1,21 @@
+// FILE: /kotlinlang1.kt
+
+interface Base {
+    fun base(): Int
+}
+
+class BaseImpl(final val x: Int) : Base {
+    override fun base(): Int {
+        return this.x
+    }
+}
+
+class Derived(b: Base) : Base by b
+
+fun box(): String {
+    val b = BaseImpl(10)
+    return when (Derived(b).base()) {
+        10 -> "OK"
+        else -> "FAIL"
+    }
+}

@@ -1,0 +1,19 @@
+// FILE: /fromReference.kt
+
+interface Base {
+    fun print()
+}
+
+class BaseImpl(final val x: Int) : Base {
+    override fun print() {
+        print(this.x)
+    }
+}
+
+class Derived(b: Base) : Base by b
+
+fun box(): String {
+    val b = BaseImpl(10)
+    Derived(b).print()
+    return "OK"
+}

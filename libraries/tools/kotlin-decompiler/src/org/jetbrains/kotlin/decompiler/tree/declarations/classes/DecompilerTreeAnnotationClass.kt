@@ -6,15 +6,10 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
-import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
 
 class DecompilerTreeAnnotationClass(configuration: DecompilerTreeClassConfiguration) : AbstractDecompilerTreeClass(configuration) {
     override val keyword: String = "annotation class"
 
-    override val nonTrivialSuperInterfaces: List<DecompilerTreeType>
-        get() = super.nonTrivialSuperInterfaces.filterNot { it.decompile().toLowerCase() == "annotation" }
-
-    override val printableDeclarations: List<DecompilerTreeDeclaration>
-        get() = listOf(properties, initSections, secondaryConstructors, methods, otherPrintableDeclarations).flatten()
-
+    override val implementedInterfaces: List<DecompilerTreeType>
+        get() = super.implementedInterfaces.filterNot { it.decompile().toLowerCase() == "annotation" }
 }

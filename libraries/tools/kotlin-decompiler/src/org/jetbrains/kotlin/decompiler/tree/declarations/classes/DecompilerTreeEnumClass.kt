@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
 import org.jetbrains.kotlin.decompiler.printer.withBraces
-import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeEnumEntry
 import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeSimpleFunction
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
@@ -18,16 +17,10 @@ class DecompilerTreeEnumClass(configuration: DecompilerTreeClassConfiguration) :
     override val keyword: String = "enum class"
 
     private val enumEntries: List<DecompilerTreeEnumEntry>
-        get() = super.otherPrintableDeclarations.filterIsInstance<DecompilerTreeEnumEntry>()
+        get() = super.declarations.filterIsInstance<DecompilerTreeEnumEntry>()
 
     override val methods: List<DecompilerTreeSimpleFunction>
         get() = super.methods.filterNot { it.element.origin == IrDeclarationOrigin.ENUM_CLASS_SPECIAL_MEMBER }
-
-    override val otherPrintableDeclarations: List<DecompilerTreeDeclaration>
-        get() = super.otherPrintableDeclarations.filterNot { it is DecompilerTreeEnumEntry }
-
-    override val printableDeclarations: List<DecompilerTreeDeclaration>
-        get() = listOfNotNull(properties, methods, otherPrintableDeclarations).flatten()
 
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {

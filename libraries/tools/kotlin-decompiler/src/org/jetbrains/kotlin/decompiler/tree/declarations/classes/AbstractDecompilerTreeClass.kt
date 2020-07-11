@@ -16,7 +16,10 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.tree.generator.printer.SmartPrinter
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.util.isFakeOverride
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin.DELEGATED_MEMBER
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER
+import org.jetbrains.kotlin.ir.types.classOrNull
+import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
@@ -45,9 +48,8 @@ abstract class AbstractDecompilerTreeClass(
 
     abstract val keyword: String
 
-    protected open val nonTrivialSuperInterfaces: List<DecompilerTreeType>
+    protected open val implementedInterfaces: List<DecompilerTreeType>
         get() = superTypes.filter { it.irType.isInterface() }
-//            .filterNot { (it.typeClassIfExists is DecompilerTreeClass).takeIf { primaryConstructor != null } ?: false }
 
     protected open val primaryConstructor: AbstractDecompilerTreeConstructor?
         get() = declarations.filterIsInstance<DecompilerTreePrimaryConstructor>().firstOrNull()
@@ -59,25 +61,20 @@ abstract class AbstractDecompilerTreeClass(
         get() = declarations.filterIsInstance<DecompilerTreeAnonymousInitializer>()
 
     protected open val properties: List<DecompilerTreeProperty>
-        get() = declarations.filterIsInstance<DecompilerTreeProperty>().filterNot { it.element.isFakeOverride }
+        get() = declarations.filterIsInstance<DecompilerTreeProperty>()
+            .filterNot { it.element.isFakeOverride || it.element.origin == DELEGATED_MEMBER }
 
-    protected val implementationByDelegationFields: List<DecompilerTreeField>
-        get() = declarations.filterIsInstance<DecompilerTreeField>().filter { it.element.origin == IrDeclarationOrigin.DELEGATE }
+    protected val implementationByDelegationFields: LinkedHashSet<DecompilerTreeField>
+        get() = declarations.filterIsInstance<DecompilerTreeField>().filter { it.element.origin == IrDeclarationOrigin.DELEGATE }.let {
+            LinkedHashSet(it)
+        }
 
     protected open val methods: List<DecompilerTreeSimpleFunction>
         get() = declarations.filterIsInstance<DecompilerTreeSimpleFunction>()
-            .filterNot { it.element.isFakeOverride || it.element.origin == IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER }
+            .filterNot { it.element.isFakeOverride || it.element.origin in setOf(GENERATED_DATA_CLASS_MEMBER, DELEGATED_MEMBER) }
 
-    protected open val otherPrintableDeclarations: List<DecompilerTreeDeclaration>
-        get() = declarations.asSequence()
-            .filterNot { it is AbstractDecompilerTreeConstructor }
-            .filterNot { it is DecompilerTreeAnonymousInitializer }
-            .filterNot { it is DecompilerTreeProperty }
-            .filterNot { it is DecompilerTreeSimpleFunction }
-            .filterNot { it.element?.isFakeOverride ?: false }
-            .toList()
-
-    abstract val printableDeclarations: List<DecompilerTreeDeclaration>
+    protected val printableDeclarations: List<DecompilerTreeDeclaration>
+        get() = listOf(properties, initSections, secondaryConstructors, methods).flatten()
 
     protected open val computeModifiersAndName: String
         get() = with(element) {
@@ -103,13 +100,19 @@ abstract class AbstractDecompilerTreeClass(
             primaryConstructor?.decompile()
         ).ifNotEmpty { joinToString("") }
 
-    private val nonTrivialSuperTypesDecompiledOrNull: String?
-        get() = nonTrivialSuperInterfaces.ifNotEmpty { joinToString { it.decompile() } }
+    private val implementedInterfacesWithDelegationOrNull: String?
+        get() = implementedInterfaces.map { iface ->
+            iface to implementationByDelegationFields.firstOrNull { field ->
+                iface.irType.classOrNull?.let { field.type.irType.isSubtypeOfClass(it) }?.also {
+                    implementationByDelegationFields.remove(field)
+                } ?: false
+            }
+        }.ifNotEmpty { joinToString { it.first.decompile() + (it.second?.let { " by ${it.decompile()}" } ?: "") } }
 
     private val fullHeader: String
         get() = listOfNotNull(
             nameWithPrimaryCtorDecompiled,
-            nonTrivialSuperTypesDecompiledOrNull?.let {
+            implementedInterfacesWithDelegationOrNull?.let {
                 primaryConstructor?.delegatingCallDecompiledOrNull?.let { _ -> ", $it" } ?: ": $it"
             }
         ).joinToString(" ").trimEnd()
@@ -147,8 +150,5 @@ class DecompilerTreeAnonymousClass(configuration: DecompilerTreeClassConfigurati
         get() = throw UnsupportedOperationException("Anonymous class hasn't name and power!")
 
     override val computeModifiersAndName: String = "object"
-
-    override val printableDeclarations: List<DecompilerTreeDeclaration>
-        get() = listOf(properties, initSections, secondaryConstructors, methods, otherPrintableDeclarations).flatten()
 
 }

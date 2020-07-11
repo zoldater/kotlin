@@ -1,0 +1,23 @@
+// FILE: /kotlinlang3.kt
+
+interface Base {
+    abstract val message: String
+    fun answer(): String
+}
+
+class BaseImpl(final val x: String) : Base {
+    open override val message: String = this.x
+    override fun answer(): String {
+        return this.message
+    }
+}
+
+class Derived(b: Base) : Base by b {
+    open override val message: String = "FAIL"
+}
+
+fun box(): String {
+    val b = BaseImpl("OK")
+    val derived = Derived(b)
+    return derived.answer()
+}

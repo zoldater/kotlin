@@ -19,6 +19,7 @@ class DecompilerTreeField(
     override val annotationTarget: String? = "field"
 ) : DecompilerTreeDeclaration {
     override fun produceSources(printer: SmartPrinter) {
-        TODO("Not yet implemented")
+        // TODO this is for "implementation by delegation". are there any other cases?
+        initializer?.produceSources(printer)
     }
 }

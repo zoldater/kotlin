@@ -5,8 +5,6 @@
 
 package org.jetbrains.kotlin.decompiler.tree.declarations.classes
 
-import org.jetbrains.kotlin.decompiler.tree.declarations.DecompilerTreeDeclaration
-
 class DecompilerTreeObject(configuration: DecompilerTreeClassConfiguration) : AbstractDecompilerTreeClass(configuration) {
     init {
         primaryConstructor?.isObjectConstructor = true
@@ -16,6 +14,4 @@ class DecompilerTreeObject(configuration: DecompilerTreeClassConfiguration) : Ab
     override val nameIfExists: String?
         get() = super.nameIfExists?.takeIf { !(element.isCompanion && it.equals("Companion", true)) }
 
-    override val printableDeclarations: List<DecompilerTreeDeclaration>
-        get() = listOf(properties, initSections, secondaryConstructors, methods, otherPrintableDeclarations).flatten()
 }

@@ -35,11 +35,11 @@ abstract class AbstractDecompilerTreeWhen(
 
 class DecompilerTreeWhenWithSubjectValue(
     element: IrWhen,
-    subjectValue: DecompilerTreeGetValue,
+    subjectExpression: DecompilerTreeExpression,
     branches: List<AbstractDecompilerTreeBranch>,
     type: DecompilerTreeType
 ) : AbstractDecompilerTreeWhen(element, branches, type) {
-    override val subjectStr: String = subjectValue.decompile().let { "($it)" }
+    override val subjectStr: String = subjectExpression.decompile().let { "($it)" }
 }
 
 class DecompilerTreeWhenWithSubjectVariable(
