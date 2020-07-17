@@ -1,0 +1,24 @@
+// FILE: /kt37131.kt
+
+fun foo(x: String = ""): String {
+    return x
+}
+
+class C(final val x: String = "") {
+}
+
+fun use(fn: () -> Any): Any {
+    return fn()
+}
+
+fun testFn(): Any {
+    return use { foo() }
+}
+
+fun testCtor(): Any {
+    return use { C() }
+}
+
+fun box(): String {
+    return "OK"
+}

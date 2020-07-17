@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.decompiler.tree.expressions
 
-import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler
+import org.jetbrains.kotlin.decompiler.KotlinIrDecompiler
 import org.jetbrains.kotlin.decompiler.printer.SourceProducible
 import org.jetbrains.kotlin.decompiler.tree.DecompilerTreeType
 import org.jetbrains.kotlin.decompiler.tree.declarations.name

@@ -1,0 +1,12 @@
+// FILE: /genericMember.kt
+
+class A<T>() {
+    fun foo() {}
+    final val bar: Int = 42
+}
+
+fun box(): String {
+    val test1: (A<String>) -> Unit = A<String>::foo
+    val test2: (A<String>) -> Int = A<String>::bar
+    return "OK"
+}

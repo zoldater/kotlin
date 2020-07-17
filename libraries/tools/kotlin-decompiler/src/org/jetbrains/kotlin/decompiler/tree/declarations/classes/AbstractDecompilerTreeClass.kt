@@ -64,6 +64,9 @@ abstract class AbstractDecompilerTreeClass(
         get() = declarations.filterIsInstance<DecompilerTreeProperty>()
             .filterNot { it.element.isFakeOverride || it.element.origin == DELEGATED_MEMBER }
 
+    protected open val classes: List<AbstractDecompilerTreeClass>
+        get() = declarations.filterIsInstance<AbstractDecompilerTreeClass>()
+
     protected val implementationByDelegationFields: LinkedHashSet<DecompilerTreeField>
         get() = declarations.filterIsInstance<DecompilerTreeField>().filter { it.element.origin == IrDeclarationOrigin.DELEGATE }.let {
             LinkedHashSet(it)
@@ -73,8 +76,11 @@ abstract class AbstractDecompilerTreeClass(
         get() = declarations.filterIsInstance<DecompilerTreeSimpleFunction>()
             .filterNot { it.element.isFakeOverride || it.element.origin in setOf(GENERATED_DATA_CLASS_MEMBER, DELEGATED_MEMBER) }
 
-    protected val printableDeclarations: List<DecompilerTreeDeclaration>
-        get() = listOf(properties, initSections, secondaryConstructors, methods).flatten()
+    private val printableDeclarations
+        get() = listOf(classes, properties, initSections, secondaryConstructors, methods).flatten()
+
+    protected val declarationsToPrint: List<DecompilerTreeDeclaration>
+        get() = declarations.filter { it in printableDeclarations }
 
     protected open val computeModifiersAndName: String
         get() = with(element) {
@@ -120,7 +126,7 @@ abstract class AbstractDecompilerTreeClass(
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
             print(fullHeader)
-            printableDeclarations.ifNotEmpty {
+            declarationsToPrint.ifNotEmpty {
                 this@with.withBraces {
                     this.forEach {
                         it.decompile().lines().filter { l -> l.isNotBlank() }.forEach { l -> this@with.println(l) }

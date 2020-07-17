@@ -1,0 +1,32 @@
+// FILE: /funReferenceCases.kt
+
+fun topLevelOk(): String {
+    return "OK"
+}
+
+class Clazz() {
+    fun instanceOk(): String {
+        return ::topLevelOk.let<() -> String, String>{ it -> it() }
+    }
+    companion object {
+        fun staticOk(): String {
+            return ::topLevelOk.let<() -> String, String>{ it -> it() }
+        }
+    }
+}
+
+object ObjWithOk {
+    fun okFromObject(): String {
+        return Clazz.Companion::staticOk.let<() -> String, String>{ it -> it() }
+    }
+}
+
+fun box(): String {
+    val clazzCtorRef : () -> Clazz = ::Clazz
+    val clazzInstance = clazzCtorRef()
+    val instanceOk : () -> String = clazzInstance::instanceOk
+    val staticOk : () -> String = Clazz.Companion::staticOk
+    val topLevelOk : () -> String = ::topLevelOk
+    val objOk : () -> String = ObjWithOk::okFromObject
+    return "OK".takeIf<String>{ it -> listOf<() -> String>(instanceOk, staticOk, topLevelOk, objOk).map<() -> String, String>{ it -> it() }.all<String>{ it -> it == "OK" } } ?: "FAIL"
+}

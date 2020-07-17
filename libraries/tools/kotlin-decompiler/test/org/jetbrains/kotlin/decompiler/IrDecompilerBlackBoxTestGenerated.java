@@ -982,6 +982,44 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             }
         }
 
+        @TestMetadata("libraries/tools/kotlin-decompiler/testData/box/expressions/reference")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Reference extends AbstractIrDecompilerBlackBoxTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInReference() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/reference"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+            }
+
+            @TestMetadata("classReference.kt")
+            public void testClassReference() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/reference/classReference.kt");
+            }
+
+            @TestMetadata("funReferenceCases.kt")
+            public void testFunReferenceCases() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/reference/funReferenceCases.kt");
+            }
+
+            @TestMetadata("genericMember.kt")
+            public void testGenericMember() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/reference/genericMember.kt");
+            }
+
+            @TestMetadata("kt37131.kt")
+            public void testKt37131() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/reference/kt37131.kt");
+            }
+
+            @TestMetadata("objectClassReference.kt")
+            public void testObjectClassReference() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/reference/objectClassReference.kt");
+            }
+        }
+
         @TestMetadata("libraries/tools/kotlin-decompiler/testData/box/expressions/try_catch")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)

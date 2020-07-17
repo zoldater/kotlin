@@ -28,7 +28,7 @@ class DecompilerTreeEnumClass(configuration: DecompilerTreeClassConfiguration) :
             primaryConstructor?.valueParameters?.ifNotEmpty { print(primaryConstructor!!.valueParametersForPrint) }
             enumEntries.forEach { it.enumClassName = element.fqNameWhenAvailable?.asString() }
 
-            (printableDeclarations + enumEntries).ifNotEmpty {
+            (declarationsToPrint + enumEntries).ifNotEmpty {
                 this@with.withBraces {
                     val decompiledEntries = enumEntries.map { it.decompile() }
 
@@ -36,7 +36,7 @@ class DecompilerTreeEnumClass(configuration: DecompilerTreeClassConfiguration) :
                         decompiledEntries.joinToString(",\n", postfix = ";").lines().forEach { println(it) }
                     } ?: decompiledEntries.joinToString(", ", postfix = ";").also { println(it) }
 
-                    printableDeclarations.forEach {
+                    declarationsToPrint.forEach {
                         it.produceSources(this@with)
                     }
                 }

@@ -3,10 +3,10 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.decompiler.builder
+package org.jetbrains.kotlin.decompiler
 
 import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
-import org.jetbrains.kotlin.decompiler.builder.KotlinIrDecompiler.ExtraData.*
+import org.jetbrains.kotlin.decompiler.KotlinIrDecompiler.ExtraData.*
 import org.jetbrains.kotlin.decompiler.printer.FileSourcesWriter
 import org.jetbrains.kotlin.decompiler.tree.*
 import org.jetbrains.kotlin.decompiler.tree.declarations.*
@@ -20,6 +20,8 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
+import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -565,22 +567,44 @@ class KotlinIrDecompiler private constructor() {
             DecompilerTreeGetClass(this, argument.buildExpression(data), type.buildType())
         }
 
-        override fun visitFunctionReference(expression: IrFunctionReference, data: ExtraData?): DecompilerTreeFunctionReference =
+        override fun visitFunctionReference(expression: IrFunctionReference, data: ExtraData?): AbstractDecompilerTreeFunctionReference =
             with(expression) {
-                DecompilerTreeFunctionReference(
-                    this,
-                    buildDispatchReceiver(data),
-                    buildExtensionReceiver(data),
-                    buildValueArguments(data),
-                    type.buildType(),
-                    buildTypeArguments()
-                )
+                val parentDeclaration = symbol.owner.parent.takeIf { it is IrDeclarationWithName }
+                    ?.buildElement<IrDeclarationParent, DecompilerTreeDeclaration>(data)
+                val buildDispatchReceiver = buildDispatchReceiver(data)
+                val buildExtensionReceiver = buildExtensionReceiver(data)
+                val buildValueArguments = buildValueArguments(data)
+                val buildTypeArguments = buildTypeArguments()
+
+                return when (symbol) {
+                    is IrSimpleFunctionSymbol ->
+                        DecompilerTreeSimpleFunctionReference(
+                            this,
+                            parentDeclaration,
+                            buildDispatchReceiver,
+                            buildExtensionReceiver,
+                            buildValueArguments,
+                            type.buildType(),
+                            buildTypeArguments
+                        )
+                    is IrConstructorSymbol -> DecompilerTreeConstructorReference(
+                        this,
+                        parentDeclaration!!,
+                        buildDispatchReceiver,
+                        buildExtensionReceiver,
+                        buildValueArguments,
+                        type.buildType(),
+                        buildTypeArguments
+                    )
+                    else -> throw IllegalArgumentException("Unexpected reference symbol: ${symbol.javaClass}")
+                }
             }
 
         override fun visitPropertyReference(expression: IrPropertyReference, data: ExtraData?): DecompilerTreePropertyReference =
             with(expression) {
                 DecompilerTreePropertyReference(
                     this,
+                    symbol.owner.parent.takeIf { it is IrDeclarationWithName }?.buildElement(data),
                     buildDispatchReceiver(data),
                     buildExtensionReceiver(data),
                     buildValueArguments(data),
@@ -611,7 +635,13 @@ class KotlinIrDecompiler private constructor() {
 
 
         override fun visitClassReference(expression: IrClassReference, data: ExtraData?): DecompilerTreeClassReference =
-            DecompilerTreeClassReference(expression, expression.type.buildType(), expression.classType.buildType())
+            with(expression) {
+                DecompilerTreeClassReference(
+                    this,
+                    type.buildType(),
+                    classType.buildType()
+                )
+            }
 
         override fun visitInstanceInitializerCall(
             expression: IrInstanceInitializerCall,
