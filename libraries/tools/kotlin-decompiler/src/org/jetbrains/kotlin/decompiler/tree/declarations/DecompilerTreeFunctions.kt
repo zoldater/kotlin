@@ -95,10 +95,13 @@ class DecompilerTreeSimpleFunction(
     override val isOperator: Boolean
         get() = element.isOperator
 
+    private val nameWithReciever
+        get() = (extensionReceiverParameter?.type?.decompile()?.let { "$it." } ?: "") + nameIfExists
+
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
             listOfNotNull(
-                listOfNotNull(functionFlags.ifNotEmpty { joinToString(" ") }, "fun", nameIfExists)
+                listOfNotNull(functionFlags.ifNotEmpty { joinToString(" ") }, "fun", nameWithReciever)
                     .ifNotEmpty { joinToString(" ") },
                 typeParametersForPrint, valueParametersForPrint, returnType.takeIf { !it.irType.isUnit() }?.let { ": ${it.decompile()}" }
             ).joinToString("").also { print(it) }

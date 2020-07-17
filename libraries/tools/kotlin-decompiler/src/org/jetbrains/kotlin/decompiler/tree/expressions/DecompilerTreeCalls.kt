@@ -119,15 +119,13 @@ class DecompilerTreeGetPropertyCall(
     override val typeArguments: List<DecompilerTreeType>
         get() = emptyList()
 
+    private fun DecompilerTreeExpression.withoutBrackets() = decompile().removePrefix("<").removeSuffix(">")
+
     override fun produceSources(printer: SmartPrinter) {
         val callString =
             element.symbol.owner.name.asString().removePrefix("<get-").removeSuffix(">")
 
-        dispatchReceiver?.decompile()
-            ?.removePrefix("<")
-            ?.removeSuffix(">")
-            ?.also { printer.print("$it.$callString") }
-            ?: extensionReceiver?.decompile()?.also { printer.print("$it.$callString") }
+        (dispatchReceiver ?: extensionReceiver)?.withoutBrackets()?.also { printer.print("$it.$callString") }
             ?: printer.print(callString)
     }
 }

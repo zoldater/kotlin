@@ -1,0 +1,15 @@
+// FILE: /custom_type_extension.kt
+
+class MyClass()
+
+fun MyClass.printOk(): String {
+    return this.ok
+}
+
+val MyClass.ok: String
+    get() = "OK"
+
+
+fun box(): String {
+    return MyClass().printOk()
+}

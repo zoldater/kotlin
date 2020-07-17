@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrValueAccessExpression
 
 internal val IrValueAccessExpression.ownerName: String
-    get() = symbol.owner.name.asString()
+    get() = symbol.owner.name.asString().removePrefix("<").removeSuffix(">")
 
 interface DecompilerTreeValueAccess : DecompilerTreeExpression {
     override val element: IrValueAccessExpression

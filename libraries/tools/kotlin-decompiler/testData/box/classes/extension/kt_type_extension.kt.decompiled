@@ -1,6 +1,8 @@
+// FILE: /kt_type_extension.kt
+
 fun Int.box(other: Int): String {
     if (this > other) {
-        return foo
+        return this.foo
     } else {
         return "FAIL"
     }
@@ -9,4 +11,7 @@ fun Int.box(other: Int): String {
 val Int.foo: String
     get() = "OK"
 
-fun box(): String = 99.box(9)
+
+fun box(): String {
+    return 99.box(9)
+}

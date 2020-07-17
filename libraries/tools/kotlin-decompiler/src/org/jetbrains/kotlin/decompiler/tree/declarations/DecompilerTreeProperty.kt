@@ -52,10 +52,13 @@ class DecompilerTreeProperty(
                 if (isDelegated) "by $it" else "= $it"
             }
 
+    private val nameWithReciever
+        get() = (getter?.extensionReceiverParameter?.type?.decompile()?.let { "$it." } ?: "") + nameIfExists
+
     private val headerWithTypeAndInitializer: String
         get() = listOfNotNull(
             propertyFlagsOrNull,
-            element.name().let {
+            nameWithReciever.let {
                 propertyTypeStringOrNull?.let { type -> "$it: $type" } ?: it
             },
             initializerStringOrNull

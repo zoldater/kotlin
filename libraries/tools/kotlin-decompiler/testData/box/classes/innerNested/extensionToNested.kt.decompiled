@@ -1,0 +1,15 @@
+// FILE: /extensionToNested.kt
+
+class Test() {
+    class Nested() {
+        final val value: String = "OK"
+    }
+}
+
+fun Test.Nested.foo(): String {
+    return this.value
+}
+
+fun box(): String {
+    return Test.Nested().foo()
+}
