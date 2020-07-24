@@ -994,6 +994,11 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
                 KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/expressions/reference"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
             }
 
+            @TestMetadata("boundCallableReferences.kt")
+            public void testBoundCallableReferences() throws Exception {
+                runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/reference/boundCallableReferences.kt");
+            }
+
             @TestMetadata("classReference.kt")
             public void testClassReference() throws Exception {
                 runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/reference/classReference.kt");
@@ -1069,6 +1074,39 @@ public class IrDecompilerBlackBoxTestGenerated extends AbstractIrDecompilerBlack
             public void testWhen_subject() throws Exception {
                 runTest("libraries/tools/kotlin-decompiler/testData/box/expressions/when/when_subject.kt");
             }
+        }
+    }
+
+    @TestMetadata("libraries/tools/kotlin-decompiler/testData/box/extensions")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Extensions extends AbstractIrDecompilerBlackBoxTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInExtensions() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("libraries/tools/kotlin-decompiler/testData/box/extensions"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.decompiled\\.kt?$"), true);
+        }
+
+        @TestMetadata("builtinClassExtension.kt")
+        public void testBuiltinClassExtension() throws Exception {
+            runTest("libraries/tools/kotlin-decompiler/testData/box/extensions/builtinClassExtension.kt");
+        }
+
+        @TestMetadata("customClassExtension.kt")
+        public void testCustomClassExtension() throws Exception {
+            runTest("libraries/tools/kotlin-decompiler/testData/box/extensions/customClassExtension.kt");
+        }
+
+        @TestMetadata("genericClassExtension.kt")
+        public void testGenericClassExtension() throws Exception {
+            runTest("libraries/tools/kotlin-decompiler/testData/box/extensions/genericClassExtension.kt");
+        }
+
+        @TestMetadata("sealedClassChildrenExtension.kt")
+        public void testSealedClassChildrenExtension() throws Exception {
+            runTest("libraries/tools/kotlin-decompiler/testData/box/extensions/sealedClassChildrenExtension.kt");
         }
     }
 

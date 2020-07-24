@@ -1,0 +1,28 @@
+// FILE: /genericClassExtension.kt
+
+class Clazz<T>(final val x: T) {
+}
+
+fun Clazz<Int>.isPositive(): Boolean {
+    return this.x > 0
+}
+
+val Clazz<String>.isEmpty: Boolean
+    get() = this.x.isEmpty()
+
+
+fun box(): String {
+    val intClazz = Clazz<Int>(42)
+    val intCallExtResult = intClazz.isPositive()
+    val extFunIntRef : (Clazz<Int>) -> Boolean = Clazz<Int>::isPositive
+    val callRefResult = extFunIntRef(intClazz)
+    val stringClazz = Clazz<String>("OK")
+    val stringExtPropResult = !stringClazz.isEmpty
+    val stringClazzPropRef : (Clazz<String>) -> Boolean = Clazz<String>::isEmpty
+    val stringClazzPropRefResult = !stringClazzPropRef(stringClazz)
+    return if (intCallExtResult && callRefResult && stringExtPropResult && stringClazzPropRefResult) {
+        stringClazz.x
+    } else {
+        "FAIL"
+    }
+}

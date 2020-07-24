@@ -124,6 +124,7 @@ abstract class AbstractDecompilerTreeClass(
         ).joinToString(" ").trimEnd()
 
     override fun produceSources(printer: SmartPrinter) {
+        updatePrimaryConstructorDefaultVisibility()
         with(printer) {
             print(fullHeader)
             declarationsToPrint.ifNotEmpty {
@@ -134,6 +135,10 @@ abstract class AbstractDecompilerTreeClass(
                 }
             } ?: println()
         }
+    }
+
+    private fun updatePrimaryConstructorDefaultVisibility() {
+        if (element.modality == Modality.SEALED) primaryConstructor?.defaultVisibility = Visibilities.PRIVATE
     }
 }
 

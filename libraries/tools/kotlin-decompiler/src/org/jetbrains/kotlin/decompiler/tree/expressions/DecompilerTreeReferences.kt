@@ -62,7 +62,7 @@ class DecompilerTreeSimpleFunctionReference(
             // TODO how to retrieve this information correctly
             ?: ((type.irType as? IrSimpleType)?.arguments?.get(0) as? IrSimpleType)
                 ?.toKotlinType()?.toString()
-                ?.takeIf { parentDeclaration != null }
+                ?.takeIf { parentDeclaration != null || element.symbol.owner.extensionReceiverParameter != null }
 
         val rhs = element.referencedName.asString()
         listOfNotNull(lhs, "::", rhs)
@@ -112,7 +112,7 @@ class DecompilerTreePropertyReference(
             // TODO how to retrieve this information correctly
             ?: ((type.irType as? IrSimpleType)?.arguments?.get(0) as? IrSimpleType)
                 ?.toKotlinType()?.toString()
-                ?.takeIf { parentDeclaration != null }
+                ?.takeIf { parentDeclaration != null || element.symbol.owner.getter?.extensionReceiverParameter != null }
 
         val rhs = element.referencedName.asString()
         listOfNotNull(lhs, "::", rhs)

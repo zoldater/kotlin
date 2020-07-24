@@ -101,7 +101,8 @@ class DecompilerTreePrimaryConstructor(
 
     override val headerWithPrimaryCtorOrNull: String?
         get() = super.headerWithPrimaryCtorOrNull?.takeIf { !isObjectConstructor }
-    override val keyword: String? = "constructor".takeIf { !isTrivial }
+    override val keyword: String?
+        get() = "constructor".takeIf { !isTrivial }
     override val valueParametersOrNull: String?
         get() = valueParametersForPrint
     override val delegatingCallDecompiledOrNull: String?

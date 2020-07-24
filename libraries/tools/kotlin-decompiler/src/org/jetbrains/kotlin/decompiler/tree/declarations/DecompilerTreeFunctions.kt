@@ -101,9 +101,9 @@ class DecompilerTreeSimpleFunction(
     override fun produceSources(printer: SmartPrinter) {
         with(printer) {
             listOfNotNull(
-                listOfNotNull(functionFlags.ifNotEmpty { joinToString(" ") }, "fun", nameWithReciever)
+                listOfNotNull(functionFlags.ifNotEmpty { joinToString(" ") }, "fun", typeParametersForPrint, nameWithReciever)
                     .ifNotEmpty { joinToString(" ") },
-                typeParametersForPrint, valueParametersForPrint, returnType.takeIf { !it.irType.isUnit() }?.let { ": ${it.decompile()}" }
+                valueParametersForPrint, returnType.takeIf { !it.irType.isUnit() }?.let { ": ${it.decompile()}" }
             ).joinToString("").also { print(it) }
             element.origin
 
